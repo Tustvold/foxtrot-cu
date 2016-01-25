@@ -1,6 +1,9 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
 version '1.0'
+
+mainClassName = 'cam.ac.uk.foxtrot.Main'
 
 jar {
     manifest {
@@ -21,6 +24,7 @@ sourceSets {
         }
     }
 }
+
 
 
 repositories {
