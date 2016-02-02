@@ -71,3 +71,7 @@ gradle-app.setting
 
 # Cache of project
 .gradletasknamecache
+
+
+# NodeJS
+node_modules
