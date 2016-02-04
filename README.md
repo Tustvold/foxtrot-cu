@@ -1,4 +1,4 @@
-1) To install node go to (https://nodejs.org/)
+1) To install node go to (https://nodejs.org/) and download version 4.2.6 LTS
 
 2) `cd foxtrot-cu-server/`
 
