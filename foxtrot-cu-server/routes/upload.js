@@ -15,8 +15,10 @@ router.post('/', upload.any(), function(req,res,next){
         res.write(data);
     });
     child.on('exit', function (code) {
-        res.end(code.toString());
-        console.log('child process exited with code ' + code);
+        setTimeout(function() { // to simulate a long running jar file.
+            res.end(code.toString());
+            console.log('child process exited with code ' + code);
+        }, 5 * 1000)
     });
 });
 
