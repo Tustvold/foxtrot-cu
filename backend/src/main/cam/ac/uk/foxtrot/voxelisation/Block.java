@@ -1,16 +1,23 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
-import javax.vecmath.Matrix4f;
+import com.google.gson.annotations.SerializedName;
+
 import javax.vecmath.Vector3d;
+
+
 
 public class Block {
 
+    @SerializedName("pos")
     private Vector3d mPosition;
 
+    @SerializedName("custom_part_array")
     private CustomPart[] mCustomPart;
 
+    @SerializedName("use_custom_part")
     private boolean mUsingSuggestCustomPart;
 
+    @SerializedName("suggested_custom_part")
     private int mSuggestedCustomPartIndex;
 
     public Block(Vector3d position, CustomPart[] customPart,
