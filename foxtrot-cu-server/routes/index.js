@@ -7,5 +7,8 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+router.get('/upload-form',function(req, res, next) {
+  res.render('upload-form');
+});
 
 module.exports = router;
