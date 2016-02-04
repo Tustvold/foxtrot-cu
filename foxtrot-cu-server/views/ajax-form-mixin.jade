@@ -1,0 +1,16 @@
+//- http://malsup.com/jquery/form/ for the info on ajaxForm
+
+mixin ajaxFormMixin(form)
+   script(type='text/javascript').
+      var options = {
+         beforeSubmit: showRequest,  // pre-submit callback
+         success: showResponse  // post-submit callback
+      };
+      $('form').ajaxForm(options)
+      function showRequest(formData, jqForm, options) {
+         console.log('start')
+         return true;
+      }
+      function showResponse(responseText, statusText, xhr, $form) {
+         console.log('end')
+      }
