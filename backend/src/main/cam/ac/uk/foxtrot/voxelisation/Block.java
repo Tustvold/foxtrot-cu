@@ -1,60 +1,43 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3d;
 
 public class Block {
 
-    private Matrix4f transform;
+    private Vector3d mPosition;
 
-    private Mesh mesh;
+    private CustomPart[] mCustomPart;
 
-    private CustomPartMould custom_mould;
+    private boolean mUsingSuggestCustomPart;
 
-    /**
-     *
-     * Constructs a new Block with the provided mesh and transform
-     *
-     * @param mesh the exact mesh
-     * @param transform the transform of this Block
-     */
-    public Block(Mesh mesh, Matrix4f transform) {
-        this.mesh = mesh;
-        this.transform = transform;
+    private int mSuggestedCustomPartIndex;
+
+    public Block(Vector3d position, CustomPart[] customPart,
+                 boolean suggestUseCustomPart, int suggestedCustomPartIndex) {
+        mPosition = position;
+        mCustomPart = customPart;
+        mUsingSuggestCustomPart = suggestUseCustomPart;
+        mSuggestedCustomPartIndex = suggestedCustomPartIndex;
     }
 
-    /**
-     * @return True if Block has an associated custom mould
-     */
-    public Boolean usesCustomPart() {
-        return custom_mould != null;
+    public Vector3d getPosition() {
+        return mPosition;
     }
 
-    /**
-     * @return the mesh of this block (NB this is the exact mesh not the approximated one)
-     */
-    public Mesh getMesh() {
-        return mesh;
+    public CustomPart[] getCustomPart() {
+        return mCustomPart;
     }
 
-    /**
-     * @return the custom_mould associated with this part if any. Returns null if no custom mould
-     */
-    public CustomPartMould getCustomMould() {
-        return custom_mould;
+    public boolean isUsingSuggestCustomPart() {
+        return mUsingSuggestCustomPart;
     }
 
-    /**
-     * Generates a custom mould for this Block
-     */
-    public void generateCustomMould(String name) {
-        custom_mould = new CustomPartMould(this, name);
+    public int getSuggestedCustomPartIndex() {
+        return mSuggestedCustomPartIndex;
     }
 
-    /**
-     * @return the transform for this block
-     */
-    public Matrix4f getTransform() {
-        return transform;
-    }
+
+
 
 }
