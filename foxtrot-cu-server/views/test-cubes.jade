@@ -1,0 +1,17 @@
+include mixins
+include ajax-form-mixin
+doctype
+html(lang='en')
+    head
+        +standard_head("Upload Form")
+    body(style="padding-bottom:10rem;")
+        +standard_body()
+        +threejs_body()
+
+        div(style="width:1000px; margin-left:auto; margin-right:auto")
+            h1 Test Cubes
+            .panel.panel-default
+                .panel-body
+                    div(id='container')
+
+        script(src='/scripts/test-cubes.js')

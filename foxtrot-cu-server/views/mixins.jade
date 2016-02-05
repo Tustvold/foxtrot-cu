@@ -21,3 +21,7 @@ mixin file_browser_button(name)
                 |Browse&hellip;
                 input(type="file",name=name)
         input(type="text",class="form-control",readonly)
+
+mixin threejs_body()
+    script(src='//threejs.org/build/three.min.js')
+    script(src='//threejs.org/examples/js/libs/stats.min.js')
