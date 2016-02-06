@@ -41,7 +41,8 @@ public class CustomPartMould {
      * @param directory the directory to write the file in
      * @param meshIO the meshIO object to use to write
      */
+    /*
     public void writeToDirectory(String directory, MeshIO meshIO) throws IOException {
         meshIO.writeToFile(directory + name, mesh);
-    }
+    }*/
 }
