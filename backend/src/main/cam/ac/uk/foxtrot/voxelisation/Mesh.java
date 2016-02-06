@@ -16,7 +16,7 @@ public class Mesh
     private Mesh[][][] blocks;               // empty unless top level block (allows finer division if needed
     private float cubeSize = 0.5f;           // size of standard cube (TODO to be set by user)
 
-    
+
     public Mesh(Vector3f origin, float cubeSize, BranchGroup objRoot)
     {
         // TODO
