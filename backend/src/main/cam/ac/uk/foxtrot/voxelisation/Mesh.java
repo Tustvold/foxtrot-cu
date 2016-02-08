@@ -1,11 +1,10 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
+
 import javax.media.j3d.BranchGroup;
-import javax.vecmath.Matrix3f;
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class Mesh
 {
