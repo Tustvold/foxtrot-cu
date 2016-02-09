@@ -50,10 +50,11 @@ html
 
         function showResponse(responseText, statusText, xhr, $form) {
           console.log(responseText)
+          responseText = JSON.parse(responseText);
           if ('error' in responseText) {
             alert('failed: ' + responseText.error)
           } else if ('data' in responseText) {
-            render.setBlockList(responseText.data)
+            BlockRenderer.setBlockList(responseText.data)
           }
         }
       })
