@@ -19,6 +19,8 @@ public class Mesh
     public Mesh(Vector3f origin, float cubeSize, BranchGroup objRoot)
     {
         // TODO
+
+
     }
 
 }
