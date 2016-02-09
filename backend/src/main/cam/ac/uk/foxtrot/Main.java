@@ -1,8 +1,12 @@
 package cam.ac.uk.foxtrot;
 
+import cam.ac.uk.foxtrot.voxelisation.Block;
 import cam.ac.uk.foxtrot.voxelisation.Mesh;
 import cam.ac.uk.foxtrot.voxelisation.MeshIO;
+import com.google.gson.GsonBuilder;
+import com.sun.glass.ui.SystemClipboard;
 import com.sun.j3d.loaders.Scene;
+import com.google.gson.Gson;
 
 import javax.vecmath.Vector3f;
 import java.io.IOException;
@@ -22,6 +26,11 @@ public class Main
      */
     public static void main(String[] args) throws Exception
     {
+        if (args.length < 1) {
+            System.err.println("Error: No file");
+        }
+        String filePath = args[0];
+
         System.out.println("Starting...");
         //TODO: Load Mesh from file
         MeshIO meshIO = new MeshIO();
@@ -41,8 +50,18 @@ public class Main
 
         //TODO: Voxelise Mesh
 
+        Block[] b = new Block[100]; // The returned block array
+
+        GsonBuilder builder = new GsonBuilder();
+        builder.serializeNulls();
+        Gson gsonParser = builder.create();
+        System.out.print(gsonParser.toJson(b));
+
+
+
         //TODO: Generate Instructions
 
         //TODO: Generate Custom Parts Zip File
+
     }
 }
