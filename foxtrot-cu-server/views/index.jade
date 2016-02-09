@@ -7,16 +7,54 @@ html
   body
     form.form-group(method="post",enctype="multipart/form-data",action="/upload")
       p
-        input(type="file",name="a")
+        input(type="file",name="uploaded-mesh")
         input(type="submit")
 
-
-    div.model-viewer.input#container
-    div.model-viewer.output
+    div.models
+      div.model-viewer.input#container
+      div.model-viewer.output
 
 
     +threejs_body()
     +standard_body()
-    +ajaxFormMixin('form')
-    script(src='/scripts/test-cubes.js')
+    script(src='/scripts/ObjFileRenderer.js')
+    script(src='/scripts/BlockListRenderer.js')
+    script(type='text/javascript').
+      var objRender, BlockRenderer;
+      var height = 600;
+      var width = 600;
+
+
+      $('document').ready(function () {
+        $('.model-viewer').css('width', width).css('height', height);
+
+        BlockRenderer = BlockListRenderer(width, height, 'div.output');
+        var options = {
+          beforeSubmit: showRequest,  // pre-submit callback
+          success: showResponse  // post-submit callback
+        };
+        $('form').ajaxForm(options)
+        function showRequest(formData, jqForm, options) {
+
+          console.log('start')
+          console.log(formData[0].value)
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            var contents = e.target.result;
+            objRender = ObjFileRenderer(contents, width, height, 'div.input');
+
+          };
+          reader.readAsText(formData[0].value);
+          return true;
+        }
+
+        function showResponse(responseText, statusText, xhr, $form) {
+          console.log(responseText)
+          if ('error' in responseText) {
+            alert('failed: ' + responseText.error)
+          } else if ('data' in responseText) {
+            render.setBlockList(responseText.data)
+          }
+        }
+      })
 
