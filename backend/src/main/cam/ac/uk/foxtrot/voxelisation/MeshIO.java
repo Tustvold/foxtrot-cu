@@ -5,13 +5,16 @@ import com.sun.j3d.loaders.IncorrectFormatException;
 import com.sun.j3d.loaders.ParsingErrorException;
 import com.sun.j3d.loaders.Scene;
 import com.sun.j3d.loaders.objectfile.ObjectFile;
+import com.sun.j3d.utils.geometry.GeometryInfo;
 
-import javax.media.j3d.BranchGroup;
+import javax.media.j3d.*;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 public class MeshIO
 {
+
     /**
      * Read the mesh from the file at path filename
      * <p/>
@@ -21,9 +24,10 @@ public class MeshIO
      * @return the loaded mesh
      * @throws IOException
      */
-    public BranchGroup readFromFile(String filename) throws IOException
+    public Scene readFromFile(String filename) throws IOException
     {
-        ObjectFile theOBJFile = new ObjectFile(ObjectFile.TRIANGULATE);
+        ObjectFile theOBJFile = new ObjectFile();
+        theOBJFile.setFlags(ObjectFile.TRIANGULATE);
         Scene theScene;
         try
         {
@@ -42,45 +46,9 @@ public class MeshIO
             throw new IOException("Parsing failed!");
         }
 
-        BranchGroup objRoot = theScene.getSceneGroup();
-        //Enumeration allChildren = objRoot.getAllChildren();
+        return theScene;
+    }
 
-        return objRoot;
-    }
-/*
-    d draw(theNode)
-    {
-        if (theNode instanceof Group)
-        {
-            for (each child of the Group)
-            draw(childNode);
-        }
-        else if (theNode instanceof Leaf)
-        {
-            drawLeaf(theNode);
-        }
-    }
-    void drawLeaf(theLeaf)
-    {
-        if (theLeaf instanceof Shape3D)
-        {
-            Geometry geo = theShape.getGeometry();
-            Appearance app = theShape.getAppearance();
-            Material mat = app.getMaterial();
-            Get data (coords, normals, colors, and/or tex coords) from geo;
-            Get color data out of material;
-            glBegin (GL_TRIANGLES);
-            glColor (materialColor);
-            for (each vertex in geo)
-            {
-                glNormal(vertexNormal);
-                glTexCoord(vertexTextureCoords);
-                glVertex (x,y,z);
-            }
-            gl.glEnd();
-        }
-    }
-*/
     /**
      * Write the provided mesh to a file at the provided filename
      * <p/>
