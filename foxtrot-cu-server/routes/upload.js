@@ -11,6 +11,8 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
     child = exec('<run exec> ' + req.file.path);
     console.log(req.file)
 
+    res.header("Content-Type", "application/json");
+
     // Any data from the jar
     child.stdout.on('data', function(data) {
         if(!res.finished) {
@@ -21,7 +23,7 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
     // Any error will return those errors
     child.stderr.on('data', function(data) {
         console.log(data)
-        res.status(200).send({ error: data }).end()
+        res.status(200).json({error: data})
     });
 
     // If the jar finished successfully

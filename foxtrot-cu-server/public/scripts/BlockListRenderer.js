@@ -4,6 +4,7 @@ BlockListRenderer = function(width, height, domElement) {
 
     this.setBlockList = function(blockList) {
         // Will set this element to render the provided blocklist
+        console.log("Block List set to " + blockList);
     }
 
     this.onBlockSelected = function(block) {
