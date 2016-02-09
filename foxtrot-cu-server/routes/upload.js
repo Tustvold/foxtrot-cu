@@ -8,7 +8,7 @@ var upload = multer({ dest: '/tmp/uploads/' });
 
 router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
 
-    child = exec('java -jar jar/backend.jar ' + req.file.path);
+    child = exec('<run exec> ' + req.file.path);
     console.log(req.file)
 
     // Any data from the jar
@@ -28,7 +28,7 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
     child.on('exit', function (code) {
         if(!res.finished) {
             setTimeout(function () { // to simulate a long running jar file.
-                res.end(code.toString());
+                res.end();
                 console.log('child process exited with code ' + code);
             }, 5 * 1000)
         }
