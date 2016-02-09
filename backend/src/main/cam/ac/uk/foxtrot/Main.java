@@ -8,6 +8,7 @@ import com.sun.glass.ui.SystemClipboard;
 import com.sun.j3d.loaders.Scene;
 import com.google.gson.Gson;
 
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 import java.io.IOException;
 
@@ -28,6 +29,7 @@ public class Main
     {
         if (args.length < 1) {
             System.err.println("Error: No file");
+            return;
         }
         String filePath = args[0];
 
@@ -50,7 +52,9 @@ public class Main
 
         //TODO: Voxelise Mesh
 
-        Block[] b = new Block[100]; // The returned block array
+        Block[] b = new Block[5]; // The returned block array
+
+
 
         GsonBuilder builder = new GsonBuilder();
         builder.serializeNulls();
