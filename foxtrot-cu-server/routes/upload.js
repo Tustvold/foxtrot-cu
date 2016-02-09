@@ -7,13 +7,16 @@ var upload = multer({ dest: '/tmp/uploads/' });
 
 
 router.post('/', upload.any(), function(req,res,next){
-    console.log(req.body);
-    console.log(req.files);
 
-    child = exec('java -jar jar/final.jar 2 2');
+    child = exec('java -jar jar/backend.jar ' + req.files[0].path);
+    console.log('here')
+    console.log(child)
     child.stdout.on('data', function(data) {
         res.write(data);
     });
+    child.stderr.on('data', function(data) {
+        console.log(data)
+    })
     child.on('exit', function (code) {
         setTimeout(function() { // to simulate a long running jar file.
             res.end(code.toString());

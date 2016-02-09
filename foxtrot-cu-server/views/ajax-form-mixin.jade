@@ -2,6 +2,7 @@
 
 mixin ajaxFormMixin(form)
    script(type='text/javascript').
+
       var options = {
          beforeSubmit: showRequest,  // pre-submit callback
          success: showResponse  // post-submit callback
@@ -12,5 +13,5 @@ mixin ajaxFormMixin(form)
          return true;
       }
       function showResponse(responseText, statusText, xhr, $form) {
-         console.log('end')
+         console.log(responseText)
       }

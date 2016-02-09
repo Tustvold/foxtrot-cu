@@ -1,13 +1,22 @@
+include mixins
+include ajax-form-mixin
 html
   head
     title
+    link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    form(method="post",enctype="multipart/form-data",action="/upload")
-      p
-        input(type="text",name="title",placeholder="title")
+    form.form-group(method="post",enctype="multipart/form-data",action="/upload")
       p
         input(type="file",name="a")
-      p
-        input(type="file",name="b")
-      p
         input(type="submit")
+
+
+    div.model-viewer.input#container
+    div.model-viewer.output
+
+
+    +threejs_body()
+    +standard_body()
+    +ajaxFormMixin('form')
+    script(src='/scripts/test-cubes.js')
+

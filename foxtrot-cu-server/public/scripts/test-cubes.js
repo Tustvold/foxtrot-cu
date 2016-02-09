@@ -4,8 +4,8 @@ var pickingData = [], pickingTexture, pickingScene;
 var objects = [];
 var highlightBox;
 
-var screen_width = 1000-30;
-var screen_height = 800;
+var screen_width = 500;
+var screen_height = 500;
 
 var mouse = new THREE.Vector2();
 var offset = new THREE.Vector3( 10, 10, 10 );
@@ -122,7 +122,7 @@ function init() {
 	stats = new Stats();
 	stats.domElement.style.position = 'absolute';
 	stats.domElement.style.top = '0px';
-	container.appendChild( stats.domElement );
+	//container.appendChild( stats.domElement );
 
 	renderer.domElement.addEventListener( 'mousemove', onMouseMove );
 
