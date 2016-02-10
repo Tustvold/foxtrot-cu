@@ -6,6 +6,7 @@ import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Block
@@ -18,16 +19,11 @@ public class Block
         return triangles;
     }
 
-    public Vector3f getSize()
-    {
-        return new Vector3f(mPosition);
-    }
-
     public void addTriangle(Point3f fir, Point3f sec, Point3f trd)
     {
-        triangles.add(new Point3f(fir.x - (float)mPosition.x, fir.y - (float)mPosition.y, fir.z - (float)mPosition.z));
-        triangles.add(new Point3f(sec.x - (float)mPosition.x, sec.y - (float)mPosition.y, sec.z - (float)mPosition.z));
-        triangles.add(new Point3f(trd.x - (float)mPosition.x, trd.y - (float)mPosition.y, trd.z - (float)mPosition.z));
+        triangles.add(new Point3f(fir.x - (float) mPosition.x, fir.y - (float) mPosition.y, fir.z - (float) mPosition.z));
+        triangles.add(new Point3f(sec.x - (float) mPosition.x, sec.y - (float) mPosition.y, sec.z - (float) mPosition.z));
+        triangles.add(new Point3f(trd.x - (float) mPosition.x, trd.y - (float) mPosition.y, trd.z - (float) mPosition.z));
         triangleCnt++;
     }
 
@@ -105,5 +101,48 @@ public class Block
         return mSuggestedCustomPartIndex;
     }
 
+    public void drawBlock(String filename)
+    {
+        System.out.println("Drawing single block...");
+        Writer writer = null;
 
+        try
+        {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+        } catch (IOException ex)
+        {
+            System.err.println(ex.getMessage());
+        }
+
+        int totalTriangles = 0;
+
+        for (int i = 0; i < triangleCnt * 3; i++)
+        {
+            try
+            {
+                Point3f currPt = triangles.get(i);
+                writer.write("v " + currPt.x + " " + currPt.y + " " + currPt.z + "\n");
+            } catch (IOException err)
+            {
+                System.err.println("Could not write vertex: " + err.getMessage());
+            }
+        }
+
+        for (int i = 1; i < triangleCnt * 3; i += 3)
+        {
+            try
+            {
+                writer.write("f " + i + " " + (i + 1) + " " + (i + 2) + "\n");
+            } catch (IOException err)
+            {
+                System.err.println("Could not write triangle: " + err.getMessage());
+            }
+        }
+        try
+        {
+            writer.close();
+        } catch (Exception ex)
+        {/*ignore*/}
+        System.out.println("Done...");
+    }
 }

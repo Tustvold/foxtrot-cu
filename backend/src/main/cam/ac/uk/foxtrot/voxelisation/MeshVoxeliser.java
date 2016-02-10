@@ -49,7 +49,7 @@ public class MeshVoxeliser
 
         setMeshOffsetAndDetermineDimensions();
         shiftMeshByOffset();
-        Block[][][] blocks = generateBlocks(mesh);
+        generateBlocks(mesh);
         generateCustomParts(blocks);
     }
 
@@ -192,6 +192,7 @@ public class MeshVoxeliser
         }
         return new Point3f(coords);
     }
+
 
     // intersects the line between fir and sec with the vertical line at line ignoring the ignoreth coordinate
     // and writes the return in res. Returns true if there is an intersection
@@ -363,10 +364,6 @@ public class MeshVoxeliser
                 for (int curr = 0; curr < currLen; curr++)
                 {
                     ArrayList<Point3f> poly = new ArrayList<>(polygonList.get(curr));
-                    if (poly.size() == 0)
-                    {
-                        continue;
-                    }
                     int cnt = poly.size();
                     // now we perform the clipping and division
                     // since we can only have two intersections, we iterate through the points and check for new vertices that need to be added
@@ -450,11 +447,11 @@ public class MeshVoxeliser
                         }
                     }
 
-                    if (!onlyFirst && polys.get(1) != null && polys.get(1).size() < 2)
+                    if (!onlyFirst && polys.get(1) != null && polys.get(1).size() > 2)
                     {
                         // this means we need to refactor the polygon list
-                        polygonList.set(curr, polys.get(0));
-                        polygonList.add(polys.get(1));
+                        polygonList.set(curr, new ArrayList<>(polys.get(0)));
+                        polygonList.add(new ArrayList<>(polys.get(1)));
                     }
                 }
             }
@@ -482,15 +479,11 @@ public class MeshVoxeliser
         for (int curr = 0; curr < cnt; curr++)
         {
             ArrayList<Point3f> poly = polygonList.get(curr);
-            if (poly == null || poly.size() < 3)
-            {
-                continue;
-            }
-            int x = (int) poly.get(0).x;
-            int y = (int) poly.get(0).y;
-            int z = (int) poly.get(0).z;
+            int x = (int) Math.ceil(poly.get(0).x) - 1;
+            int y = (int) Math.ceil(poly.get(0).y) - 1;
+            int z = (int) Math.ceil(poly.get(0).z) - 1;
 
-            System.out.println("Current representative point: " + poly.get(0).x + " " + poly.get(0).y + " " + poly.get(0).z);
+            //System.out.println("Current representative point: " + poly.get(0).x + " " + poly.get(0).y + " " + poly.get(0).z);
 
             if (blocks[x][y][z] == null)
             {
@@ -540,16 +533,18 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null)
                         continue;
+                    blocks[x][y][z].drawBlock("blocks/block " + x + " " + " " + y + " " + z +".obj");
                     ArrayList<Point3f> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
+                    blocks[x][y][z].drawBlock("block.obj");
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
                     for (int i = 0; i < blocks[x][y][z].getTriangleCount() * 3; i++)
                     {
                         try
                         {
-                            writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getSize().x) + " "
-                                    + (triangles.get(i).y + blocks[x][y][z].getSize().y) + " "
-                                    + (triangles.get(i).z + blocks[x][y][z].getSize().z) + "\n");
+                            writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x) + " "
+                                    + (triangles.get(i).y + blocks[x][y][z].getPosition().y) + " "
+                                    + (triangles.get(i).z + blocks[x][y][z].getPosition().z) + "\n");
                         } catch (IOException err)
                         {
                             System.err.println("Could not write blocks: " + err.getMessage());
