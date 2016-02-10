@@ -1,7 +1,3 @@
-/**
- * Created by Issie on 09/02/2016.
- */
-
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.union.UnaryUnionOp;
@@ -15,9 +11,7 @@ import javax.vecmath.Point3f;
 public class IntersectionRemover {
     MultiPolygon union;
 
-    public IntersectionRemover(TriangleArray triangleArray){
-        GeometryInfo geometryInfo = new GeometryInfo(triangleArray);
-        Point3f[] originalCoordinates = geometryInfo.getCoordinates();
+    public IntersectionRemover(Point3f[] originalCoordinates){
         List<Geometry> geometryList = new ArrayList<>();
         GeometryFactory factory = new GeometryFactory();
         for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
@@ -35,6 +29,10 @@ public class IntersectionRemover {
         float[] xyz = new float[3];
         point.get(xyz);
         return new Coordinate(xyz[0],xyz[1],xyz[2]);
+    }
+
+    public MultiPolygon getResult() {
+        return union;
     }
 
 }
