@@ -15,4 +15,12 @@ router.get('/test-cubes',function(req, res, next) {
   res.render('test-cubes');
 });
 
+router.get('/design',function(req, res, next) {
+  res.render('design');
+});
+
+router.get('/loader',function(req, res, next) {
+  res.render('loader');
+});
+
 module.exports = router;

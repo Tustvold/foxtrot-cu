@@ -1,0 +1,48 @@
+include mixins
+doctype
+html(lang='en')
+	head
+		+standard_head("Edible Lego")
+	body(style="padding-bottom:10rem;")
+		+standard_body()
+		+threejs_body()
+		.container
+			row
+				h1(class="text-center") Edible Lego
+			row
+				.col-md-6
+					row
+						div
+							h3(class="text-center") Upload
+					row
+						div(style="margin-left:auto; margin-right:auto" align="center")
+							.panel.panel-default
+								.panel-body
+									div(id='container')
+										script(src='/scripts/test-cubes.js')
+										
+				.col-md-6
+					row
+						div
+							h3(class="text-center") Design
+					row
+						div(style="margin-left:auto; margin-right:auto" align="center")
+							.panel.panel-default
+								.panel-body
+									div(id='container2')
+										script(src='/scripts/test-cubes2.js')
+				
+			row
+				h2(class="text-center") Customise 
+				hr
+				.col-md-6.col-md-offset-3
+					table(align="center" style="width:100%")
+						tr 
+							th BLOCK
+							th CUSTOM
+						-for(var x =0; x<10; x++)
+							tr
+								td(align="center") Block
+								td(align="center") 
+									input(type='checkbox', checked)
+				
