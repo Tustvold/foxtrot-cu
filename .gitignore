@@ -75,3 +75,6 @@ gradle-app.setting
 
 # NodeJS
 node_modules
+
+# Mac OSX
+.DS_Store
