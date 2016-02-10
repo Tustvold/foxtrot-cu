@@ -46,6 +46,7 @@ public class MeshIO
             throw new IOException("Parsing failed!");
         }
 
+        System.out.println("Loading mesh...");
         return theScene;
     }
 

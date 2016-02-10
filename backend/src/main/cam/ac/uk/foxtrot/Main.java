@@ -1,7 +1,9 @@
 package cam.ac.uk.foxtrot;
 
+import cam.ac.uk.foxtrot.voxelisation.Block;
 import cam.ac.uk.foxtrot.voxelisation.Mesh;
 import cam.ac.uk.foxtrot.voxelisation.MeshIO;
+import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
 import com.sun.j3d.loaders.Scene;
 
 import javax.vecmath.Vector3f;
@@ -25,7 +27,6 @@ public class Main
         System.out.println("Starting...");
         //TODO: Load Mesh from file
         MeshIO meshIO = new MeshIO();
-        System.out.println("Loading mesh...");
         Scene scene;
         try
         {
@@ -37,9 +38,11 @@ public class Main
             return;
         }
         Mesh m = new Mesh(scene);
-        System.out.println("Mesh loaded...");
 
         //TODO: Voxelise Mesh
+        MeshVoxeliser voxeliser = new MeshVoxeliser(m);
+        Block[][][] blocks = voxeliser.getBlocks();
+
 
         //TODO: Generate Instructions
 
