@@ -53,6 +53,22 @@ public class MeshVoxeliser
         generateCustomParts(blocks);
     }
 
+    private Point3f getCenterOfMass(ArrayList<Point3f> poly)
+    {
+        Point3f cm = new Point3f(0, 0, 0);
+        int cnt = poly.size();
+        for (int i = 0; i < cnt; i++)
+        {
+            cm.x += poly.get(i).x;
+            cm.y += poly.get(i).y;
+            cm.z += poly.get(i).z;
+        }
+        cm.x /= cnt;
+        cm.y /= cnt;
+        cm.z /= cnt;
+        return cm;
+    }
+
     // determines the minimum values of the x,y, and z dimensions separately
     private Point3f getMaximumInitialCoodrinateBounds()
     {
@@ -479,15 +495,16 @@ public class MeshVoxeliser
         for (int curr = 0; curr < cnt; curr++)
         {
             ArrayList<Point3f> poly = polygonList.get(curr);
-            int x = (int) Math.ceil(poly.get(0).x) - 1;
-            int y = (int) Math.ceil(poly.get(0).y) - 1;
-            int z = (int) Math.ceil(poly.get(0).z) - 1;
+            Point3f cm = getCenterOfMass(poly);
+            int x = (int) cm.x;
+            int y = (int) cm.y;
+            int z = (int) cm.z;
 
-            //System.out.println("Current representative point: " + poly.get(0).x + " " + poly.get(0).y + " " + poly.get(0).z);
+            System.out.println("Current representative point: " + cm.x + " " + cm.y + " " + cm.z);
 
             if (blocks[x][y][z] == null)
             {
-                blocks[x][y][z] = new Block(new Vector3d(x, y, z));
+                blocks[x][y][z] = new Block(new Vector3f(x, y, z));
             }
 
             // add the first triangle
@@ -533,18 +550,24 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null)
                         continue;
-                    blocks[x][y][z].drawBlock("blocks/block " + x + " " + " " + y + " " + z +".obj");
+                    blocks[x][y][z].drawBlock("blocks/block " + x + " " + " " + y + " " + z + ".obj");
                     ArrayList<Point3f> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
-                    blocks[x][y][z].drawBlock("block.obj");
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
                     for (int i = 0; i < blocks[x][y][z].getTriangleCount() * 3; i++)
                     {
                         try
                         {
+                            /*
+                            writer.write("v " + triangles.get(i).x + " "
+                                    + triangles.get(i).y + " "
+                                    + triangles.get(i).z + "\n");
+                                    */
+
                             writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x) + " "
                                     + (triangles.get(i).y + blocks[x][y][z].getPosition().y) + " "
                                     + (triangles.get(i).z + blocks[x][y][z].getPosition().z) + "\n");
+
                         } catch (IOException err)
                         {
                             System.err.println("Could not write blocks: " + err.getMessage());

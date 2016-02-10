@@ -21,9 +21,9 @@ public class Block
 
     public void addTriangle(Point3f fir, Point3f sec, Point3f trd)
     {
-        triangles.add(new Point3f(fir.x - (float) mPosition.x, fir.y - (float) mPosition.y, fir.z - (float) mPosition.z));
-        triangles.add(new Point3f(sec.x - (float) mPosition.x, sec.y - (float) mPosition.y, sec.z - (float) mPosition.z));
-        triangles.add(new Point3f(trd.x - (float) mPosition.x, trd.y - (float) mPosition.y, trd.z - (float) mPosition.z));
+        triangles.add(new Point3f(fir.x - mPosition.x, fir.y - mPosition.y, fir.z - mPosition.z));
+        triangles.add(new Point3f(sec.x - mPosition.x, sec.y - mPosition.y, sec.z - mPosition.z));
+        triangles.add(new Point3f(trd.x - mPosition.x, trd.y - mPosition.y, trd.z - mPosition.z));
         triangleCnt++;
     }
 
@@ -45,7 +45,7 @@ public class Block
     }
 
     @SerializedName("pos")
-    private Vector3d mPosition;
+    private Vector3f mPosition;
 
     @SerializedName("custom_part_array")
     private CustomPart[] mCustomPart;
@@ -56,7 +56,7 @@ public class Block
     @SerializedName("suggested_custom_part")
     private int mSuggestedCustomPartIndex;
 
-    public Block(Vector3d position, CustomPart[] customPart,
+    public Block(Vector3f position, CustomPart[] customPart,
                  boolean suggestUseCustomPart, int suggestedCustomPartIndex)
     {
         // initialise internals
@@ -69,7 +69,7 @@ public class Block
         mSuggestedCustomPartIndex = suggestedCustomPartIndex;
     }
 
-    public Block(Vector3d position)
+    public Block(Vector3f position)
     {
         // initialise internals
         triangles = new ArrayList<Point3f>();
@@ -81,7 +81,7 @@ public class Block
         mSuggestedCustomPartIndex = 0;
     }
 
-    public Vector3d getPosition()
+    public Vector3f getPosition()
     {
         return mPosition;
     }
