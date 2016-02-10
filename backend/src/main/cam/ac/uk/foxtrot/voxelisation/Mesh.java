@@ -100,7 +100,7 @@ public class Mesh
             curr.z = (curr.z - cm.z) / blockSize;
             triangles.setCoordinate(i, curr);
         }
-        drawTriangles("initial.obj");
+        drawTriangles("../../testing/initial.obj");
     }
 
     public void drawTriangles(String filename)

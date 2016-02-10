@@ -175,7 +175,7 @@ public class MeshVoxeliser
             initialTriangles.setCoordinate(i, new Point3f(curr));
             mesh.getTriangles().setCoordinate(i, curr);
         }
-        mesh.drawTriangles("actualInitial.obj");
+        mesh.drawTriangles("../../testing/actualInitial.obj");
         System.out.println("Mesh shifted...");
     }
 
@@ -550,7 +550,7 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null)
                         continue;
-                    blocks[x][y][z].drawBlock("blocks/block " + x + " " + " " + y + " " + z + ".obj");
+                    blocks[x][y][z].drawBlock("../../testing/blocks/block " + x + " " + " " + y + " " + z + ".obj");
                     ArrayList<Point3f> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
@@ -623,7 +623,7 @@ public class MeshVoxeliser
             subdivideAndClassifyTriangle(tmp);
         }
         fillRemainingBlocks();
-        drawTrianglesFromBlocks("out.obj");
+        drawTrianglesFromBlocks("../../testing/out.obj");
         System.out.println("All blocks filled...");
         return blocks;
     }
