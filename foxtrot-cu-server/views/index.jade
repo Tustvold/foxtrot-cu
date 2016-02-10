@@ -11,16 +11,22 @@ html
         input(type="submit")
 
     div.models
-      div.model-viewer.input#container
-      div.model-viewer.output
+      div.model-viewer.input#input-container
+      div.model-viewer.output#output-container
 
 
     +threejs_body()
     +standard_body()
+    script(src='/scripts/OrbitControls.js')
+    script(src='/scripts/OBJLoader.js')
+    script(stc='/scripts/Delegate.js')
     script(src='/scripts/ObjFileRenderer.js')
     script(src='/scripts/BlockListRenderer.js')
     script(type='text/javascript').
-      var objRender, BlockRenderer;
+      var objRenderer, BlockRenderer;
+      var objRendererContainer = document.getElementById("input-container")
+      var blockRendererContainer = document.getElementById("output-container")
+      
       var height = 600;
       var width = 600;
 
@@ -28,7 +34,8 @@ html
       $('document').ready(function () {
         $('.model-viewer').css('width', width).css('height', height);
 
-        BlockRenderer = BlockListRenderer(width, height, 'div.output');
+        objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
+        BlockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
         var options = {
           beforeSubmit: showRequest,  // pre-submit callback
           success: showResponse  // post-submit callback
@@ -42,9 +49,9 @@ html
           var reader = new FileReader();
           reader.onload = function (e) {
             var contents = e.target.result;
-            objRender = ObjFileRenderer(contents, width, height, 'div.input');
-
+            objRenderer.setObjData(contents);
           };
+          
           reader.readAsText(formData[0].value);
           return true;
         }
