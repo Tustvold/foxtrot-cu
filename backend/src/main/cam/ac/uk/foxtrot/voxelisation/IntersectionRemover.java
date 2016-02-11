@@ -1,3 +1,5 @@
+package cam.ac.uk.foxtrot.voxelisation;
+
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
