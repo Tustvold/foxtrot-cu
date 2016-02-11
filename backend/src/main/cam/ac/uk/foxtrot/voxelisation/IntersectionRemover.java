@@ -11,6 +11,7 @@ import javax.vecmath.Point3f;
 public class IntersectionRemover {
     Geometry union;
     Point3f[][] polygonArray;
+    Point3f[][] holeArray;
 
     public IntersectionRemover(Point3f[] originalCoordinates){
         List<Geometry> geometryList = new ArrayList<>();
@@ -23,7 +24,8 @@ public class IntersectionRemover {
             geometryList.add(factory.createPolygon(factory.createLinearRing(coordinates),null)); //add triangle to list of geometries
         }
         union = UnaryUnionOp.union(geometryList); //merge geometries, overlapping triangles merged
-        polygonArray = toPoint2dArray(union);
+        generatePolygonArray();
+        generateHoleArray();
     }
 
     // convert original J3D Point3f to JTS Coordinates
@@ -37,31 +39,36 @@ public class IntersectionRemover {
     }
 
     // convert Geometry to array of arrays of Point3fs
-    private Point3f[][] toPoint2dArray(Geometry geometry) {
-        Coordinate[] coordinates = geometry.getCoordinates();
-        LinkedList<Point3f[]> polygonList = new LinkedList<>();
-        LinkedList<Point3f> currentPolygon = new LinkedList<>();
-        Point3f currentStart = null;
-        int length = coordinates.length;
-        if(length>0) {
-            currentStart = toJ3DPoint3f(coordinates[0]);
-            currentPolygon.add(currentStart);
+    private void generatePolygonArray() {
+        int length = union.getNumGeometries();
+        polygonArray = new Point3f[length][];
+        for(int i = 0; i < length; i++) {
+            polygonArray[i] = toPointArray(((Polygon)union.getGeometryN(i)).getExteriorRing());
         }
-        for(int i = 1; i<length; i++) {
-            Point3f point = toJ3DPoint3f(coordinates[i]);
-            if (point.equals(currentStart)) {
-                polygonList.add(currentPolygon.toArray(new Point3f[0]));
-                currentPolygon = new LinkedList<>();
-                if (i < length - 1) {
-                    currentStart = toJ3DPoint3f(coordinates[++i]);
-                    currentPolygon.add(currentStart);
-                }
-            }
-            else {
-                currentPolygon.add(point);
+    }
+
+    private void generateHoleArray() {
+        int length = union.getNumGeometries();
+        LinkedList<Point3f[]> holes = new LinkedList<>();
+        for (int i = 0; i < length; i++) {
+            Polygon polygon = (Polygon)union.getGeometryN(i);
+            int numHoles = polygon.getNumInteriorRing();
+            for (int j = 0; j < numHoles; j++) {
+                holes.add(toPointArray(polygon.getInteriorRingN(j)));
             }
         }
-        return polygonList.toArray(new Point3f[0][]);
+        holeArray = holes.toArray(new Point3f[0][]);
+    }
+
+    //convert LineString to array of Point3fs
+    private Point3f[] toPointArray(LineString lineString) {
+        Coordinate[] coordinates = lineString.getCoordinates();
+        int numPoints = coordinates.length-1;
+        Point3f[] points = new Point3f[numPoints];
+        for(int i = 0; i < numPoints; i++) {
+            points[i] = toJ3DPoint3f(coordinates[i]);
+        }
+        return points;
     }
 
     public Geometry getGeometry() {
@@ -72,13 +79,8 @@ public class IntersectionRemover {
         return polygonArray;
     }
 
-    public static void main(String[] args) {
-        Point3f[] points = {new Point3f(0,0,0), new Point3f(2,0,0), new Point3f(1,2,0),
-                            new Point3f(1,0,0), new Point3f(3,0,0), new Point3f(2,2,0),
-                            new Point3f(0.5f,1.5f,0), new Point3f(2.5f,1.5f,0), new Point3f(1.5f,3.5f,0)};
-        IntersectionRemover merged = new IntersectionRemover(points);
-        System.out.println(Arrays.toString(merged.getGeometry().getCoordinates()));
-        System.out.println(Arrays.deepToString(merged.getPolygonArray()));
+    public Point3f[][] getHoleArray() {
+        return holeArray;
     }
 
 }
