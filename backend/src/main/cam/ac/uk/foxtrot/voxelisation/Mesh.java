@@ -51,19 +51,9 @@ public class Mesh
         triangles = (TriangleArray) info.getGeometryArray();
         rescaleAndCenterMesh();
 
-        System.out.println("Loaded: " + triangles.getVertexCount() / 3 + " triangles"); // Prints around 30.000, sounds about right
-        System.out.println("Vertex format is: " + triangles.getVertexFormat()); // prints 387
+        System.out.println("Loaded: " + triangles.getVertexCount() / 3 + " triangles");
+        System.out.println("Vertex format is: " + triangles.getVertexFormat());
         System.out.println("Mesh loaded...");
-/*
-        Point3f x = new Point3f(0,0,0);
-        triangles.getCoordinate(0, x);
-        System.out.println(x.x + " " + x.y +" " + x.z);
-        triangles.getCoordinate(1, x);
-        System.out.println(x.x + " " + x.y +" " + x.z);
-        triangles.getCoordinate(2, x);
-        System.out.println(x.x + " " + x.y +" " + x.z);
-        System.out.println();
-*/
     }
 
     // returns the meshes centre of mass
@@ -100,12 +90,15 @@ public class Mesh
             curr.z = (curr.z - cm.z) / blockSize;
             triangles.setCoordinate(i, curr);
         }
+
+        // TESTING METHOD!!
         drawTriangles("../../testing/initial.obj");
     }
 
+    // TESTING METHOD!!
     public void drawTriangles(String filename)
     {
-        System.out.println("Preparing initial output...");
+        System.out.println("Preparing mesh output...");
         Writer writer = null;
 
         try
@@ -147,7 +140,7 @@ public class Mesh
             writer.close();
         } catch (Exception ex)
         {/*ignore*/}
-        System.out.println("Initial output created...");
+        System.out.println("Mesh output created...");
     }
 
 }

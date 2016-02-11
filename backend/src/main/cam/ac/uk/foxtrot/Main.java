@@ -28,6 +28,7 @@ public class Main
      */
     public static void main(String[] args) throws Exception
     {
+        System.out.println("Starting...");
         if (args.length < 1)
         {
             System.err.println("Error: No file");
@@ -35,13 +36,12 @@ public class Main
         }
         String filePath = args[0];
 
-        System.out.println("Starting...");
-        //TODO: Load Mesh from file
+        // input the mesh
         MeshIO meshIO = new MeshIO();
         Scene scene;
         try
         {
-            scene = meshIO.readFromFile(args[0]);
+            scene = meshIO.readFromFile(filePath);
         } catch (IOException error)
         {
             System.err.println("Loading fialied:" + error.getMessage());
@@ -49,9 +49,9 @@ public class Main
         }
         Mesh m = new Mesh(scene);
 
+        // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
-
 
         Block[] b = new Block[5]; // The returned block array
 
