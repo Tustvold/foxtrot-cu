@@ -1,16 +1,14 @@
 package cam.ac.uk.foxtrot;
 
+import cam.ac.uk.foxtrot.serializer.BlockJSONSerializer;
 import cam.ac.uk.foxtrot.voxelisation.Block;
 import cam.ac.uk.foxtrot.voxelisation.Mesh;
 import cam.ac.uk.foxtrot.voxelisation.MeshIO;
 import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
 import com.google.gson.GsonBuilder;
-import com.sun.glass.ui.SystemClipboard;
 import com.sun.j3d.loaders.Scene;
 import com.google.gson.Gson;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
 import java.io.IOException;
 
 public class Main
@@ -28,20 +26,20 @@ public class Main
      */
     public static void main(String[] args) throws Exception
     {
-        System.out.println("Starting...");
-        if (args.length < 1)
-        {
-            System.err.println("Error: No file");
-            return;
-        }
-        String filePath = args[0];
+//        System.out.println("Starting...");
+//        if (args.length < 1)
+//        {
+//            System.err.println("Error: No file");
+//            return;
+//        }
+//        String filePath = args[0];
 
         // input the mesh
         MeshIO meshIO = new MeshIO();
         Scene scene;
         try
         {
-            scene = meshIO.readFromFile(filePath);
+            scene = meshIO.readFromFile("/Users/joeisaacs/Desktop/sphere.obj");
         } catch (IOException error)
         {
             System.err.println("Loading fialied:" + error.getMessage());
@@ -53,13 +51,12 @@ public class Main
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
 
-        Block[] b = new Block[5]; // The returned block array
 
 
         GsonBuilder builder = new GsonBuilder();
-        builder.serializeNulls();
+        builder.setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
         Gson gsonParser = builder.create();
-        System.out.print(gsonParser.toJson(b));
+        System.out.print(gsonParser.toJson(blocks));
 
 
         //TODO: Generate Instructions
