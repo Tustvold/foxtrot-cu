@@ -54,7 +54,7 @@ public class Main
 
 
         GsonBuilder builder = new GsonBuilder();
-        builder.setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
+        builder.serializeNulls().setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
         Gson gsonParser = builder.create();
         System.out.print(gsonParser.toJson(blocks));
 
