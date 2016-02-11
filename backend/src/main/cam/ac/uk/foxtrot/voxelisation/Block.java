@@ -4,13 +4,25 @@ import com.google.gson.annotations.SerializedName;
 
 import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3f;
-import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 import java.io.*;
 import java.util.ArrayList;
 
 public class Block
 {
+
+    @SerializedName("pos")
+    private Vector3f mPosition;
+
+    @SerializedName("custom_part_array")
+    private CustomPart[] mCustomPart;
+
+    @SerializedName("use_custom_part")
+    private boolean mUsingSuggestCustomPart;
+
+    @SerializedName("suggested_custom_part")
+    private int mSuggestedCustomPartIndex;
+
     private int triangleCnt; // number of triangles in the block
     private ArrayList<Point3f> triangles; // the triangles representing the part of the mesh which is within the block
 
@@ -44,17 +56,7 @@ public class Block
         return ta;
     }
 
-    @SerializedName("pos")
-    private Vector3f mPosition;
 
-    @SerializedName("custom_part_array")
-    private CustomPart[] mCustomPart;
-
-    @SerializedName("use_custom_part")
-    private boolean mUsingSuggestCustomPart;
-
-    @SerializedName("suggested_custom_part")
-    private int mSuggestedCustomPartIndex;
 
     public Block(Vector3f position, CustomPart[] customPart,
                  boolean suggestUseCustomPart, int suggestedCustomPartIndex)
