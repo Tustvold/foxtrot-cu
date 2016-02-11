@@ -386,10 +386,8 @@ THREE.OBJLoader.prototype = {
             }
 
             if (!material) {
-
                 material = new THREE.MeshPhongMaterial();
                 material.name = object.material.name;
-
             }
 
             material.shading = object.material.smooth ? THREE.SmoothShading : THREE.FlatShading;
