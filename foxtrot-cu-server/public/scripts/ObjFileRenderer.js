@@ -1,6 +1,6 @@
 ObjFileRenderer = function(screen_width, screen_height, domElement) {
     // Will render the provided objData in a canvas of the specified dimensions added as a child of domElement
-    var camera, scene, renderer, stats, controls;
+    var camera, scene, pickingScene, renderer, stats, controls;
 
     var model_renderer;
     var loader = new THREE.OBJLoader();
@@ -13,14 +13,15 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         camera.position.set(10, 10, 10);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-
+        pickingScene = new THREE.Scene();
 
         scene = new THREE.Scene();
 
         scene.add(new THREE.AmbientLight(0x555555));
 
-        var light = new THREE.SpotLight(0xffffff);
-        light.position.set(0, 500, 2000);
+        var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
+        light.position.set(1500,2000,1500);
+        light.target.position.set(0,0,0);
         scene.add(light);
 
 

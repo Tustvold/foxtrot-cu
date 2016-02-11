@@ -3,9 +3,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     var blockList;
     var vertices, indices, colors, normals;
-    var maxX, maxY = 0, maxZ = 0;
+    var maxX, maxY = 0,
+        maxZ = 0;
     var camera, scene, renderer, stats, controls;
     var model_renderer = null;
+    var model_picker = null;
+    var mouse = new THREE.Vector2();
+
+    var pickingScene, pickingTexture;
 
     var picking_material = new THREE.MeshBasicMaterial({
         vertexColors: THREE.VertexColors
@@ -15,6 +20,8 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         color: 0xff0000,
     });
 
+    var scope = this;
+
     init();
     animate();
 
@@ -23,17 +30,18 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         camera.position.set(10, 10, 10);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-
-
         scene = new THREE.Scene();
+        scene.add(new THREE.AmbientLight(0x555555));
 
-        scene.add(new THREE.AmbientLight(0x222222));
-
-        var light = new THREE.DirectionalLight( 0xffffff, 0.7 );
-        light.position.set(15,20,15);
-        light.target.position.set(0,0,0);
+        var light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.position.set(1500, 2000, 1500);
+        light.target.position.set(0, 0, 0);
         scene.add(light);
 
+        pickingScene = new THREE.Scene();
+        pickingTexture = new THREE.WebGLRenderTarget(screen_width, screen_height);
+        pickingTexture.minFilter = THREE.LinearFilter;
+        pickingTexture.generateMipmaps = false;
 
         renderer = new THREE.WebGLRenderer({
             antialias: true
@@ -52,7 +60,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         domElement.appendChild(stats.domElement);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: -1, PAN: -1 };
+        controls.mouseButtons = {
+            ORBIT: THREE.MOUSE.MIDDLE,
+            ZOOM: -1,
+            PAN: -1
+        };
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
         controls.enableZoom = true;
@@ -60,6 +72,8 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         controls.enableKeys = false;
         controls.zoomSpeed = 3.0;
 
+        renderer.domElement.addEventListener('mousedown', onMouseDown);
+        renderer.domElement.addEventListener('mousemove', onMouseMove);
     }
 
     function generateMesh() {
@@ -87,13 +101,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                     var block = blockList[x][y][z];
                     if (block == null)
                         continue;
+                    color.setHex(block_id);
 
-                    if (x == maxX-1 || blockList[x+1][y][z] === null || blockList[x+1][y][z].use_custom_part) {
+                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part) {
                         // Add positive x face
-                        vertices.push(x+1, y, z);
-                        vertices.push(x+1, y, z+1);
-                        vertices.push(x+1, y+1, z);
-                        vertices.push(x+1, y+1, z+1);
+                        vertices.push(x + 1, y, z);
+                        vertices.push(x + 1, y, z + 1);
+                        vertices.push(x + 1, y + 1, z);
+                        vertices.push(x + 1, y + 1, z + 1);
 
                         indices.push(cur_index, cur_index + 2, cur_index + 1);
                         indices.push(cur_index + 1, cur_index + 2, cur_index + 3);
@@ -103,10 +118,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(1,0,0);
-                        normals.push(1,0,0);
-                        normals.push(1,0,0);
-                        normals.push(1,0,0);
+                        normals.push(1, 0, 0);
+                        normals.push(1, 0, 0);
+                        normals.push(1, 0, 0);
+                        normals.push(1, 0, 0);
 
                         cur_index += 4;
 
@@ -115,9 +130,9 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                     if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part) {
                         // Add negative x face
                         vertices.push(x, y, z);
-                        vertices.push(x, y+1, z);
-                        vertices.push(x, y, z+1);
-                        vertices.push(x, y+1, z+1);
+                        vertices.push(x, y + 1, z);
+                        vertices.push(x, y, z + 1);
+                        vertices.push(x, y + 1, z + 1);
 
                         indices.push(cur_index, cur_index + 2, cur_index + 1);
                         indices.push(cur_index + 1, cur_index + 2, cur_index + 3);
@@ -127,20 +142,20 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(-1,0,0);
-                        normals.push(-1,0,0);
-                        normals.push(-1,0,0);
-                        normals.push(-1,0,0);
+                        normals.push(-1, 0, 0);
+                        normals.push(-1, 0, 0);
+                        normals.push(-1, 0, 0);
+                        normals.push(-1, 0, 0);
 
                         cur_index += 4;
                     }
 
-                    if (y == maxY -1 || blockList[x][y+1][z] === null || blockList[x][y+1][z].use_custom_part) {
+                    if (y == maxY - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part) {
                         // Add top face
-                        vertices.push(x, y+1, z);
-                        vertices.push(x+1, y+1, z);
-                        vertices.push(x, y+1, z+1);
-                        vertices.push(x+1, y+1, z+1);
+                        vertices.push(x, y + 1, z);
+                        vertices.push(x + 1, y + 1, z);
+                        vertices.push(x, y + 1, z + 1);
+                        vertices.push(x + 1, y + 1, z + 1);
 
                         indices.push(cur_index, cur_index + 2, cur_index + 1);
                         indices.push(cur_index + 1, cur_index + 2, cur_index + 3);
@@ -150,10 +165,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(0,1,0);
-                        normals.push(0,1,0);
-                        normals.push(0,1,0);
-                        normals.push(0,1,0);
+                        normals.push(0, 1, 0);
+                        normals.push(0, 1, 0);
+                        normals.push(0, 1, 0);
+                        normals.push(0, 1, 0);
 
                         cur_index += 4;
                     }
@@ -161,9 +176,9 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                     if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part) {
                         // Add bottom face
                         vertices.push(x, y, z);
-                        vertices.push(x+1, y, z);
-                        vertices.push(x, y, z+1);
-                        vertices.push(x+1, y, z+1);
+                        vertices.push(x + 1, y, z);
+                        vertices.push(x, y, z + 1);
+                        vertices.push(x + 1, y, z + 1);
 
                         indices.push(cur_index, cur_index + 1, cur_index + 2);
                         indices.push(cur_index + 1, cur_index + 3, cur_index + 2);
@@ -173,20 +188,20 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(0,-1,0);
-                        normals.push(0,-1,0);
-                        normals.push(0,-1,0);
-                        normals.push(0,-1,0);
+                        normals.push(0, -1, 0);
+                        normals.push(0, -1, 0);
+                        normals.push(0, -1, 0);
+                        normals.push(0, -1, 0);
 
                         cur_index += 4;
                     }
 
-                    if (z == maxZ-1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part) {
+                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part) {
                         // Add positive z face
-                        vertices.push(x, y, z+1);
-                        vertices.push(x, y+1, z+1);
-                        vertices.push(x+1, y, z+1);
-                        vertices.push(x+1, y+1, z+1);
+                        vertices.push(x, y, z + 1);
+                        vertices.push(x, y + 1, z + 1);
+                        vertices.push(x + 1, y, z + 1);
+                        vertices.push(x + 1, y + 1, z + 1);
 
                         indices.push(cur_index, cur_index + 2, cur_index + 1);
                         indices.push(cur_index + 1, cur_index + 2, cur_index + 3);
@@ -196,10 +211,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(0,0,1);
-                        normals.push(0,0,1);
-                        normals.push(0,0,1);
-                        normals.push(0,0,1);
+                        normals.push(0, 0, 1);
+                        normals.push(0, 0, 1);
+                        normals.push(0, 0, 1);
+                        normals.push(0, 0, 1);
 
                         cur_index += 4;
                     }
@@ -207,9 +222,9 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                     if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part) {
                         // Add negative z face
                         vertices.push(x, y, z);
-                        vertices.push(x+1, y, z);
-                        vertices.push(x, y+1, z);
-                        vertices.push(x+1, y+1, z);
+                        vertices.push(x + 1, y, z);
+                        vertices.push(x, y + 1, z);
+                        vertices.push(x + 1, y + 1, z);
 
                         indices.push(cur_index, cur_index + 2, cur_index + 1);
                         indices.push(cur_index + 1, cur_index + 2, cur_index + 3);
@@ -219,10 +234,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(0,0,-1);
-                        normals.push(0,0,-1);
-                        normals.push(0,0,-1);
-                        normals.push(0,0,-1);
+                        normals.push(0, 0, -1);
+                        normals.push(0, 0, -1);
+                        normals.push(0, 0, -1);
+                        normals.push(0, 0, -1);
 
                         cur_index += 4;
                     }
@@ -243,26 +258,68 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         var floatNormals = new Float32Array(normals);
 
         var geom = new THREE.BufferGeometry();
-        geom.addAttribute( 'position', new THREE.BufferAttribute(floatVertices, 3));
-        geom.addAttribute( 'normal', new THREE.BufferAttribute(floatNormals, 3));
-        geom.addAttribute( 'color', new THREE.BufferAttribute(floatColors, 3));
-        geom.addAttribute( 'index', new THREE.BufferAttribute(intIndices, 1));
+        geom.addAttribute('position', new THREE.BufferAttribute(floatVertices, 3));
+        geom.addAttribute('normal', new THREE.BufferAttribute(floatNormals, 3));
+        geom.addAttribute('color', new THREE.BufferAttribute(floatColors, 3));
+        geom.addAttribute('index', new THREE.BufferAttribute(intIndices, 1));
 
         model_renderer = new THREE.Mesh(geom, render_material);
         scene.add(model_renderer);
+
+        model_picker = new THREE.Mesh(geom, picking_material);
+        pickingScene.add(model_picker);
     }
 
     this.setBlockList = function(blockList_) {
         blockList = blockList_;
         if (model_renderer != null)
             scene.remove(model_renderer);
+        if (model_picker != null)
+            pickingScene.remove(model_picker)
+
+
 
         generateMesh();
         generateBuffer();
     }
 
-    this.onBlockSelected = function(block) {
-        console.log("Selected " + block);
+    this.onBlockSelected = function(x, y, z, block) {
+        console.log("Selected Block at X: " + x + " Y: " + y + " Z: " + z);
+    }
+
+    function pick() {
+
+        //render the picking scene off-screen
+
+        renderer.render(pickingScene, camera, pickingTexture);
+
+        //create buffer for reading single pixel
+        var pixelBuffer = new Uint8Array(4);
+
+        var rect = renderer.domElement.getBoundingClientRect();
+
+        //read the pixel under the mouse from the texture
+        renderer.readRenderTargetPixels(pickingTexture, mouse.x - rect.left, pickingTexture.height - (mouse.y - rect.top), 1, 1, pixelBuffer);
+
+        //interpret the pixel as an ID
+        var id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2]);
+
+        // This will need to be changed if the clear color is changed
+        if (id != 0xFFFFFF) {
+            var x = Math.floor(id % maxX);
+            var y = Math.floor((id % (maxX * maxY)) / maxX);
+            var z = Math.floor(id % (maxX * maxY * maxZ) / maxX / maxY);
+
+
+
+            if (x >= 0 && x < maxX && y >= 0 && y < maxY && z >= 0 && z < maxZ) {
+
+                scope.onBlockSelected(x, y, z, blockList[x][y][z]);
+            }
+
+        }
+
+
     }
 
     function animate() {
@@ -274,6 +331,18 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         controls.update();
 
         stats.update();
+
+    }
+
+    function onMouseDown(event) {
+        if (event.button == THREE.MOUSE.LEFT)
+            pick();
+    }
+
+    function onMouseMove(e) {
+
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
 
     }
 }
