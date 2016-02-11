@@ -17,7 +17,7 @@ public class Mesh
     private Point3f offset;          // position of the mesh in the grid
     private GeometryInfo info;       // the geometry info object
     private TriangleArray triangles; // the list of triangles representing the mesh
-    private float blockSize = 0.01f;
+    private float blockSize = 3.5f;
 
     public Point3f getOffset()
     {
