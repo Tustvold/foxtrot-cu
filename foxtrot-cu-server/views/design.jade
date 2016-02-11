@@ -109,7 +109,7 @@ html(lang='en')
                 function showResponse(response, statusText, xhr, $form) {
                     console.log(response)
                     if ('error' in response) {
-                        alert('Error: ' + response.error)
+                        console.log('Error: ' + response.error)
                     } else {
                         BlockRenderer.setBlockList(response)
                     }

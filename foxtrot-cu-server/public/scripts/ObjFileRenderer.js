@@ -66,7 +66,18 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     this.setObjData = function(objData) {
         if (typeof model_renderer !== 'undefined')
             scene.remove(model_renderer)
-        model_renderer = loader.parse(objData);
+        var bounds = {min: new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE), max: new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE)};
+        model_renderer = loader.parse(objData, bounds);
+
+        var center = new THREE.Vector3((bounds.min.x + bounds.max.x) / 2.0, (bounds.min.y + bounds.max.y) / 2.0, (bounds.min.z + bounds.max.z) / 2.0);
+        var half_extents = new THREE.Vector3((bounds.max.x - bounds.min.x) / 2.0, (bounds.max.y - bounds.min.y) / 2.0, (bounds.max.z - bounds.min.z) / 2.0);
+
+        var radius = half_extents.length() + 10.0;
+
+        controls.position0.addVectors(center, new THREE.Vector3(radius,radius,radius));
+        controls.target0 = center;
+        controls.reset();
+
         scene.add(model_renderer)
     }
 

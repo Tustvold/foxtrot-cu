@@ -40,9 +40,10 @@ THREE.OBJLoader.prototype = {
 
     },
 
-    parse: function(text) {
+    parse: function(text, bounds) {
 
-        console.time('OBJLoader');
+        if (typeof bounds === 'undefined')
+            bounds = {min: new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE), max: new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE)}
 
         var objects = [];
         var object;
@@ -231,18 +232,24 @@ THREE.OBJLoader.prototype = {
             var result;
 
             if (line.length === 0 || line.charAt(0) === '#') {
-
                 continue;
 
             } else if ((result = vertex_pattern.exec(line)) !== null) {
 
                 // ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
+                var x = parseFloat(result[1]);
+                var y = parseFloat(result[2]);
+                var z = parseFloat(result[3]);
 
-                vertices.push(
-                    parseFloat(result[1]),
-                    parseFloat(result[2]),
-                    parseFloat(result[3])
-                );
+                bounds.min.x = Math.min(bounds.min.x, x);
+                bounds.min.y = Math.min(bounds.min.y, y);
+                bounds.min.z = Math.min(bounds.min.z, z);
+
+                bounds.max.x = Math.max(bounds.max.x, x);
+                bounds.max.y = Math.max(bounds.max.y, y);
+                bounds.max.z = Math.max(bounds.max.z, z);
+
+                vertices.push(x, y, z);
 
             } else if ((result = normal_pattern.exec(line)) !== null) {
 
