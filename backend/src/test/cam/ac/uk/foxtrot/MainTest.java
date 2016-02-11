@@ -1,16 +1,12 @@
 package cam.ac.uk.foxtrot;
 
+import cam.ac.uk.foxtrot.voxelisation.Triangulator;
 import cam.ac.uk.foxtrot.voxelisation.Projection;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.Stripifier;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.media.j3d.GeometryArray;
 import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3f;
-
-import static org.junit.Assert.*;
 
 public class MainTest {
 
@@ -25,22 +21,12 @@ public class MainTest {
 
     @Test
     public void testProjection() throws Exception {
-        float EPSILON = .00000001f;
-        int NUM_PTS = 9;
+        /*float EPSILON = .00000001f;
+
         float X_SET = 5.6f;
         float Y_SET = -6.2f;
         float Z_SET = 0.02f;
-        Point3f[] points = new Point3f[NUM_PTS];
-        float[] point = new float[3];
-        for (int i = 0; i < NUM_PTS; i++) {
-            point[0] = (float)((Math.random() - .5) * 10);
-            point[1] = (float)((Math.random() - .5) * 10);
-            point[2] = (float)((Math.random() - .5) * 10);
-            points[i] = new Point3f(point);
-        }
 
-        TriangleArray ta = new TriangleArray(NUM_PTS, TriangleArray.COORDINATES);
-        ta.setCoordinates(0, points);
         
         Projection p = new Projection(ta);
         Point3f[] xproj = p.setX(X_SET);
@@ -58,37 +44,34 @@ public class MainTest {
             Assert.assertTrue(floatCompare(xproj[i].y, zproj[i].y, EPSILON));
             Assert.assertTrue(floatCompare(xproj[i].z, yproj[i].z, EPSILON));
             Assert.assertTrue(floatCompare(yproj[i].x, zproj[i].x, EPSILON));
-        }
+        }*/
 
-        GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-        gi.setCoordinates(xproj);
+        int NUM_PTS = 3;
+        Point3f[] points = new Point3f[NUM_PTS];
+        /*float[] point = new float[3];
+        for (int i = 0; i < NUM_PTS; i++) {
+            point[0] = (float)(Math.random());
+            point[1] = (float)(Math.random());
+            point[2] = (float)(Math.random());
+            points[i] = new Point3f(point);
+        }*/
 
-        float[] pt = new float[3];
-        GeometryArray result = gi.getGeometryArray();
-        for (int i = 0; i <result.getVertexCount(); i++) {
-            result.getCoordinate(i, pt);
-            System.out.println("v " + pt[0] + " " + pt[1] + " " + pt[2]);
-        }
-        System.out.println("f 1 2 3");
-        System.out.println("f 4 5 6");
-        System.out.println("f 7 8 9");
-        System.out.println("---- post strip---");
+        points[0] = new Point3f(.25f,.25f,.25f);
+        points[1] = new Point3f(.5f,.5f,.25f);
+        points[2] = new Point3f(.25f,.25f,.5f);
 
+        TriangleArray ta = new TriangleArray(NUM_PTS, TriangleArray.COORDINATES);
+        ta.setCoordinates(0, points);
 
-            Stripifier st = new Stripifier();
-            st.stripify(gi);
+        Projection p = new Projection(ta);
+        Point3f[] cube = p.getProjectionCubeFace(Projection.ProjectionFace.ZX0);
+        //Triangulator.triangulateAndPrintObjFile(cube);
 
 
 
-        result = gi.getGeometryArray();
 
-        for (int i = 0; i <result.getVertexCount(); i++) {
-            result.getCoordinate(i, pt);
-            System.out.println("v " + pt[0] + " " + pt[1] + " " + pt[2]);
-        }
-        System.out.println("f 1 2 3");
-        System.out.println("f 4 5 6");
-        System.out.println("f 7 8 9");
+
+
     }
 
 

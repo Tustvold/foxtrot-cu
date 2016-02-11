@@ -57,7 +57,6 @@ public class Mesh
         System.out.println(x.x + " " + x.y +" " + x.z);
         System.out.println();
 */
->>>>>>> 2f57b8cd33242bb8126f858f28bc5551a52bf081
     }
 
 }
