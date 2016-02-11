@@ -49,7 +49,6 @@ public class Main
         }
         Mesh m = new Mesh(scene);
 
-        //TODO: Voxelise Mesh
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
 

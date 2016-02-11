@@ -19,11 +19,35 @@ public class Block
         return triangles;
     }
 
+    private float fixError(float x, float y)
+    {
+        if (x - y < 0f)
+            return 0.000000f;
+        else
+            return x - y;
+    }
+
     public void addTriangle(Point3f fir, Point3f sec, Point3f trd)
     {
+        /*
+        triangles.add(new Point3f(
+                fixError(fir.x, mPosition.x),
+                fixError(fir.y, mPosition.y),
+                fixError(fir.z, mPosition.z)));
+        triangles.add(new Point3f(
+                fixError(sec.x, mPosition.x),
+                fixError(sec.y, mPosition.y),
+                fixError(sec.z, mPosition.z)));
+        triangles.add(new Point3f(
+            fixError(trd.x, mPosition.x),
+            fixError(trd.y, mPosition.y),
+            fixError(trd.z, mPosition.z)));
+            */
+
         triangles.add(new Point3f(fir.x - mPosition.x, fir.y - mPosition.y, fir.z - mPosition.z));
         triangles.add(new Point3f(sec.x - mPosition.x, sec.y - mPosition.y, sec.z - mPosition.z));
         triangles.add(new Point3f(trd.x - mPosition.x, trd.y - mPosition.y, trd.z - mPosition.z));
+
         triangleCnt++;
     }
 

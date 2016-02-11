@@ -15,9 +15,10 @@ public class MeshVoxeliser
 {
     private Mesh mesh;
     private Point3i matrixDimensions; // dimesions of the block matrix
+    private int[] dim;
     private Point3f meshOffset;
     private TriangleArray initialTriangles;
-    private final float float_tolerance = 0.0000001f;
+    public static final float float_tolerance = 0.0000001f;
     Block[][][] blocks;
 
     public Block[][][] getBlocks()
@@ -190,47 +191,46 @@ public class MeshVoxeliser
     }
 
     // assuming one of the coordiates is zeroed, restores the point to the 3d space
-    private Point3f restoreTo3D(Point3f point, Point3f abc, float d)
+    private Point3f restoreTo3D(Point3f point, Point3f abc, float d, int ignore)
     {
         float[] coords = new float[3];
         float[] param = new float[3];
         point.get(coords);
         abc.get(param);
 
-        for (int i = 0; i < 3; i++)
-        {
-            if (coords[i] < float_tolerance)
-            {
-                coords[i] = (d - param[(i + 1) % 3] * coords[(i + 1) % 3]
-                        - param[(i + 2) % 3] * coords[(i + 2) % 3]) / param[i];
-                break;
-            }
-        }
+        float val = (d - param[(ignore + 1) % 3] * coords[(ignore + 1) % 3]
+                - param[(ignore + 2) % 3] * coords[(ignore + 2) % 3]) / param[ignore];
+
+        if (coords[ignore] < -0.5f)
+            coords[ignore] = val;
+
         return new Point3f(coords);
     }
 
 
     // intersects the line between fir and sec with the vertical line at line ignoring the ignoreth coordinate
     // and writes the return in res. Returns true if there is an intersection
-    private boolean intersect(Point3f fir, Point3f sec, float line, int ignore, Point3f res)
+    private boolean intersect(Point3f fir, Point3f sec, float line, int ignore, Point3f res, Point3f abc, float d)
     {
         float x1, y1, x2, y2;
+        int idx = (ignore + 1) % 3;
+        int idy = (ignore + 2) % 3;
         float[] coordfir = new float[3];
         float[] coordsec = new float[3];
         fir.get(coordfir);
         sec.get(coordsec);
         if (coordfir[(ignore + 1) % 3] < coordsec[(ignore + 1) % 3])
         {
-            x1 = coordfir[(ignore + 1) % 3];
-            y1 = coordfir[(ignore + 2) % 3];
-            x2 = coordsec[(ignore + 1) % 3];
-            y2 = coordsec[(ignore + 2) % 3];
+            x1 = coordfir[idx];
+            y1 = coordfir[idy];
+            x2 = coordsec[idx];
+            y2 = coordsec[idy];
         } else
         {
-            x1 = coordsec[(ignore + 1) % 3];
-            y1 = coordsec[(ignore + 2) % 3];
-            x2 = coordfir[(ignore + 1) % 3];
-            y2 = coordfir[(ignore + 2) % 3];
+            x1 = coordsec[idx];
+            y1 = coordsec[idy];
+            x2 = coordfir[idx];
+            y2 = coordfir[idy];
         }
 
         if (x1 > line
@@ -251,7 +251,7 @@ public class MeshVoxeliser
                 } else
                 {
                     // the intersecting point is the one with the lower x coordinate
-                    if (coordfir[(ignore + 1) % 3] < coordsec[(ignore + 1) % 3])
+                    if (coordfir[idx] < coordsec[idx])
                         res.set(1f, -1f, 0f); // intersection is on fir
                     else
                         res.set(1f, 1f, 0f); // intersection is on sec
@@ -261,7 +261,7 @@ public class MeshVoxeliser
             } else if (Math.abs(x2 - line) < float_tolerance)
             {
                 // the intersecting point is the one with the greater x coordinate
-                if (coordfir[(ignore + 1) % 3] < coordsec[(ignore + 1) % 3])
+                if (coordfir[idx] < coordsec[idx])
                     res.set(1f, 1f, 0f); // intersection is on sec
                 else
                     res.set(1f, -1f, 0f); // intersection is on fir
@@ -278,9 +278,25 @@ public class MeshVoxeliser
         float yNew = (y1 * (x2 - line) + y2 * (line - x1)) / (x2 - x1);
 
         float[] coordNew = new float[3];
-        coordNew[ignore] = 0.00000000f;
-        coordNew[(ignore + 1) % 3] = xNew;
-        coordNew[(ignore + 2) % 3] = yNew;
+
+        /*
+        // we project the new coordinate to its respective plane
+        float[] param = new float[3];
+        abc.get(param);
+        coordNew[ignore] = (d - param[(ignore + 1) % 3] * xNew
+                - param[(ignore + 2) % 3] * yNew) / param[ignore];
+        */
+
+        // determine the ignored coordinate from the line division formula
+        double dtot = Math.sqrt((coordfir[idx] - coordsec[idx]) * (coordfir[idx] - coordsec[idx]) +
+                (coordfir[idy] - coordsec[idy]) * (coordfir[idy] - coordsec[idy]));
+        double dlef = Math.sqrt((coordfir[idx] - xNew) * (coordfir[idx] - xNew) +
+                (coordfir[idy] - yNew) * (coordfir[idy] - yNew));
+        double drig = dtot - dlef;
+        coordNew[ignore] = (float) ((coordfir[ignore] * drig + coordsec[ignore] * dlef) / dtot);
+
+        coordNew[idx] = xNew;
+        coordNew[idy] = yNew;
         res.set(coordNew);
         return true;
     }
@@ -371,11 +387,11 @@ public class MeshVoxeliser
         {
             int currMinBound = minBounds[(ignore + 1) % 3];
             int currMaxBound = maxBounds[(ignore + 1) % 3];
-            int currLen = polygonList.size();
 
             // we iterate through all the possible lines which may be intersecting some of our polygons
             for (int line = currMinBound; line <= currMaxBound; line++)
             {
+                int currLen = polygonList.size();
                 // we iterate through all polygons in our list for every line
                 for (int curr = 0; curr < currLen; curr++)
                 {
@@ -407,7 +423,7 @@ public class MeshVoxeliser
                     for (int ver = 0; ver < cnt; ver++)
                     {
                         Point3f res = new Point3f(0, 0, 0);
-                        if (intersect(poly.get(ver), poly.get((ver + 1) % cnt), line, ignore, res))
+                        if (intersect(poly.get(ver), poly.get((ver + 1) % cnt), line, ignore, res, abc, d))
                         {
                             // there was a proper intersection between the two points
                             Point3f sec = new Point3f(poly.get((ver + 1) % cnt));
@@ -463,22 +479,12 @@ public class MeshVoxeliser
                         }
                     }
 
-                    if (!onlyFirst && polys.get(1) != null && polys.get(1).size() > 2)
+                    if (!onlyFirst && polys.get(1) != null && polys.get(0).size() > 2 && polys.get(1).size() > 2)
                     {
                         // this means we need to refactor the polygon list
                         polygonList.set(curr, new ArrayList<>(polys.get(0)));
                         polygonList.add(new ArrayList<>(polys.get(1)));
                     }
-                }
-            }
-
-            // we now need to correct the position of the points in each polygon by fixing the zeroed values
-            for (int currPoly = 0; currPoly < polygonList.size(); currPoly++)
-            {
-                for (int pt = 0; pt < polygonList.get(currPoly).size(); pt++)
-                {
-                    Point3f fixedPt = restoreTo3D(polygonList.get(currPoly).get(pt), abc, d);
-                    polygonList.get(currPoly).set(pt, fixedPt);
                 }
             }
         }
@@ -496,11 +502,35 @@ public class MeshVoxeliser
         {
             ArrayList<Point3f> poly = polygonList.get(curr);
             Point3f cm = getCenterOfMass(poly);
-            int x = (int) cm.x;
-            int y = (int) cm.y;
-            int z = (int) cm.z;
 
-            System.out.println("Current representative point: " + cm.x + " " + cm.y + " " + cm.z);
+            int x, y, z;
+            x = (int) cm.x;
+            y = (int) cm.y;
+            z = (int) cm.z;
+            /*
+            if (cm.x - (int) cm.x > 0)
+                x = (int) cm.x;
+            else
+                x = ((int) cm.x) + 1;
+
+            if (cm.y - (int) cm.y > 0)
+                y = (int) cm.y;
+            else
+                y = ((int) cm.y) + 1;
+
+            if (cm.z - (int) cm.z > 0)
+                z = (int) cm.z;
+            else
+                z = ((int) cm.z) + 1;
+
+            if (cm.x < float_tolerance)
+                x = 0;
+            if (cm.y < float_tolerance)
+                y = 0;
+            if (cm.z < float_tolerance)
+                z = 0;
+            */
+            //System.out.println("Current representative point: " + cm.x + " " + cm.y + " " + cm.z);
 
             if (blocks[x][y][z] == null)
             {
@@ -508,12 +538,24 @@ public class MeshVoxeliser
             }
 
             // add the first triangle
-            blocks[x][y][z].addTriangle(poly.get(0), poly.get(1), poly.get(2));
-            for (int point = 3; point < poly.size(); point++)
+            switch (poly.size())
             {
-                // triangulate the remaining shape if needed
-                blocks[x][y][z].addTriangle(poly.get(0), poly.get(point - 1), poly.get(point));
+                case 6:
+                    blocks[x][y][z].addTriangle(poly.get(0), poly.get(1), poly.get(2));
+                    blocks[x][y][z].addTriangle(poly.get(0), poly.get(2), poly.get(5));
+                    blocks[x][y][z].addTriangle(poly.get(5), poly.get(2), poly.get(3));
+                    blocks[x][y][z].addTriangle(poly.get(5), poly.get(3), poly.get(4));
+                    break;
+                default:
+                    blocks[x][y][z].addTriangle(poly.get(0), poly.get(1), poly.get(2));
+                    for (int point = 3; point < poly.size(); point++)
+                    {
+                        // triangulate the remaining shape if needed
+                        blocks[x][y][z].addTriangle(poly.get(0), poly.get(point - 1), poly.get(point));
+                    }
+                    break;
             }
+
         }
     }
 
@@ -550,7 +592,7 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null)
                         continue;
-                    blocks[x][y][z].drawBlock("../../testing/blocks/block " + x + " " + " " + y + " " + z + ".obj");
+                    //blocks[x][y][z].drawBlock("../../testing/blocks/block " + x + " " + " " + y + " " + z + ".obj");
                     ArrayList<Point3f> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
@@ -607,6 +649,8 @@ public class MeshVoxeliser
     {
         System.out.println("Filling blocks...");
         blocks = new Block[matrixDimensions.x][matrixDimensions.y][matrixDimensions.z];
+        dim = new int[3];
+        matrixDimensions.get(dim);
         Point3f fir = new Point3f(0, 0, 0);
         Point3f sec = new Point3f(0, 0, 0);
         Point3f trd = new Point3f(0, 0, 0);
@@ -620,6 +664,7 @@ public class MeshVoxeliser
             tmp.add(new Point3f(fir));
             tmp.add(new Point3f(sec));
             tmp.add(new Point3f(trd));
+
             subdivideAndClassifyTriangle(tmp);
         }
         fillRemainingBlocks();
