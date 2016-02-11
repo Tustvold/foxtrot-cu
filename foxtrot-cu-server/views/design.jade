@@ -1,48 +1,118 @@
 include mixins
 doctype
 html(lang='en')
-	head
-		+standard_head("Edible Lego")
-	body(style="padding-bottom:10rem;")
-		+standard_body()
-		+threejs_body()
-		.container
-			row
-				h1(class="text-center") Edible Lego
-			row
-				.col-md-6
-					row
-						div
-							h3(class="text-center") Upload
-					row
-						div(style="margin-left:auto; margin-right:auto" align="center")
-							.panel.panel-default
-								.panel-body
-									div(id='container')
-										script(src='/scripts/test-cubes.js')
-										
-				.col-md-6
-					row
-						div
-							h3(class="text-center") Design
-					row
-						div(style="margin-left:auto; margin-right:auto" align="center")
-							.panel.panel-default
-								.panel-body
-									div(id='container2')
-										script(src='/scripts/test-cubes2.js')
-				
-			row
-				h2(class="text-center") Customise 
-				hr
-				.col-md-6.col-md-offset-3
-					table(align="center" style="width:100%")
-						tr 
-							th BLOCK
-							th CUSTOM
-						-for(var x =0; x<10; x++)
-							tr
-								td(align="center") Block
-								td(align="center") 
-									input(type='checkbox', checked)
-				
+    head
+        +standard_head("Edible Lego")
+    body(style="padding-bottom:10rem;")
+        +standard_body()
+        +threejs_body()
+        script(src='/scripts/OrbitControls.js')
+        script(src='/scripts/OBJLoader.js')
+        script(stc='/scripts/Delegate.js')
+        script(src='/scripts/ObjFileRenderer.js')
+        script(src='/scripts/BlockListRenderer.js')
+        
+        .container
+            row
+                h1(class="text-center") Edible Lego
+            row
+                .col-md-12
+                    .panel.panel-default
+                        .panel-heading
+                            h3.panel-title Upload
+                        .panel-body
+                            
+                            form.form-group(method="post",enctype="multipart/form-data",action="/upload")
+                                  p
+                                      div(class="input-group")
+                                          span(class="input-group-btn")
+                                              span(class="btn btn-primary btn-file")
+                                                  |Browse&hellip;
+                                                  input(type="file",name="uploaded-mesh")
+                                          input(type="text",class="form-control",readonly)
+                                          span(class="input-group-btn")
+                                            button(type="submit",class="btn btn-primary btn-file")
+                                                |Submit                                              
+                                    
+            row
+                .col-md-6
+                    row
+                        div
+                            h3(class="text-center") Uploaded Mesh
+                    row
+                        div(style="margin-left:auto; margin-right:auto" align="center")
+                            .panel.panel-default
+                                .panel-body
+                                    div#input-container
+                                        
+                                        
+                .col-md-6
+                    row
+                        div
+                            h3(class="text-center") Generated Design
+                    row
+                        div(style="margin-left:auto; margin-right:auto" align="center")
+                            .panel.panel-default
+                                .panel-body
+                                    div#output-container
+                
+            //
+                h2(class="text-center") Customise 
+                hr
+                .col-md-6.col-md-offset-3
+                    table(align="center" style="width:100%")
+                        tr 
+                            th BLOCK
+                            th CUSTOM
+                        -for(var x =0; x<10; x++)
+                            tr
+                                td(align="center") Block
+                                td(align="center") 
+                                    input(type='checkbox', checked)
+                                    
+        
+        script(type='text/javascript').
+            var objRenderer, BlockRenderer;
+            var objRendererContainer = document.getElementById("input-container")
+            var blockRendererContainer = document.getElementById("output-container")
+            
+            
+            
+            var width = document.getElementById("input-container").getBoundingClientRect().width;
+            var height = width;
+    
+            $('document').ready(function () {
+                $('.model-viewer').css('width', width).css('height', height);
+        
+                objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
+                BlockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
+                var options = {
+                    beforeSubmit: showRequest,  // pre-submit callback
+                    success: showResponse  // post-submit callback
+                };
+                $('form').ajaxForm(options)
+                function showRequest(formData, jqForm, options) {
+        
+                    console.log('start')
+                    console.log(formData[0].value)
+                  
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var contents = e.target.result;
+                        objRenderer.setObjData(contents);
+                    };
+                  
+                    reader.readAsText(formData[0].value);
+                    return true;
+                }
+        
+                function showResponse(response, statusText, xhr, $form) {
+                    console.log(response)
+                    if ('error' in response) {
+                        alert('Error: ' + response.error)
+                    } else {
+                        BlockRenderer.setBlockList(response)
+                    }
+                } 
+            })            
+                    
