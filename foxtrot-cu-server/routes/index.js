@@ -4,7 +4,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('design');
 });
 
 router.get('/upload-form',function(req, res, next) {
@@ -13,10 +13,6 @@ router.get('/upload-form',function(req, res, next) {
 
 router.get('/test-cubes',function(req, res, next) {
   res.render('test-cubes');
-});
-
-router.get('/design',function(req, res, next) {
-  res.render('design');
 });
 
 router.get('/loader',function(req, res, next) {

@@ -87,32 +87,6 @@ html(lang='en')
                 objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
                 BlockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
                 
-                // Temporary test stuff
-                BlockRenderer.setBlockList(
-                    [
-                       [
-                         [
-                           {"custom_part_array":[],"use_custom_part":false,"suggested_custom_part":0},
-                           {"custom_part_array":[],"use_custom_part":false,"suggested_custom_part":0}
-                         ],
-                         [
-                           {"custom_part_array":[],"use_custom_part":false,"suggested_custom_part":0},
-                           null
-                         ]
-                       ],
-                       
-                       [
-                         [
-                           {"custom_part_array":[],"use_custom_part":false,"suggested_custom_part":0},
-                           null
-                         ],
-                         [
-                           {"custom_part_array":[],"use_custom_part":false,"suggested_custom_part":0},
-                           null
-                         ]
-                       ]
-                   ])
-                
                 
                 var options = {
                     beforeSubmit: showRequest,  // pre-submit callback

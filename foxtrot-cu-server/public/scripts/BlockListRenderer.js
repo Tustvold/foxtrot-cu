@@ -20,6 +20,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         color: 0xff0000,
     });
 
+    var render_material_wireframe = new THREE.MeshBasicMaterial({
+        color: 0x222222, wireframe: true
+    });
+
     var scope = this;
 
     init();
@@ -61,7 +65,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.mouseButtons = {
-            ORBIT: THREE.MOUSE.MIDDLE,
+            ORBIT: THREE.MOUSE.RIGHT,
             ZOOM: -1,
             PAN: -1
         };
@@ -264,6 +268,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         geom.addAttribute('index', new THREE.BufferAttribute(intIndices, 1));
 
         model_renderer = new THREE.Mesh(geom, render_material);
+
+        //model_renderer = THREE.SceneUtils.createMultiMaterialObject(geom, [
+        //    render_material,
+        //    render_material_wireframe
+        //]);
+
+        new THREE.Mesh(geom, picking_material);
+
         scene.add(model_renderer);
 
         model_picker = new THREE.Mesh(geom, picking_material);
@@ -281,6 +293,13 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         generateMesh();
         generateBuffer();
+
+        var center = new THREE.Vector3(maxX / 2, maxY / 2, maxZ / 2);
+        var radius = center.length() + 10.0;
+
+        controls.position0.addVectors(center, new THREE.Vector3(radius,radius,radius));
+        controls.target0 = center;
+        controls.reset();
     }
 
     this.onBlockSelected = function(x, y, z, block) {
@@ -306,9 +325,9 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         // This will need to be changed if the clear color is changed
         if (id != 0xFFFFFF) {
-            var x = Math.floor(id % maxX);
-            var y = Math.floor((id % (maxX * maxY)) / maxX);
-            var z = Math.floor(id % (maxX * maxY * maxZ) / maxX / maxY);
+            var x = Math.floor(id % (maxX * maxY * maxZ) / maxZ / maxY);
+            var y = Math.floor((id % (maxZ * maxY)) / maxZ);
+            var z = id % maxZ;
 
 
 
