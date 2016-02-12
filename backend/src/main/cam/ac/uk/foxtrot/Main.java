@@ -26,20 +26,20 @@ public class Main
      */
     public static void main(String[] args) throws Exception
     {
-//        System.out.println("Starting...");
-//        if (args.length < 1)
-//        {
-//            System.err.println("Error: No file");
-//            return;
-//        }
-//        String filePath = args[0];
+        System.out.println("Starting...");
+        if (args.length < 1)
+        {
+            System.err.println("Error: No file");
+            return;
+        }
+        String filePath = args[0];
 
         // input the mesh
         MeshIO meshIO = new MeshIO();
         Scene scene;
         try
         {
-            scene = meshIO.readFromFile("/Users/joeisaacs/Desktop/sphere.obj");
+            scene = meshIO.readFromFile(filePath);
         } catch (IOException error)
         {
             System.err.println("Loading fialied:" + error.getMessage());
