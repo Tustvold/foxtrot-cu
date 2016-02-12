@@ -22,7 +22,7 @@ public class IntersectionRemover {
         List<Geometry> geometryList = new ArrayList<>();
         GeometryFactory factory = new GeometryFactory();
         if(originalCoordinates.length>1) {
-            z = originalCoordinates[0].getZ();
+            z = originalCoordinates[0].z;
         }
         for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
             Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
@@ -41,7 +41,7 @@ public class IntersectionRemover {
         Point3f[] newCoordinates = new Point3f[length];
         for(int i = 0; i < length; i++) {
             Point3f point = originalCoordinates[i];
-            newCoordinates[i] = new Point3f(point.getZ(),point.getY(),point.getX());
+            newCoordinates[i] = new Point3f(point.z,point.y,point.x);
         }
         return newCoordinates;
     }
@@ -52,7 +52,7 @@ public class IntersectionRemover {
         Point3f[] newCoordinates = new Point3f[length];
         for(int i = 0; i < length; i++) {
             Point3f point = originalCoordinates[i];
-            newCoordinates[i] = new Point3f(point.getX(),point.getZ(),point.getY());
+            newCoordinates[i] = new Point3f(point.x,point.z,point.y);
         }
         return newCoordinates;
     }
@@ -67,7 +67,7 @@ public class IntersectionRemover {
 
     // convert original J3D Point3f to JTS Coordinates
     private Coordinate toJTSCoordinate(Point3f point) {
-        return new Coordinate(point.getX(),point.getY(),point.getZ());
+        return new Coordinate(point.x,point.y,point.z);
     }
 
     // convert JTS Coordinates to J3D Point3f

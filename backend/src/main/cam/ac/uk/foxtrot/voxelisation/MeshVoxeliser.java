@@ -727,7 +727,7 @@ public class MeshVoxeliser
     private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
     {
         // prepare the ray
-        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z);
+        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z + 0.5f);
         Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
 
         // the number of intersections with the mesh
@@ -770,7 +770,7 @@ public class MeshVoxeliser
                     // positive or all negative. If this is not the case, then we do not add
                     // a new intersection point
                     code -= 3;
-                    // we setup the initial positive and neagitve counters
+                    // we setup the initial positive and negaitve counters
                     int positiveCnt = 0, negativeCnt = 0;
                     if (vectorProd2DisPositive(T.get(code), T.get((code - 1) % 3), T.get((code + 1) % 3)))
                         positiveCnt++;
@@ -782,15 +782,15 @@ public class MeshVoxeliser
                     {
                         // load the adjacent triangle
                         ArrayList<Point3f> adj = new ArrayList<>();
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3));
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 1));
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 2));
+                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3));
+                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3 + 1));
+                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3 + 2));
 
                         // remove the ability of the triangle to participate in the rest of the cutting
-                        isConsidered[sharesEdge.get(curr).get(code).get(touching)] = false;
+                        isConsidered[sharesVertex.get(curr).get(code).get(touching)] = false;
 
                         // find the point on the adjacent triangle which is not on the line in common
-                        int other = 0;
+                        int other;
                         for (other = 0; other < 3; other++)
                             if (areIdentical(adj.get(other), T.get(code)))
                                 break;
@@ -800,7 +800,7 @@ public class MeshVoxeliser
                         else
                             negativeCnt++;
                     }
-                    if (Math.abs(positiveCnt - negativeCnt) == len + 1)
+                    if (positiveCnt == 0 || negativeCnt == 0)
                     {
                         // the tirangles are surrounding the punctuating ray so we increment the counter
                         intersectionNo++;
@@ -824,17 +824,18 @@ public class MeshVoxeliser
                         // remove the ability of the triangle to participate in the rest of the cutting
                         isConsidered[sharesEdge.get(curr).get(code).get(0)] = false;
 
-                        // find the point on the adjacent triangle which is not on the line in common
-                        int other = 0;
+                        // find the point X, on the adjacent triangle which is not on the line in common
+                        int other;
                         for (other = 0; other < 3; other++)
                             if (!areIdentical(adj.get(other), T.get(code)) || !areIdentical(adj.get(other), T.get((code + 1) % 3)))
                                 break;
 
-                        // then check if it has intersection with the model
-                        int adjcode = intersect3D_RayTriangle(adj.get(other), vectorAdd(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
-                        if (adjcode == 0)
+                        // then check if X can be vertically projected on the inside of the initial triangle
+                        int adjcodePos = intersect3D_RayTriangle(adj.get(other), vectorAdd(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
+                        int adjcodeNeg = intersect3D_RayTriangle(adj.get(other), vectorSub(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
+                        if (adjcodePos == 0 && adjcodeNeg == 0)
                         {
-                            // only if there is no intersection between the projection and the model do we increment the counter
+                            // only if there is no intersection between the projection and the initial triangle do we increment the counter
                             intersectionNo++;
                         }
                     }
@@ -1175,7 +1176,7 @@ public class MeshVoxeliser
                         continue;
                     ArrayList<Point3f> triangles = makeUnitCube();
 
-                    totalTriangles += triangles.size()/3;
+                    totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
                     {
                         try
