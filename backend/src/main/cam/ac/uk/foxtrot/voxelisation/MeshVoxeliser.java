@@ -543,7 +543,7 @@ public class MeshVoxeliser
         for (int x = 0; x < dim[0]; x++)
         {
             for (int y = 0; y < dim[1]; y++)
-            {
+            {/*
                 if (blocks[x][y][0] == null)
                 {
                     if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, 0) % 2 == 1)
@@ -551,31 +551,24 @@ public class MeshVoxeliser
                         // we create the block
                         blocks[x][y][0] = new Block(new Vector3f(x, y, 0), false);
                     }
-                }
-                for (int z = 1; z < dim[2]; z++)
+                }*/
+                for (int z = dim[2] - 2; z >= 0; z--)
                 {
-                    if (blocks[x][y][z] == null)
+                    if (blocks[x][y][z] == null && blocks[x][y][z + 1] != null)
                     {
-                        if (blocks[x][y][z - 1] == null)
+                        // the previous block was not empty, so we need to act
+                        if (blocks[x][y][z + 1].isCustom())
                         {
-                            // the previous block was empty, so this one must be as well
-                            continue;
+                            if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, z) % 2 == 1)
+                            {
+                                // we create the block
+                                blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
+                            }
                         }
                         else
                         {
-                            if (blocks[x][y][z - 1].isCustom())
-                            {
-                                if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, z) % 2 == 1)
-                                {
-                                    // we create the block
-                                    blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
-                                }
-                            }
-                            else
-                            {
-                                // the previous was full, so this one must also be
-                                blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
-                            }
+                            // the previous was full, so this one must also be
+                            blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
                         }
                     }
                 }
@@ -1084,69 +1077,86 @@ public class MeshVoxeliser
         System.out.println("Sliced output created...");
     }
 
-    private ArrayList<Point3f> makeUnitCube()
+    private ArrayList<Point3f> makeUnitCube(int x, int y, int z)
     {
         ArrayList<Point3f> cube = new ArrayList<>();
-        //yz01
-        cube.add(new Point3f(0, 1, 0));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(0, 1, 1));
 
-        //yz02
-        cube.add(new Point3f(0, 1, 1));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(0, 0, 1));
+        if(x >= 1 && (blocks[x-1][y][z] == null || blocks[x-1][y][z].isCustom()))
+        {
+            //yz01
+            cube.add(new Point3f(0, 1, 0));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(0, 1, 1));
 
-        //xz01
-        cube.add(new Point3f(0, 0, 1));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(1, 0, 1));
+            //yz02
+            cube.add(new Point3f(0, 1, 1));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(0, 0, 1));
+        }
 
-        //xz02
-        cube.add(new Point3f(1, 0, 1));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(1, 0, 0));
+        if(y >= 1 && (blocks[x][y-1][z] == null || blocks[x][y-1][z].isCustom()))
+        {
+            //xz01
+            cube.add(new Point3f(0, 0, 1));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(1, 0, 1));
 
-        //xy01
-        cube.add(new Point3f(1, 0, 0));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(1, 1, 0));
+            //xz02
+            cube.add(new Point3f(1, 0, 1));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(1, 0, 0));
+        }
 
-        //xy02
-        cube.add(new Point3f(1, 1, 0));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(0, 1, 0));
+        if(z >= 1 && (blocks[x][y][z-1] == null || blocks[x][y][z-1].isCustom()))
+        {
+            //xy01
+            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(1, 1, 0));
 
-        //yz11
-        cube.add(new Point3f(1, 0, 0));
-        cube.add(new Point3f(1, 1, 0));
-        cube.add(new Point3f(1, 1, 1));
+            //xy02
+            cube.add(new Point3f(1, 1, 0));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(0, 1, 0));
+        }
+        if(x < dim[0]-1 && (blocks[x+1][y][z] == null || blocks[x+1][y][z].isCustom()))
+        {
+            //yz11
+            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3f(1, 1, 0));
+            cube.add(new Point3f(1, 1, 1));
 
-        //yz12
-        cube.add(new Point3f(1, 0, 0));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(1, 0, 1));
+            //yz12
+            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(1, 0, 1));
+        }
 
-        //xz11
-        cube.add(new Point3f(0, 1, 1));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(0, 1, 0));
+        if(y < dim[1]-1 && (blocks[x][y+1][z] == null || blocks[x][y+1][z].isCustom()))
+        {
+            //xz11
+            cube.add(new Point3f(0, 1, 1));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(0, 1, 0));
 
-        //xz12
-        cube.add(new Point3f(0, 1, 0));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(1, 1, 0));
+            //xz12
+            cube.add(new Point3f(0, 1, 0));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(1, 1, 0));
+        }
 
-        //xy11
-        cube.add(new Point3f(1, 0, 1));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(0, 0, 1));
+        if(z < dim[2]-1 && (blocks[x][y][z+1] == null || blocks[x][y][z+1].isCustom()))
+        {
+            //xy11
+            cube.add(new Point3f(1, 0, 1));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(0, 0, 1));
 
-        //xy12
-        cube.add(new Point3f(0, 0, 1));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(0, 1, 1));
-
+            //xy12
+            cube.add(new Point3f(0, 0, 1));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(0, 1, 1));
+        }
         return cube;
     }
 
@@ -1174,7 +1184,7 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null || blocks[x][y][z].isCustom())
                         continue;
-                    ArrayList<Point3f> triangles = makeUnitCube();
+                    ArrayList<Point3f> triangles = makeUnitCube(x,y,z);
 
                     totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
