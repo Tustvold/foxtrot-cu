@@ -9,14 +9,24 @@ import java.util.Collections;
 
 public class CustomPartMouldGenerator {
 
-    //TODO questions: have two custom parts? can hole extrusion go on top of part intrusion? duplicate vertices?
+    /*todo
+
+        make sure we can print the thing
+        dont make blocks the whole cubes
+
+        print the acutal objects (get holes per polygon)
+            make white on the outside
+
+     */
+
+
 
     // codes used to tell what projection our custom part should use
     public enum ProjectionFace { XY0, XY1, ZY0, ZY1, ZX0, ZX1 }
 
 
     // sides of unit cube in the first octant of 3D space specified clockwise
-    private final Point3f[] FACE_XY0 =
+    private final Point3f[] FACE_XY0 =  //ccw
             {
                 new Point3f(0, 0, 0),
                 new Point3f(1, 0, 0),
@@ -24,7 +34,7 @@ public class CustomPartMouldGenerator {
                 new Point3f(0, 1, 0)
             };
 
-    private final Point3f[] FACE_XY1 =
+    private final Point3f[] FACE_XY1 = //ccw
             {
                 new Point3f(0, 0, 1),
                 new Point3f(1, 0, 1),
@@ -186,6 +196,8 @@ public class CustomPartMouldGenerator {
 
         // project the mesh onto face and remove self-intersections
         Point3f[] projectionCoords = getProjectionCoords(face);
+
+
         //todo use this
         IntersectionRemover ir = new IntersectionRemover(projectionCoords);
         Point3f[][] test = ir.getPolygonArray();
@@ -254,6 +266,7 @@ public class CustomPartMouldGenerator {
 
     // given a mesh of Point3fs representing triangles (each 3 is a triangle), print an obj
     // file representing this mesh to stdout
+    //todo deduplicate
     private void generateObjFile(Point3f[] pts) {
         if (pts.length % 3 != 0) {
             throw new IllegalArgumentException("generateObjFile: number of vertices not a multiple of 3");
