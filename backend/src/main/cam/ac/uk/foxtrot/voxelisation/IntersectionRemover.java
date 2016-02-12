@@ -36,7 +36,7 @@ public class IntersectionRemover {
     }
 
     // convert between z-y plane and x-y plane
-    private Point3f[] zY(Point3f[] originalCoordinates) {
+    public static Point3f[] zY(Point3f[] originalCoordinates) {
         int length = originalCoordinates.length;
         Point3f[] newCoordinates = new Point3f[length];
         for(int i = 0; i < length; i++) {
@@ -47,7 +47,7 @@ public class IntersectionRemover {
     }
 
     // convert between z-x plane and x-y plane
-    private Point3f[] zX(Point3f[] originalCoordinates) {
+    public static Point3f[] zX(Point3f[] originalCoordinates) {
         int length = originalCoordinates.length;
         Point3f[] newCoordinates = new Point3f[length];
         for(int i = 0; i < length; i++) {
