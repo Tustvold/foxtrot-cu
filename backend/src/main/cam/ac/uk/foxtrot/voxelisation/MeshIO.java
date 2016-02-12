@@ -1,16 +1,11 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 
-import com.sun.j3d.loaders.IncorrectFormatException;
-import com.sun.j3d.loaders.ParsingErrorException;
 import com.sun.j3d.loaders.Scene;
 import com.sun.j3d.loaders.objectfile.ObjectFile;
-import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.*;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Iterator;
 
 public class MeshIO
 {
@@ -29,22 +24,10 @@ public class MeshIO
         ObjectFile theOBJFile = new ObjectFile();
         theOBJFile.setFlags(ObjectFile.TRIANGULATE);
         Scene theScene;
-        try
-        {
-            theScene = theOBJFile.load(filename);
-        }
-        catch(java.io.FileNotFoundException error)
-        {
-            throw new IOException("File was not found!");
-        }
-        catch (IncorrectFormatException error)
-        {
-            throw new IOException("Incorrect file format!");
-        }
-        catch (ParsingErrorException error)
-        {
-            throw new IOException("Parsing failed!");
-        }
+
+        theScene = theOBJFile.load(filename);
+
+
 
         System.out.println("Loading mesh...");
         return theScene;

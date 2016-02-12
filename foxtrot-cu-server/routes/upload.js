@@ -2,39 +2,51 @@ var express = require('express');
 var multer  = require('multer');
 var exec = require('child_process').exec;
 var router = express.Router();
+var temp = require('temp');
+var fs = require('fs');
 
 var upload = multer({ dest: '/tmp/uploads/' });
 
 
 router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
 
-    child = exec('<run exec> ' + req.file.path);
-    console.log(req.file)
+    temp.track();
 
-    res.header("Content-Type", "application/json");
+    temp.mkdir('outputDir', function(err, dirPath) {
+        if (err)
+            throw err;
+        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" ' + req.file.path + " " + dirPath);
+        console.log(req.file)
+        console.log(dirPath);
 
-    // Any data from the jar
-    child.stdout.on('data', function(data) {
-        if(!res.finished) {
-            res.write(data);
-        }
-    });
+        res.header("Content-Type", "application/json");
 
-    // Any error will return those errors
-    child.stderr.on('data', function(data) {
-        console.log(data)
-        res.status(200).json({error: data})
-    });
+        hasError = false;
+        errorBuffer = "";
 
-    // If the jar finished successfully
-    child.on('exit', function (code) {
-        if(!res.finished) {
-            setTimeout(function () { // to simulate a long running jar file.
+        // Any error will return those errors
+        child.stderr.on('data', function(data) {
+            errorBuffer += data;
+            console.log(data)
+        });
+
+        // If the jar finished successfully
+        child.on('exit', function (code) {
+            if (hasError) {
+                console.log(errorBuffer);
+                res.status(200).json({error: errorBuffer});
                 res.end();
-                console.log('child process exited with code ' + code);
-            }, 5 * 1000)
-        }
+            }
+            else if(!res.finished) {
+                fs.readFile(dirPath+"/output.json", function(err, data) {
+                    if (err)
+                        throw err;
+                    res.send(data);
+                });
+            }
+        });
     });
+
 
 });
 

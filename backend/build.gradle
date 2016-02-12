@@ -11,6 +11,19 @@ jar {
     }
 }
 
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'cam.ac.uk.foxtrot.Main'
+    }
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    baseName = project.name + '-fat'
+    with jar
+}
+
 sourceSets {
     main {
         java {

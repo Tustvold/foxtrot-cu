@@ -9,7 +9,11 @@ import com.google.gson.GsonBuilder;
 import com.sun.j3d.loaders.Scene;
 import com.google.gson.Gson;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Main
 {
@@ -18,8 +22,9 @@ public class Main
     /**
      * Expects the following arguments
      * <p>
-     * 1. Output Directory
-     * 2. Input Mesh File Location
+     * 1. Input Mesh File Location
+     * 2. Output Directory
+     *
      *
      * @param args arguments
      * @throws Exception
@@ -27,12 +32,12 @@ public class Main
     public static void main(String[] args) throws Exception
     {
         System.out.println("Starting...");
-        if (args.length < 1)
-        {
-            System.err.println("Error: No file");
+        if (args.length != 2) {
+            System.err.println("Expected Usage: <objfile> <output_dir>");
             return;
         }
         String filePath = args[0];
+        String output_dir = args[1] + "/";
 
         // input the mesh
         MeshIO meshIO = new MeshIO();
@@ -42,7 +47,7 @@ public class Main
             scene = meshIO.readFromFile(filePath);
         } catch (IOException error)
         {
-            System.err.println("Loading fialied:" + error.getMessage());
+            System.err.println("Loading failed:" + error.getMessage());
             return;
         }
         Mesh m = new Mesh(scene);
@@ -54,10 +59,12 @@ public class Main
 
 
         GsonBuilder builder = new GsonBuilder();
-        builder.serializeNulls().setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
+        builder.serializeNulls().registerTypeAdapter(Block.class, new BlockJSONSerializer());
         Gson gsonParser = builder.create();
-        System.out.print(gsonParser.toJson(blocks));
 
+        BufferedWriter writer = new BufferedWriter( new FileWriter(output_dir + "output.json"));
+        writer.write(gsonParser.toJson(blocks));
+        writer.close();
 
         //TODO: Generate Instructions
 

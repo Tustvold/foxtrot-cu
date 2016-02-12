@@ -92,7 +92,7 @@ public class Mesh
         }
 
         // TESTING METHOD!!
-        drawTriangles("../../testing/initial.obj");
+        //drawTriangles("../../testing/initial.obj");
     }
 
     // TESTING METHOD!!

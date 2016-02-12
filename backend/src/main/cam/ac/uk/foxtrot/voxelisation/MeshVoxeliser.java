@@ -165,7 +165,7 @@ public class MeshVoxeliser
         }
 
         // TESTING METHOD!!!
-        mesh.drawTriangles("../../testing/actualInitial.obj");
+        //mesh.drawTriangles("../../testing/actualInitial.obj");
         System.out.println("Mesh shifted...");
     }
 
@@ -198,7 +198,7 @@ public class MeshVoxeliser
         fillRemainingBlocks();
 
         // TESTING METHOD!!
-        drawTrianglesFromBlocks("../../testing/out.obj");
+        //drawTrianglesFromBlocks("../../testing/out.obj");
 
         System.out.println("All blocks filled...");
     }
@@ -581,7 +581,7 @@ public class MeshVoxeliser
                 }
             }
         }
-        drawVoxelsOnly("../../testing/voxels.obj");
+        //drawVoxelsOnly("../../testing/voxels.obj");
         System.out.println("Remaining blocks filled...");
     }
 
