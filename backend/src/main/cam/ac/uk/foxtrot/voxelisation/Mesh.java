@@ -113,7 +113,7 @@ public class Mesh
 
         for (int i = 0; i < triangles.getVertexCount(); i++)
         {
-            Point3f currPt = new Point3f(0,0,0);
+            Point3f currPt = new Point3f(0, 0, 0);
             triangles.getCoordinate(i, currPt);
             try
             {
@@ -125,7 +125,7 @@ public class Mesh
             }
         }
 
-        for (int i = 1; i < triangles.getVertexCount(); i +=3)
+        for (int i = 1; i < triangles.getVertexCount(); i += 3)
         {
             try
             {

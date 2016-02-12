@@ -21,6 +21,11 @@ public class MeshVoxeliser
     public static final float float_tolerance = 0.0000001f; // global tolerance constant
     private Block[][][] blocks;                             // list of the meshes blocks
 
+    private ArrayList<Point3f> initTrigs;                   // regular internal representation (needed for the ray tracing step)
+    private ArrayList<ArrayList<ArrayList<Integer>>> sharesVertex;
+    private ArrayList<ArrayList<ArrayList<Integer>>> sharesEdge;
+
+
     public MeshVoxeliser(Mesh mesh)
     {
         // instantiates the voxeliser and initialises voxelisation
@@ -531,6 +536,8 @@ public class MeshVoxeliser
     // labels the remaining blocks within the mesh as full
     private void fillRemainingBlocks()
     {
+        // first precompute all the helpful structures that will be useful to save time
+        computeAssistiveStructures();
         System.out.println("Filling remaining blocks...");
 
         for (int x = 0; x < dim[0]; x++)
@@ -551,6 +558,7 @@ public class MeshVoxeliser
                     {
                         if (blocks[x][y][z - 1] == null)
                         {
+                            // the previous block was empty, so this one must be as well
                             continue;
                         }
                         else
@@ -577,26 +585,18 @@ public class MeshVoxeliser
         System.out.println("Remaining blocks filled...");
     }
 
-    // checks the original mesh for intersections with
-    // the given ray (the ray is shot "upwards in the z direction")
-    private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
+    private void computeAssistiveStructures()
     {
-        // prepare the ray
-        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z);
-        Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
-
-        // the number of intersections with the mesh
-        int intersectionNo = 0;
-
+        System.out.println("Computing assistive sturctures...");
         // mesh parameters
-        ArrayList<Point3f> triangles = new ArrayList<>();
+        initTrigs = new ArrayList<>();
         int triangleCnt = initialTriangles.getVertexCount() / 3;
         // load the triangles from the initial array
         for (int i = 0; i < triangleCnt * 3; i++)
         {
             Point3f point = new Point3f();
             initialTriangles.getCoordinate(i, point);
-            triangles.add(point);
+            initTrigs.add(point);
         }
 
         // a list of vertices and their indexes, which will be used to determine the adjacency lists
@@ -605,7 +605,7 @@ public class MeshVoxeliser
         for (int i = 0; i < triangleCnt * 3; i++)
         {
             // we initialise the array which we will sort
-            sortedVertices.add(new Pair<>(triangles.get(i), i));
+            sortedVertices.add(new Pair<>(initTrigs.get(i), i));
         }
 
         // initialise the comparator and sort the vertices
@@ -613,7 +613,7 @@ public class MeshVoxeliser
         sortedVertices.sort(comp);
 
         // prepare the vertex adjacency array
-        ArrayList<ArrayList<ArrayList<Integer>>> sharesVertex = new ArrayList<>();
+        sharesVertex = new ArrayList<>();
         for (int i = 0; i < triangleCnt; i++)
         {
             // an array list for each triangle
@@ -626,7 +626,7 @@ public class MeshVoxeliser
         }
 
         // prepare the edge adjacency array
-        ArrayList<ArrayList<ArrayList<Integer>>> sharesEdge = new ArrayList<>();
+        sharesEdge = new ArrayList<>();
         for (int i = 0; i < triangleCnt; i++)
         {
             // an array list for each triangle
@@ -637,12 +637,6 @@ public class MeshVoxeliser
             curr.add(new ArrayList<>());
             sharesEdge.add(curr);
         }
-
-        // these labels will be used to determine if a triangle is to be checked for intersections
-        // with the intersection ray
-        boolean[] isConsidered = new boolean[triangleCnt];
-        for (int i = 0; i < triangleCnt; i++)
-            isConsidered[i] = true;
 
         // fill the vertex adjacency array
         // we initialise a helper array which will hold the currently identical set of vertices
@@ -725,18 +719,39 @@ public class MeshVoxeliser
                 }
             }
         }
+        System.out.println("Assistive structures computed...");
+    }
 
-        // now that we have prepared the necessary structures to determine
-        // the number of intersections we begin to do the numeric calculations
+    // checks the original mesh for intersections with
+    // the given ray (the ray is shot "upwards in the z direction")
+    private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
+    {
+        // prepare the ray
+        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z);
+        Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
+
+        // the number of intersections with the mesh
+        int intersectionNo = 0;
+
+        // mesh parameters
+        int triangleCnt = initialTriangles.getVertexCount() / 3;
+
+        // these labels will be used to determine if a triangle is to be checked for intersections
+        // with the intersection ray
+        boolean[] isConsidered = new boolean[triangleCnt];
+        for (int i = 0; i < triangleCnt; i++)
+            isConsidered[i] = true;
+
+        // the numeric ray tracing calculations
         for (int curr = 0; curr < triangleCnt; curr++)
         {
             if (isConsidered[curr])
             {
                 // pack up the current triangle
                 ArrayList<Point3f> T = new ArrayList<>();
-                T.add(triangles.get(curr * 3));
-                T.add(triangles.get(curr * 3 + 1));
-                T.add(triangles.get(curr * 3 + 2));
+                T.add(initTrigs.get(curr * 3));
+                T.add(initTrigs.get(curr * 3 + 1));
+                T.add(initTrigs.get(curr * 3 + 2));
                 // set up resulting point (if it exists)
                 Point3f I = new Point3f(0.0f, 0.0f, 0.0f);
                 // and check intersection
@@ -767,9 +782,9 @@ public class MeshVoxeliser
                     {
                         // load the adjacent triangle
                         ArrayList<Point3f> adj = new ArrayList<>();
-                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(touching) * 3));
-                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 1));
-                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 2));
+                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3));
+                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 1));
+                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 2));
 
                         // remove the ability of the triangle to participate in the rest of the cutting
                         isConsidered[sharesEdge.get(curr).get(code).get(touching)] = false;
@@ -802,9 +817,9 @@ public class MeshVoxeliser
                     {
                         // load the adjacent triangle
                         ArrayList<Point3f> adj = new ArrayList<>();
-                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(0) * 3));
-                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(0) * 3 + 1));
-                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(0) * 3 + 2));
+                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(0) * 3));
+                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(0) * 3 + 1));
+                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(0) * 3 + 2));
 
                         // remove the ability of the triangle to participate in the rest of the cutting
                         isConsidered[sharesEdge.get(curr).get(code).get(0)] = false;
@@ -1002,7 +1017,7 @@ public class MeshVoxeliser
      */
     public void drawTrianglesFromBlocks(String filename)
     {
-        System.out.println("Preparing output...");
+        System.out.println("Preparing the sliced output...");
         Writer writer = null;
 
         try
@@ -1065,7 +1080,7 @@ public class MeshVoxeliser
             writer.close();
         } catch (Exception ex)
         {/*ignore*/}
-        System.out.println("Output created...");
+        System.out.println("Sliced output created...");
     }
 
     private ArrayList<Point3f> makeUnitCube()
@@ -1136,7 +1151,7 @@ public class MeshVoxeliser
 
     public void drawVoxelsOnly(String filename)
     {
-        System.out.println("Preparing output...");
+        System.out.println("Preparing the voxel output...");
         Writer writer = null;
 
         try
@@ -1193,7 +1208,7 @@ public class MeshVoxeliser
             writer.close();
         } catch (Exception ex)
         {/*ignore*/}
-        System.out.println("Output created...");
+        System.out.println("Voxel output created...");
     }
 
     /**
