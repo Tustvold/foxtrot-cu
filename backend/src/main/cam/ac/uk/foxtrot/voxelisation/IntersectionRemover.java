@@ -4,7 +4,6 @@ import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,12 +14,15 @@ public class IntersectionRemover {
     Point3f[][] polygonArray;
     Point3f[][] holeArray;
     float z;
+    CustomPartMouldGenerator.ProjectionFace face;
 
-    public IntersectionRemover(Point3f[] originalCoordinates){
+    public IntersectionRemover(Point3f[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace projectionFace){
+        face = projectionFace;
+        originalCoordinates = convertBetweenPlanes(originalCoordinates);
         List<Geometry> geometryList = new ArrayList<>();
         GeometryFactory factory = new GeometryFactory();
         if(originalCoordinates.length>1) {
-            z = originalCoordinates[0].z;
+            z = originalCoordinates[0].getZ();
         }
         for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
             Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
@@ -33,9 +35,39 @@ public class IntersectionRemover {
         generateArrays();
     }
 
+    // convert between z-y plane and x-y plane
+    private Point3f[] zY(Point3f[] originalCoordinates) {
+        int length = originalCoordinates.length;
+        Point3f[] newCoordinates = new Point3f[length];
+        for(int i = 0; i < length; i++) {
+            Point3f point = originalCoordinates[i];
+            newCoordinates[i] = new Point3f(point.getZ(),point.getY(),point.getX());
+        }
+        return newCoordinates;
+    }
+
+    // convert between z-x plane and x-y plane
+    private Point3f[] zX(Point3f[] originalCoordinates) {
+        int length = originalCoordinates.length;
+        Point3f[] newCoordinates = new Point3f[length];
+        for(int i = 0; i < length; i++) {
+            Point3f point = originalCoordinates[i];
+            newCoordinates[i] = new Point3f(point.getX(),point.getZ(),point.getY());
+        }
+        return newCoordinates;
+    }
+
+    private Point3f[] convertBetweenPlanes(Point3f[] originalCoordinates) {
+        switch(face) {
+            case ZX0: case ZX1: return zX(originalCoordinates);
+            case ZY0: case ZY1: return zY(originalCoordinates);
+            default: return originalCoordinates;
+        }
+    }
+
     // convert original J3D Point3f to JTS Coordinates
     private Coordinate toJTSCoordinate(Point3f point) {
-        return new Coordinate(point.x,point.y,point.z);
+        return new Coordinate(point.getX(),point.getY(),point.getZ());
     }
 
     // convert JTS Coordinates to J3D Point3f
@@ -43,17 +75,17 @@ public class IntersectionRemover {
         return new Point3f((float)coordinate.x,(float)coordinate.y,z);
     }
 
-    // convert Geometry to array of arrays of Point3fs
+    // convert Geometry to array of arrays of Point3fs for original plane
     private void generateArrays() {
         int length = union.getNumGeometries();
         polygonArray = new Point3f[length][];
         LinkedList<Point3f[]> holes = new LinkedList<>();
         for(int i = 0; i < length; i++) {
             Polygon polygon = (Polygon)union.getGeometryN(i);
-            polygonArray[i] = toPointArray(polygon.getExteriorRing());
+            polygonArray[i] = convertBetweenPlanes(toPointArray(polygon.getExteriorRing()));
             int numHoles = polygon.getNumInteriorRing();
             for(int j = 0; j < numHoles; j++) {
-                holes.add(toPointArray(polygon.getInteriorRingN(j)));
+                holes.add(convertBetweenPlanes(toPointArray(polygon.getInteriorRingN(j))));
             }
         }
         holeArray = holes.toArray(new Point3f[0][]);
@@ -72,7 +104,7 @@ public class IntersectionRemover {
 
     public Geometry getGeometry() {
         return union;
-    }
+    } // in x-y plane
 
     public Point3f[][] getPolygonArray() {
         return polygonArray;
