@@ -1,11 +1,9 @@
 package cam.ac.uk.foxtrot;
 
-import cam.ac.uk.foxtrot.voxelisation.Triangulator;
-import cam.ac.uk.foxtrot.voxelisation.Projection;
+import cam.ac.uk.foxtrot.voxelisation.CustomPartMouldGenerator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3f;
 
 public class MainTest {
@@ -28,7 +26,7 @@ public class MainTest {
         float Z_SET = 0.02f;
 
         
-        Projection p = new Projection(ta);
+        CustomPartMouldGenerator p = new CustomPartMouldGenerator(ta);
         Point3f[] xproj = p.setX(X_SET);
         Point3f[] yproj = p.setY(Y_SET);
         Point3f[] zproj = p.setZ(Z_SET);
@@ -60,12 +58,8 @@ public class MainTest {
         points[1] = new Point3f(.5f,.5f,.25f);
         points[2] = new Point3f(.25f,.25f,.5f);
 
-        TriangleArray ta = new TriangleArray(NUM_PTS, TriangleArray.COORDINATES);
-        ta.setCoordinates(0, points);
-
-        Projection p = new Projection(ta);
-        Point3f[] cube = p.getProjectionCubeFace(Projection.ProjectionFace.ZX0);
-        //Triangulator.triangulateAndPrintObjFile(cube);
+        CustomPartMouldGenerator p = new CustomPartMouldGenerator(points);
+        p.generateMould(CustomPartMouldGenerator.ProjectionFace.ZX1);
 
 
 
