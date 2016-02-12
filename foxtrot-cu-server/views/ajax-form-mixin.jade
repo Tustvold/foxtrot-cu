@@ -10,8 +10,24 @@ mixin ajaxFormMixin(form)
       $('form').ajaxForm(options)
       function showRequest(formData, jqForm, options) {
          console.log('start')
+         console.log(formData[0].value)
+
+
+         var reader = new FileReader();
+         reader.onload = function(e) {
+            var contents = e.target.result;
+            ObjFileRenderer(contents, width, height, <ELEMENT>)
+         };
+         reader.readAsText(formData[0].value)
+         //ObjFileRenderer(formData, 500, 500, )
          return true;
       }
       function showResponse(responseText, statusText, xhr, $form) {
          console.log(responseText)
+        // var response = JSON.parse(responseText)
+         if ('error' in responseText) {
+            alert('failed: ' + responseText.error)
+         } else if ('data' in responseText) {
+            render.setBlockList(responseText.data)
+         }
       }

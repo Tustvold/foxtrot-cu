@@ -3,13 +3,19 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
+
+.models {
+  display: flex;
+  justify-content: center;
+}
+
+form {
+  display: flex;
+  justify-content: center;
 }
 
 .model-viewer {
-  width: 500px;
-  height: 500px;
+  margin: 20px 20px 20px 20px;
   float: left;
 }
 
