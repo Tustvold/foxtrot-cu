@@ -1,11 +1,15 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
+import javafx.util.Pair;
+
 import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3f;
 import javax.vecmath.Point3i;
 import javax.vecmath.Vector3f;
+import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class MeshVoxeliser
 {
@@ -77,7 +81,8 @@ public class MeshVoxeliser
             if (min == null)
             {
                 min = new Point3f(curr);
-            } else
+            }
+            else
             {
                 if (min.x > curr.x)
                     min.x = curr.x;
@@ -103,7 +108,8 @@ public class MeshVoxeliser
             if (max == null)
             {
                 max = new Point3f(curr);
-            } else
+            }
+            else
             {
                 if (max.x < curr.x)
                     max.x = curr.x;
@@ -259,7 +265,8 @@ public class MeshVoxeliser
                             polys.get(side).add(resNew);
                             if (ver != cnt - 1)
                                 polys.get(side).add(sec);
-                        } else
+                        }
+                        else
                         {
                             if (res.x < -0.5f)
                             {
@@ -270,7 +277,8 @@ public class MeshVoxeliser
                                 onlyFirst = true;
                                 polys.set(1, null);
                                 break;
-                            } else if (res.x > 0.5f)
+                            }
+                            else if (res.x > 0.5f)
                             {
                                 // only one point is on the line
                                 if (res.y < -0.5f)
@@ -282,7 +290,8 @@ public class MeshVoxeliser
                                     // we add the first vertex but stay on the same side
                                     if (ver != cnt - 1)
                                         polys.get(side).add(sec);
-                                } else if (res.y > 0.5f)
+                                }
+                                else if (res.y > 0.5f)
                                 {
                                     // there was an intersection on a vertex, so no new vertices are introduced
                                     // the intersection was on the sec
@@ -294,7 +303,8 @@ public class MeshVoxeliser
                                     if (ver != cnt - 1)
                                         polys.get(side).add(secNew);
                                 }
-                            } else
+                            }
+                            else
                             {
                                 // no intersection was observed, so we just add the second vertex
                                 Point3f sec = new Point3f(poly.get((ver + 1) % cnt));
@@ -333,7 +343,8 @@ public class MeshVoxeliser
             y1 = coordfir[idy];
             x2 = coordsec[idx];
             y2 = coordsec[idy];
-        } else
+        }
+        else
         {
             x1 = coordsec[idx];
             y1 = coordsec[idy];
@@ -356,7 +367,8 @@ public class MeshVoxeliser
                     res.set(-1f, 1f, 0f);
                     // we do not create a new division of the polygon
                     return false;
-                } else
+                }
+                else
                 {
                     // the intersecting point is the one with the lower x coordinate
                     if (coordfir[idx] < coordsec[idx])
@@ -366,7 +378,8 @@ public class MeshVoxeliser
                     // we create a new division, but do not create a new vertex
                     return false;
                 }
-            } else if (Math.abs(x2 - line) < float_tolerance)
+            }
+            else if (Math.abs(x2 - line) < float_tolerance)
             {
                 // the intersecting point is the one with the greater x coordinate
                 if (coordfir[idx] < coordsec[idx])
@@ -375,7 +388,8 @@ public class MeshVoxeliser
                     res.set(1f, -1f, 0f); // intersection is on fir
                 // we create a new division, but do not create a new vertex
                 return false;
-            } else
+            }
+            else
             {
                 // the lines are simply not intersecting
                 return false;
@@ -412,7 +426,8 @@ public class MeshVoxeliser
             {
                 min = new float[3];
                 polygon.get(i).get(min);
-            } else
+            }
+            else
             {
                 if (min[0] > polygon.get(i).x)
                     min[0] = polygon.get(i).x;
@@ -439,7 +454,8 @@ public class MeshVoxeliser
             {
                 max = new float[3];
                 polygon.get(i).get(max);
-            } else
+            }
+            else
             {
                 if (max[0] < polygon.get(i).x)
                     max[0] = polygon.get(i).x;
@@ -472,7 +488,7 @@ public class MeshVoxeliser
 
             // create a new block if it does not exist already
             if (blocks[x][y][z] == null)
-                blocks[x][y][z] = new Block(new Vector3f(x, y, z));
+                blocks[x][y][z] = new Block(new Vector3f(x, y, z), true);
 
             // triangulate the current polygon and add the resulting triangles to the new block
             switch (poly.size())
@@ -516,9 +532,469 @@ public class MeshVoxeliser
     private void fillRemainingBlocks()
     {
         System.out.println("Filling remaining blocks...");
-        System.out.println("TODO!!!...");
-        //TODO!
+
+        for (int x = 0; x < dim[0]; x++)
+        {
+            for (int y = 0; y < dim[1]; y++)
+            {
+                if (blocks[x][y][0] == null)
+                {
+                    if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, 0) % 2 == 1)
+                    {
+                        // we create the block
+                        blocks[x][y][0] = new Block(new Vector3f(x, y, 0), false);
+                    }
+                }
+                for (int z = 1; z < dim[2]; z++)
+                {
+                    if (blocks[x][y][z] == null)
+                    {
+                        if (blocks[x][y][z - 1] == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            if (blocks[x][y][z - 1].isCustom())
+                            {
+                                if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, z) % 2 == 1)
+                                {
+                                    // we create the block
+                                    blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
+                                }
+                            }
+                            else
+                            {
+                                // the previous was full, so this one must also be
+                                blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        drawVoxelsOnly("../../testing/voxels.obj");
         System.out.println("Remaining blocks filled...");
+    }
+
+    // checks the original mesh for intersections with
+    // the given ray (the ray is shot "upwards in the z direction")
+    private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
+    {
+        // prepare the ray
+        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z);
+        Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
+
+        // the number of intersections with the mesh
+        int intersectionNo = 0;
+
+        // mesh parameters
+        ArrayList<Point3f> triangles = new ArrayList<>();
+        int triangleCnt = initialTriangles.getVertexCount() / 3;
+        // load the triangles from the initial array
+        for (int i = 0; i < triangleCnt * 3; i++)
+        {
+            Point3f point = new Point3f();
+            initialTriangles.getCoordinate(i, point);
+            triangles.add(point);
+        }
+
+        // a list of vertices and their indexes, which will be used to determine the adjacency lists
+        ArrayList<Pair<Point3f, Integer>> sortedVertices = new ArrayList<>();
+
+        for (int i = 0; i < triangleCnt * 3; i++)
+        {
+            // we initialise the array which we will sort
+            sortedVertices.add(new Pair<>(triangles.get(i), i));
+        }
+
+        // initialise the comparator and sort the vertices
+        PointComparator comp = new PointComparator();
+        sortedVertices.sort(comp);
+
+        // prepare the vertex adjacency array
+        ArrayList<ArrayList<ArrayList<Integer>>> sharesVertex = new ArrayList<>();
+        for (int i = 0; i < triangleCnt; i++)
+        {
+            // an array list for each triangle
+            ArrayList<ArrayList<Integer>> curr = new ArrayList<>();
+            // which contains three array lists (for each vertex of the particular triangle)
+            curr.add(new ArrayList<>());
+            curr.add(new ArrayList<>());
+            curr.add(new ArrayList<>());
+            sharesVertex.add(curr);
+        }
+
+        // prepare the edge adjacency array
+        ArrayList<ArrayList<ArrayList<Integer>>> sharesEdge = new ArrayList<>();
+        for (int i = 0; i < triangleCnt; i++)
+        {
+            // an array list for each triangle
+            ArrayList<ArrayList<Integer>> curr = new ArrayList<>();
+            // which contains three array lists (for each edge of the particular triangle)
+            curr.add(new ArrayList<>());
+            curr.add(new ArrayList<>());
+            curr.add(new ArrayList<>());
+            sharesEdge.add(curr);
+        }
+
+        // these labels will be used to determine if a triangle is to be checked for intersections
+        // with the intersection ray
+        boolean[] isConsidered = new boolean[triangleCnt];
+        for (int i = 0; i < triangleCnt; i++)
+            isConsidered[i] = true;
+
+        // fill the vertex adjacency array
+        // we initialise a helper array which will hold the currently identical set of vertices
+        int[] currentSet = new int[triangleCnt * 3];
+        int setCnt = 1;
+        currentSet[0] = sortedVertices.get(0).getValue();
+
+        for (int curr = 1; curr < triangleCnt * 3; curr++)
+        {
+            if (areIdentical(sortedVertices.get(curr).getKey(), sortedVertices.get(curr - 1).getKey()))
+            {
+                // add the new vertex to the current set
+                currentSet[setCnt] = sortedVertices.get(curr).getValue();
+                setCnt++;
+            }
+            else
+            {
+                if (setCnt > 2)
+                {
+                    // if the vertex is shared by at least two triangles
+                    for (int to = 0; to < setCnt; to++)
+                    {
+                        // we consider one of the touching triangles
+                        for (int from = 0; from < setCnt; from++)
+                        {
+                            // and add all of the other ones to its adjacency list
+                            if (from != to)
+                                sharesVertex.get(currentSet[to] / 3).get(currentSet[to] % 3).add(currentSet[from] / 3);
+                        }
+                    }
+                }
+
+                // reset the current set
+                currentSet[0] = sortedVertices.get(curr).getValue();
+                setCnt = 1;
+            }
+        }
+
+        // perform final check in case there is something left in the current set
+        if (setCnt > 1)
+        {
+            // if the vertex is shared by at least two triangles
+            for (int to = 0; to < setCnt; to++)
+            {
+                // we consider one of the touching triangles
+                for (int from = 0; from < setCnt; from++)
+                {
+                    // and add all of the other ones to its adjacency list
+                    if (from != to)
+                        sharesVertex.get(currentSet[to] / 3).get(currentSet[to] % 3).add(currentSet[from] / 3);
+                }
+            }
+        }
+
+        // now we determine the edge adjacency array
+        for (int curr = 0; curr < triangleCnt; curr++)
+        {
+            // we consider all the triangles, and observe their vertex adjacency lists
+            for (int vIdx = 0; vIdx < 3; vIdx++)
+            {
+                int fromIdx = vIdx; // the point we are pulling the line from
+                int toIdx = (vIdx + 1) % 3; // the point we are ending the line at
+                int fromSize = sharesVertex.get(curr).get(fromIdx).size();
+                int toSize = sharesVertex.get(curr).get(toIdx).size();
+                boolean done = false;
+                for (int from = 0; from < fromSize && !done; from++)
+                {
+                    // we consider a triangle in the first array and check if it can be found in the second
+                    int firTriangle = sharesVertex.get(curr).get(fromIdx).get(from);
+                    for (int to = 0; to < toSize; to++)
+                    {
+                        if (sharesVertex.get(curr).get(toIdx).get(to) == firTriangle)
+                        {
+                            // we found the triangle so we save and break
+                            sharesEdge.get(curr).get(fromIdx).add(firTriangle);
+                            done = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // now that we have prepared the necessary structures to determine
+        // the number of intersections we begin to do the numeric calculations
+        for (int curr = 0; curr < triangleCnt; curr++)
+        {
+            if (isConsidered[curr])
+            {
+                // pack up the current triangle
+                ArrayList<Point3f> T = new ArrayList<>();
+                T.add(triangles.get(curr * 3));
+                T.add(triangles.get(curr * 3 + 1));
+                T.add(triangles.get(curr * 3 + 2));
+                // set up resulting point (if it exists)
+                Point3f I = new Point3f(0.0f, 0.0f, 0.0f);
+                // and check intersection
+                int code = intersect3D_RayTriangle(R0, R1, T, I);
+                if (code == 1)
+                {
+                    // there was a strict intersection
+                    intersectionNo++;
+                }
+                else if (3 <= code && code <= 5)
+                {
+                    // there was a vertex intersection
+                    // so we extract all the triangles which are touching at this one point
+                    // and project them onto the xy plane. After this we check if all of the
+                    // vector products of the appropriately oriented edges are either all
+                    // positive or all negative. If this is not the case, then we do not add
+                    // a new intersection point
+                    code -= 3;
+                    // we setup the initial positive and neagitve counters
+                    int positiveCnt = 0, negativeCnt = 0;
+                    if (vectorProd2DisPositive(T.get(code), T.get((code - 1) % 3), T.get((code + 1) % 3)))
+                        positiveCnt++;
+                    else
+                        negativeCnt++;
+
+                    int len = sharesVertex.get(curr).get(code).size();
+                    for (int touching = 0; touching < len; touching++)
+                    {
+                        // load the adjacent triangle
+                        ArrayList<Point3f> adj = new ArrayList<>();
+                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(touching) * 3));
+                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 1));
+                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 2));
+
+                        // remove the ability of the triangle to participate in the rest of the cutting
+                        isConsidered[sharesEdge.get(curr).get(code).get(touching)] = false;
+
+                        // find the point on the adjacent triangle which is not on the line in common
+                        int other = 0;
+                        for (other = 0; other < 3; other++)
+                            if (areIdentical(adj.get(other), T.get(code)))
+                                break;
+
+                        if (vectorProd2DisPositive(adj.get(other), adj.get((other - 1) % 3), adj.get((other + 1) % 3)))
+                            positiveCnt++;
+                        else
+                            negativeCnt++;
+                    }
+                    if (Math.abs(positiveCnt - negativeCnt) == len + 1)
+                    {
+                        // the tirangles are surrounding the punctuating ray so we increment the counter
+                        intersectionNo++;
+                    }
+                }
+                else if (6 <= code && code <= 8)
+                {
+                    // there was an edge intersection
+                    // so we just check if the adjacent triangle cannot be projected
+                    // onto the current one, and if this is the case, increment the
+                    // counter, otherwise ignore it
+                    code -= 6;
+                    if (sharesEdge.get(curr).get(code).size() == 1)
+                    {
+                        // load the adjacent triangle
+                        ArrayList<Point3f> adj = new ArrayList<>();
+                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(0) * 3));
+                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(0) * 3 + 1));
+                        adj.add(triangles.get(sharesEdge.get(curr).get(code).get(0) * 3 + 2));
+
+                        // remove the ability of the triangle to participate in the rest of the cutting
+                        isConsidered[sharesEdge.get(curr).get(code).get(0)] = false;
+
+                        // find the point on the adjacent triangle which is not on the line in common
+                        int other = 0;
+                        for (other = 0; other < 3; other++)
+                            if (!areIdentical(adj.get(other), T.get(code)) || !areIdentical(adj.get(other), T.get((code + 1) % 3)))
+                                break;
+
+                        // then check if it has intersection with the model
+                        int adjcode = intersect3D_RayTriangle(adj.get(other), vectorAdd(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
+                        if (adjcode == 0)
+                        {
+                            // only if there is no intersection between the projection and the model do we increment the counter
+                            intersectionNo++;
+                        }
+                    }
+                    else
+                    {
+                        // THE MESH IS DISCONTINUOUS OR SELF INTERSECTING!!!!!!
+                        // TODO handle this
+                    }
+                }
+                isConsidered[curr] = false;
+            }
+        }
+        return intersectionNo;
+    }
+
+    // returns true if the vector product ABxAC is positive
+    private boolean vectorProd2DisPositive(Point3f A, Point3f B, Point3f C)
+    {
+        return ((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) > 0;
+    }
+
+    // returns the vector product ABxAC
+    private Point3f vectorProd(Point3f A, Point3f B, Point3f C)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
+        result.y = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
+        result.z = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+        return result;
+    }
+
+    // returns A - B
+    private Point3f vectorSub(Point3f A, Point3f B)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = A.x - B.x;
+        result.y = A.y - B.y;
+        result.z = A.z - B.z;
+        return result;
+    }
+
+    // returns A + B
+    private Point3f vectorAdd(Point3f A, Point3f B)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = A.x + B.x;
+        result.y = A.y + B.y;
+        result.z = A.z + B.z;
+        return result;
+    }
+
+    // returns the dot product: A.B
+    private float vectorDot(Point3f A, Point3f B)
+    {
+        return A.x * B.x + A.y * B.y + A.z * B.z;
+    }
+
+    // negates the given vector
+    private Point3f vectorNeg(Point3f A)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = -A.x;
+        result.y = -A.y;
+        result.z = -A.z;
+        return result;
+    }
+
+    // multiploes the given vector by a scalar
+    private Point3f vectorMul(float alpha, Point3f A)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = alpha * A.x;
+        result.y = alpha * A.y;
+        result.z = alpha * A.z;
+        return result;
+    }
+
+    // intersect3D_RayTriangle(): find the 3D intersection of a ray with a triangle
+    //    Input:  a ray R0->R1, and a triangle T
+    //    Output: I = intersection point (when it exists)
+    //    Return: -1 = triangle is degenerate (a segment or point)
+    //             0 = triangle and ray disjoint (no intersect)
+    //             1 = intersect in unique point I1 (on the strict inside)
+    //             2 = triangle and ray are in the same plane
+    //             ----------------------------------------------------------
+    //             3 = the ray intersects the triangle on the vertex T[0]
+    //             4 = the ray intersects the triangle on the vertex T[1]
+    //             5 = the ray intersects the triangle on the vertex T[2]
+    //             ----------------------------------------------------------
+    //             6 = the ray intersects the triangle on the edge T[0]->T[1]
+    //             7 = the ray intersects the triangle on the edge T[1]->T[2]
+    //             8 = the ray intersects the triangle on the edge T[2]->T[0]
+    //             ----------------------------------------------------------
+    int intersect3D_RayTriangle(Point3f R0, Point3f R1, ArrayList<Point3f> T, Point3f I)
+    {
+        Point3f u, v, n;    // triangle vectors
+        Point3f dir, w0, w; // ray vectors
+        float r, a, b;      // parameters to calculate ray-plane intersect
+
+        // get triangle edge vectors and plane normal
+        u = vectorSub(T.get(1), T.get(0));
+        v = vectorSub(T.get(2), T.get(0));
+        n = vectorProd(T.get(0), T.get(1), T.get(2)); // cross product
+
+        dir = vectorSub(R1, R0); // ray direction vector
+        w0 = vectorSub(R0, T.get(0));
+        a = -vectorDot(n, w0);
+        b = vectorDot(n, dir);
+
+        if (Math.abs(b) < float_tolerance)
+        {
+            // ray is  parallel to triangle plane
+            if (a == 0) return 2; // ray lies in triangle plane
+            else return 0; // ray disjoint from plane
+        }
+
+        // get intersect point of ray with triangle plane
+        r = a / b;
+        if (r < 0.0)
+        {
+            // ray goes away from triangle
+            return 0; // => no intersect
+        }
+
+        // intersect point of ray and plane
+        I.set(R0.x + r * dir.x, R0.y + r * dir.y, R0.z + r * dir.z);
+
+        // is I inside T?
+        float uu, uv, vv, wu, wv, D;
+        uu = vectorDot(u, u);
+        uv = vectorDot(u, v);
+        vv = vectorDot(v, v);
+        w = vectorSub(I, T.get(0));
+        wu = vectorDot(w, u);
+        wv = vectorDot(w, v);
+        D = uv * uv - uu * vv;
+
+        // get and test parametric coordinates
+        float s, t;
+        s = (uv * wv - vv * wu) / D;
+        if (s < 0.0 || s > 1.0)
+        {
+            // I is outside T
+            return 0;
+        }
+        t = (uv * wu - uu * wv) / D;
+        if (t < 0.0 || (s + t) > 1.0)
+        {
+            // I is outside T
+            return 0;
+        }
+
+        boolean[] onEdge = new boolean[3];
+        if (s < float_tolerance)
+            onEdge[0] = true;
+        if (Math.abs(s + t - 1) < float_tolerance)
+            onEdge[1] = true;
+        if (t < float_tolerance)
+            onEdge[2] = true;
+
+        if (onEdge[0] && onEdge[1]) return 3; // the ray intersects the triangle on the vertex T[0]
+        if (onEdge[1] && onEdge[2]) return 4; // the ray intersects the triangle on the vertex T[1]
+        if (onEdge[2] && onEdge[0]) return 5; // the ray intersects the triangle on the vertex T[2]
+        if (onEdge[0]) return 6; // the ray intersects the triangle on the edge T[0]->T[1]
+        if (onEdge[1]) return 7; // the ray intersects the triangle on the edge T[1]->T[2]
+        if (onEdge[2]) return 8; // the ray intersects the triangle on the edge T[2]->T[0]
+        return 1; // I is in T
+    }
+
+    // checks if two 3d points are identical
+    private boolean areIdentical(Point3f ver1, Point3f ver2)
+    {
+        return Math.abs(ver1.x - ver2.x) < float_tolerance
+                && Math.abs(ver1.y - ver2.y) < float_tolerance
+                && Math.abs(ver1.z - ver2.z) < float_tolerance;
     }
 
     /**
@@ -561,6 +1037,134 @@ public class MeshVoxeliser
                                     + triangles.get(i).y + " "
                                     + triangles.get(i).z + "\n");
                                     */
+                            writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x) + " "
+                                    + (triangles.get(i).y + blocks[x][y][z].getPosition().y) + " "
+                                    + (triangles.get(i).z + blocks[x][y][z].getPosition().z) + "\n");
+
+                        } catch (IOException err)
+                        {
+                            System.err.println("Could not write blocks: " + err.getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int i = 1; i <= totalTriangles * 3; i += 3)
+        {
+            try
+            {
+                writer.write("f " + i + " " + (i + 1) + " " + (i + 2) + "\n");
+            } catch (IOException err)
+            {
+                System.err.println("Could not write blocks: " + err.getMessage());
+            }
+        }
+        try
+        {
+            writer.close();
+        } catch (Exception ex)
+        {/*ignore*/}
+        System.out.println("Output created...");
+    }
+
+    private ArrayList<Point3f> makeUnitCube()
+    {
+        ArrayList<Point3f> cube = new ArrayList<>();
+        //yz01
+        cube.add(new Point3f(0, 1, 0));
+        cube.add(new Point3f(0, 0, 0));
+        cube.add(new Point3f(0, 1, 1));
+
+        //yz02
+        cube.add(new Point3f(0, 1, 1));
+        cube.add(new Point3f(0, 0, 0));
+        cube.add(new Point3f(0, 0, 1));
+
+        //xz01
+        cube.add(new Point3f(0, 0, 1));
+        cube.add(new Point3f(0, 0, 0));
+        cube.add(new Point3f(1, 0, 1));
+
+        //xz02
+        cube.add(new Point3f(1, 0, 1));
+        cube.add(new Point3f(0, 0, 0));
+        cube.add(new Point3f(1, 0, 0));
+
+        //xy01
+        cube.add(new Point3f(1, 0, 0));
+        cube.add(new Point3f(0, 0, 0));
+        cube.add(new Point3f(1, 1, 0));
+
+        //xy02
+        cube.add(new Point3f(1, 1, 0));
+        cube.add(new Point3f(0, 0, 0));
+        cube.add(new Point3f(0, 1, 0));
+
+        //yz11
+        cube.add(new Point3f(1, 0, 0));
+        cube.add(new Point3f(1, 1, 0));
+        cube.add(new Point3f(1, 1, 1));
+
+        //yz12
+        cube.add(new Point3f(1, 0, 0));
+        cube.add(new Point3f(1, 1, 1));
+        cube.add(new Point3f(1, 0, 1));
+
+        //xz11
+        cube.add(new Point3f(0, 1, 1));
+        cube.add(new Point3f(1, 1, 1));
+        cube.add(new Point3f(0, 1, 0));
+
+        //xz12
+        cube.add(new Point3f(0, 1, 0));
+        cube.add(new Point3f(1, 1, 1));
+        cube.add(new Point3f(1, 1, 0));
+
+        //xy11
+        cube.add(new Point3f(1, 0, 1));
+        cube.add(new Point3f(1, 1, 1));
+        cube.add(new Point3f(0, 0, 1));
+
+        //xy12
+        cube.add(new Point3f(0, 0, 1));
+        cube.add(new Point3f(1, 1, 1));
+        cube.add(new Point3f(0, 1, 1));
+
+        return cube;
+    }
+
+    public void drawVoxelsOnly(String filename)
+    {
+        System.out.println("Preparing output...");
+        Writer writer = null;
+
+        try
+        {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+        } catch (IOException ex)
+        {
+            System.err.println(ex.getMessage());
+            return;
+        }
+
+        int totalTriangles = 0;
+
+        for (int x = 0; x < matrixDimensions.x; x++)
+        {
+            for (int y = 0; y < matrixDimensions.y; y++)
+            {
+                for (int z = 0; z < matrixDimensions.z; z++)
+                {
+                    if (blocks[x][y][z] == null || blocks[x][y][z].isCustom())
+                        continue;
+                    ArrayList<Point3f> triangles = makeUnitCube();
+
+                    totalTriangles += triangles.size()/3;
+                    for (int i = 0; i < triangles.size(); i++)
+                    {
+                        try
+                        {
                             writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x) + " "
                                     + (triangles.get(i).y + blocks[x][y][z].getPosition().y) + " "
                                     + (triangles.get(i).z + blocks[x][y][z].getPosition().z) + "\n");

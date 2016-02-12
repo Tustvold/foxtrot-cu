@@ -25,6 +25,7 @@ public class Block
 
     private int triangleCnt; // number of triangles in the block
     private ArrayList<Point3f> triangles; // the triangles representing the part of the mesh which is within the block
+    private boolean isCustom;
 
     public ArrayList<Point3f> getTriangles()
     {
@@ -71,11 +72,12 @@ public class Block
         mSuggestedCustomPartIndex = suggestedCustomPartIndex;
     }
 
-    public Block(Vector3f position)
+    public Block(Vector3f position, boolean isCustom)
     {
         // initialise internals
         triangles = new ArrayList<Point3f>();
         triangleCnt = 0;
+        this.isCustom = isCustom;
 
         mPosition = position;
         mCustomPart = null;
@@ -91,6 +93,11 @@ public class Block
     public CustomPart[] getCustomPart()
     {
         return mCustomPart;
+    }
+
+    public boolean isCustom()
+    {
+        return isCustom;
     }
 
     public boolean isUsingSuggestCustomPart()
