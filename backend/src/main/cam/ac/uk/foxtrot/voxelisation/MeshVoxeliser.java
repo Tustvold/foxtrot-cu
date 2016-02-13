@@ -1,5 +1,6 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
+import com.vividsolutions.jts.awt.PointTransformation;
 import javafx.util.Pair;
 
 import javax.media.j3d.TriangleArray;
@@ -18,7 +19,7 @@ public class MeshVoxeliser
     private Point3i matrixDimensions;                       // dimesions of the block matrix
     private int[] dim;                                      // buffered version of dimensions in integers
     private Point3f meshOffset;                             // the offset of the mesh from the original origin
-    public static final float float_tolerance = 0.0000001f; // global tolerance constant
+    public static final float float_tolerance = 0.00005f; // global tolerance constant
     private Block[][][] blocks;                             // list of the meshes blocks
 
     private ArrayList<Point3f> initTrigs;                   // list of the initial triangles of the mesh
@@ -53,6 +54,7 @@ public class MeshVoxeliser
 
         setMeshOffsetAndDetermineDimensions();
         shiftMeshByOffset();
+        mesh.drawTriangles("testing/output/mesh_positioned.obj");
         generateBlocks(mesh);
     }
 
@@ -143,7 +145,7 @@ public class MeshVoxeliser
                 matrixDimensions.z = dimension;
                 break;
         }
-        float diff = (dimension - maxBound + minBound)/2;
+        float diff = (dimension - maxBound + minBound) / 2;
         float ret = diff - minBound;
         return ret;
     }
@@ -698,7 +700,7 @@ public class MeshVoxeliser
     private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
     {
         // prepare the ray
-        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z + 0.5f);
+        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z + 0.1f);
         Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
 
         // the number of intersections with the mesh
@@ -723,6 +725,7 @@ public class MeshVoxeliser
                 T.add(initTrigs.get(curr * 3));
                 T.add(initTrigs.get(curr * 3 + 1));
                 T.add(initTrigs.get(curr * 3 + 2));
+
                 // set up resulting point (if it exists)
                 Point3f I = new Point3f(0.0f, 0.0f, 0.0f);
                 // and check intersection
@@ -798,7 +801,7 @@ public class MeshVoxeliser
                         // find the point X, on the adjacent triangle which is not on the line in common
                         int other;
                         for (other = 0; other < 3; other++)
-                            if (!areIdentical(adj.get(other), T.get(code)) || !areIdentical(adj.get(other), T.get((code + 1) % 3)))
+                            if (!areIdentical(adj.get(other), T.get(code)) && !areIdentical(adj.get(other), T.get((code + 1) % 3)))
                                 break;
 
                         // then check if X can be vertically projected on the inside of the initial triangle
@@ -883,6 +886,79 @@ public class MeshVoxeliser
         return result;
     }
 
+    // used for temporary debugging
+    boolean rayintersector_tester()
+    {
+        ArrayList<Point3f> T = new ArrayList<>();
+        T.add(new Point3f(19.5f, 69.5348f, 6.5275f));
+        T.add(new Point3f(19.895f, 69.5142f, 6.5265f));
+        T.add(new Point3f(19.5f, 69.4239f, 7f));
+        Point3f I = new Point3f();
+        Point3f R0;
+        Point3f R1;
+        int code;
+
+        // vertex testing
+        R0 = new Point3f(19.5f, 69.5348f, 0f);
+        R1 = new Point3f(19.5f, 69.5348f, 1f);
+        code = intersect3D_RayTriangle(R0, R1, T, I);
+        if (code != 3)
+            return false;
+
+        R0 = new Point3f(19.895f, 69.5142f, 0f);
+        R1 = new Point3f(19.895f, 69.5142f, 1f);
+        code = intersect3D_RayTriangle(R0, R1, T, I);
+        if (code != 4)
+            return false;
+
+        R0 = new Point3f(19.5f, 69.4239f, 0f);
+        R1 = new Point3f(19.5f, 69.4239f, 1f);
+        code = intersect3D_RayTriangle(R0, R1, T, I);
+        if (code != 5)
+            return false;
+
+        // edge testing
+        R0 = new Point3f(19.5f, 69.5f, 0f);
+        R1 = new Point3f(19.5f, 69.5f, 1f);
+        code = intersect3D_RayTriangle(R0, R1, T, I);
+        if (code != 8)
+            return false;
+
+        // IMPORTANT!!!
+        T = new ArrayList<>();
+        T.add(new Point3f(19.895f, 69.51416f, 6.5265f));
+        T.add(new Point3f(19.5f, 69.534836f, 6.5275f));
+        T.add(new Point3f(19.5f, 69.41484f, 7.0385003f));
+        code = intersect3D_RayTriangle(R0, R1, T, I);
+        if(code != 7)
+            return false;
+
+        if (code > 0)
+            drawRayTest(T, I);
+        return true;
+    }
+
+    private void drawRayTest(ArrayList<Point3f> T, Point3f I)
+    {
+        ArrayList<ArrayList<Point3f>> poligoni = new ArrayList<>();
+        ArrayList<Point3f> fir = new ArrayList<>();
+        fir.add(new Point3f(T.get(0)));
+        fir.add(new Point3f(T.get(1)));
+        fir.add(new Point3f(I));
+        ArrayList<Point3f> sec = new ArrayList<>();
+        sec.add(new Point3f(T.get(1)));
+        sec.add(new Point3f(T.get(2)));
+        sec.add(new Point3f(I));
+        ArrayList<Point3f> trd = new ArrayList<>();
+        trd.add(new Point3f(T.get(2)));
+        trd.add(new Point3f(T.get(0)));
+        trd.add(new Point3f(I));
+        poligoni.add(fir);
+        poligoni.add(sec);
+        poligoni.add(trd);
+        drawPolygonList(poligoni, "testing/output/poly.obj");
+    }
+
     // intersect3D_RayTriangle(): find the 3D intersection of a ray with a triangle
     //    Input:  a ray R0->R1, and a triangle T
     //    Output: I = intersection point (when it exists)
@@ -903,7 +979,7 @@ public class MeshVoxeliser
     {
         Point3f u, v, n;    // triangle vectors
         Point3f dir, w0, w; // ray vectors
-        float r, a, b;      // parameters to calculate ray-plane intersect
+        float r, a, b;     // parameters to calculate ray-plane intersect
 
         // get triangle edge vectors and plane normal
         u = vectorSub(T.get(1), T.get(0));
@@ -933,7 +1009,13 @@ public class MeshVoxeliser
         // intersect point of ray and plane
         I.set(R0.x + r * dir.x, R0.y + r * dir.y, R0.z + r * dir.z);
 
-        // is I inside T?
+        if (!ptInTriangleXY(I, T))
+        {
+            // I is outside T
+            return 0;
+        }
+
+        // Vertex and edge calculations
         float uu, uv, vv, wu, wv, D;
         uu = vectorDot(u, u);
         uv = vectorDot(u, v);
@@ -943,36 +1025,39 @@ public class MeshVoxeliser
         wv = vectorDot(w, v);
         D = uv * uv - uu * vv;
 
-        // get and test parametric coordinates
         float s, t;
         s = (uv * wv - vv * wu) / D;
-        if (s < 0.0 || s > 1.0)
-        {
-            // I is outside T
-            return 0;
-        }
         t = (uv * wu - uu * wv) / D;
-        if (t < 0.0 || (s + t) > 1.0)
-        {
-            // I is outside T
-            return 0;
-        }
 
         boolean[] onEdge = new boolean[3];
         if (s < float_tolerance)
-            onEdge[0] = true;
+            onEdge[2] = true;
         if (Math.abs(s + t - 1) < float_tolerance)
             onEdge[1] = true;
         if (t < float_tolerance)
-            onEdge[2] = true;
+            onEdge[0] = true;
 
-        if (onEdge[0] && onEdge[1]) return 3; // the ray intersects the triangle on the vertex T[0]
-        if (onEdge[1] && onEdge[2]) return 4; // the ray intersects the triangle on the vertex T[1]
-        if (onEdge[2] && onEdge[0]) return 5; // the ray intersects the triangle on the vertex T[2]
+        if (onEdge[2] && onEdge[0]) return 3; // the ray intersects the triangle on the vertex T[0]
+        if (onEdge[0] && onEdge[1]) return 4; // the ray intersects the triangle on the vertex T[1]
+        if (onEdge[1] && onEdge[2]) return 5; // the ray intersects the triangle on the vertex T[2]
         if (onEdge[0]) return 6; // the ray intersects the triangle on the edge T[0]->T[1]
         if (onEdge[1]) return 7; // the ray intersects the triangle on the edge T[1]->T[2]
         if (onEdge[2]) return 8; // the ray intersects the triangle on the edge T[2]->T[0]
         return 1; // I is in T
+    }
+
+    // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
+    boolean ptInTriangleXY(Point3f I, ArrayList<Point3f> T)
+    {
+        float dX = I.x - T.get(2).x;
+        float dY = I.y - T.get(2).y;
+        float dX21 = T.get(2).x - T.get(1).x;
+        float dY12 = T.get(1).y - T.get(2).y;
+        float D = dY12 * (T.get(0).x - T.get(2).x) + dX21 * (T.get(0).y - T.get(2).y);
+        float s = dY12 * dX + dX21 * dY;
+        float t = (T.get(2).y - T.get(0).y) * dX + (T.get(0).x - T.get(2).x) * dY;
+        if (D < 0) return s <= 0 && t <= 0 && s + t >= D;
+        return s >= 0 && t >= 0 && s + t <= D;
     }
 
     // checks if two 3d points are identical
@@ -1070,7 +1155,7 @@ public class MeshVoxeliser
     {
         ArrayList<Point3f> cube = new ArrayList<>();
 
-        if (x >= 1 && (blocks[x - 1][y][z] == null || blocks[x - 1][y][z].isCustom()))
+        if (x < 1 || (blocks[x - 1][y][z] == null || blocks[x - 1][y][z].isCustom()))
         {
             //yz01
             cube.add(new Point3f(0, 1, 0));
@@ -1083,7 +1168,7 @@ public class MeshVoxeliser
             cube.add(new Point3f(0, 0, 1));
         }
 
-        if (y >= 1 && (blocks[x][y - 1][z] == null || blocks[x][y - 1][z].isCustom()))
+        if (y < 1 || (blocks[x][y - 1][z] == null || blocks[x][y - 1][z].isCustom()))
         {
             //xz01
             cube.add(new Point3f(0, 0, 1));
@@ -1096,7 +1181,7 @@ public class MeshVoxeliser
             cube.add(new Point3f(1, 0, 0));
         }
 
-        if (z >= 1 && (blocks[x][y][z - 1] == null || blocks[x][y][z - 1].isCustom()))
+        if (z < 1 || (blocks[x][y][z - 1] == null || blocks[x][y][z - 1].isCustom()))
         {
             //xy01
             cube.add(new Point3f(1, 0, 0));
@@ -1108,7 +1193,7 @@ public class MeshVoxeliser
             cube.add(new Point3f(0, 0, 0));
             cube.add(new Point3f(0, 1, 0));
         }
-        if (x < dim[0] - 1 && (blocks[x + 1][y][z] == null || blocks[x + 1][y][z].isCustom()))
+        if (x >= dim[0] - 1 || (blocks[x + 1][y][z] == null || blocks[x + 1][y][z].isCustom()))
         {
             //yz11
             cube.add(new Point3f(1, 0, 0));
@@ -1121,7 +1206,7 @@ public class MeshVoxeliser
             cube.add(new Point3f(1, 0, 1));
         }
 
-        if (y < dim[1] - 1 && (blocks[x][y + 1][z] == null || blocks[x][y + 1][z].isCustom()))
+        if (y >= dim[1] - 1 || (blocks[x][y + 1][z] == null || blocks[x][y + 1][z].isCustom()))
         {
             //xz11
             cube.add(new Point3f(0, 1, 1));
@@ -1134,7 +1219,7 @@ public class MeshVoxeliser
             cube.add(new Point3f(1, 1, 0));
         }
 
-        if (z < dim[2] - 1 && (blocks[x][y][z + 1] == null || blocks[x][y][z + 1].isCustom()))
+        if (z >= dim[2] - 1 || (blocks[x][y][z + 1] == null || blocks[x][y][z + 1].isCustom()))
         {
             //xy11
             cube.add(new Point3f(1, 0, 1));
@@ -1149,7 +1234,7 @@ public class MeshVoxeliser
         return cube;
     }
 
-    private ArrayList<Point3f>  makeHorizontalSquare(int x, int z)
+    private ArrayList<Point3f> makeHorizontalSquare(int x, int z)
     {
         ArrayList<Point3f> square = new ArrayList<>();
         //xz01
@@ -1165,7 +1250,7 @@ public class MeshVoxeliser
         return square;
     }
 
-    public void drawVoxelsOnly(String filename , boolean includeGrid)
+    public void drawVoxelsOnly(String filename, boolean includeGrid)
     {
         System.out.println("Preparing the voxel output...");
         Writer writer = null;
