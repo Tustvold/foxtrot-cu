@@ -16,7 +16,7 @@ public class Mesh
     // Anti-Clockwise winding order
     private Point3f offset;          // position of the mesh in the grid
     private ArrayList<Point3f> triangles; // the list of triangles representing the mesh
-    private float blockSize = 0.5f;
+    private float blockSize = 3.5f;
 
     public Point3f getOffset()
     {
