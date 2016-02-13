@@ -130,7 +130,7 @@ public class MeshVoxeliser
     // determines the offset of one coordinate and sets the dimensions value
     private float calculateSingleOffset(int type, float minBound, float maxBound)
     {
-        int dimension = (int) Math.ceil((float) Math.ceil(maxBound) - minBound);
+        int dimension = (int) Math.ceil(maxBound - minBound);
         switch (type)
         {
             case 0:
@@ -143,7 +143,8 @@ public class MeshVoxeliser
                 matrixDimensions.z = dimension;
                 break;
         }
-        float ret = (float) Math.ceil(-minBound);
+        float diff = (dimension - maxBound + minBound)/2;
+        float ret = diff - minBound;
         return ret;
     }
 
@@ -188,8 +189,8 @@ public class MeshVoxeliser
         fillRemainingBlocks();
 
         // TESTING METHODS
-        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj");
-        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj");
+        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
 
         System.out.println("All blocks filled...");
     }
@@ -985,7 +986,7 @@ public class MeshVoxeliser
     /**
      * TESTING method
      */
-    public void drawTrianglesFromBlocks(String filename)
+    public void drawTrianglesFromBlocks(String filename, boolean includeGrid)
     {
         System.out.println("Preparing the sliced output...");
         Writer writer = null;
@@ -1003,9 +1004,27 @@ public class MeshVoxeliser
 
         for (int x = 0; x < matrixDimensions.x; x++)
         {
-            for (int y = 0; y < matrixDimensions.y; y++)
+            for (int z = 0; z < matrixDimensions.z; z++)
             {
-                for (int z = 0; z < matrixDimensions.z; z++)
+                if (includeGrid)
+                {
+                    ArrayList<Point3f> triangles = makeHorizontalSquare(x, z);
+                    totalTriangles += triangles.size() / 3;
+                    for (int i = 0; i < triangles.size(); i++)
+                    {
+                        try
+                        {
+                            writer.write("v " + (triangles.get(i).x + x) + " "
+                                    + (triangles.get(i).y) + " "
+                                    + (triangles.get(i).z + z) + "\n");
+
+                        } catch (IOException err)
+                        {
+                            System.err.println("Could not write blocks: " + err.getMessage());
+                        }
+                    }
+                }
+                for (int y = 0; y < matrixDimensions.y; y++)
                 {
                     if (blocks[x][y][z] == null)
                         continue;
@@ -1130,7 +1149,23 @@ public class MeshVoxeliser
         return cube;
     }
 
-    public void drawVoxelsOnly(String filename)
+    private ArrayList<Point3f>  makeHorizontalSquare(int x, int z)
+    {
+        ArrayList<Point3f> square = new ArrayList<>();
+        //xz01
+        square.add(new Point3f(0, 0, 1));
+        square.add(new Point3f(0, 0, 0));
+        square.add(new Point3f(1, 0, 1));
+
+        //xz02
+        square.add(new Point3f(1, 0, 1));
+        square.add(new Point3f(0, 0, 0));
+        square.add(new Point3f(1, 0, 0));
+
+        return square;
+    }
+
+    public void drawVoxelsOnly(String filename , boolean includeGrid)
     {
         System.out.println("Preparing the voxel output...");
         Writer writer = null;
@@ -1148,9 +1183,27 @@ public class MeshVoxeliser
 
         for (int x = 0; x < matrixDimensions.x; x++)
         {
-            for (int y = 0; y < matrixDimensions.y; y++)
+            for (int z = 0; z < matrixDimensions.z; z++)
             {
-                for (int z = 0; z < matrixDimensions.z; z++)
+                if (includeGrid)
+                {
+                    ArrayList<Point3f> triangles = makeHorizontalSquare(x, z);
+                    totalTriangles += triangles.size() / 3;
+                    for (int i = 0; i < triangles.size(); i++)
+                    {
+                        try
+                        {
+                            writer.write("v " + (triangles.get(i).x + x) + " "
+                                    + (triangles.get(i).y) + " "
+                                    + (triangles.get(i).z + z) + "\n");
+
+                        } catch (IOException err)
+                        {
+                            System.err.println("Could not write blocks: " + err.getMessage());
+                        }
+                    }
+                }
+                for (int y = 0; y < matrixDimensions.y; y++)
                 {
                     if (blocks[x][y][z] == null || blocks[x][y][z].isCustom())
                         continue;

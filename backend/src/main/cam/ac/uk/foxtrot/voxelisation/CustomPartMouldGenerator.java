@@ -140,10 +140,10 @@ public class CustomPartMouldGenerator {
         }
 
         if (face == ProjectionFace.ZY0 || face == ProjectionFace.ZY1) {
-            projectionCoords = IntersectionRemover.zY(projectionCoords);
+            //projectionCoords = IntersectionRemover.zY(projectionCoords);
         }
         if (face == ProjectionFace.ZX0 || face == ProjectionFace.ZX1) {
-            projectionCoords = IntersectionRemover.zX(projectionCoords);
+           // projectionCoords = IntersectionRemover.zX(projectionCoords);
         }
 
         return projectionCoords;
@@ -207,7 +207,7 @@ public class CustomPartMouldGenerator {
         Point3f[] projectionCoords = getProjectionCoords(face);
 
         // remove self-intersections in the projection
-        IntersectionRemover ir = new IntersectionRemover(projectionCoords,face);
+        IntersectionRemover ir = new IntersectionRemover(projectionCoords);
         Point3f[][] projectionPolygons = ir.getPolygonArray();
         Point3f[][] projectionHoles = ir.getHoleArray();
 
@@ -262,7 +262,7 @@ public class CustomPartMouldGenerator {
         Point3f[] projectionCoords = getMouldProjectionCoords(face);
 
         // remove self-intersections in the projection
-        IntersectionRemover ir = new IntersectionRemover(projectionCoords,ProjectionFace.XY1);
+        IntersectionRemover ir = new IntersectionRemover(projectionCoords);
         Point3f[][] projectionPolygons = ir.getPolygonArray();
         Point3f[][] projectionHoles = ir.getHoleArray();
         //todo fail gracefully if these have less than 2 unique points (what behavior do we want?)
