@@ -9,7 +9,7 @@ import com.google.gson.GsonBuilder;
 import com.sun.j3d.loaders.Scene;
 import com.google.gson.Gson;
 
-import java.io.IOException;
+import java.io.*;
 
 public class Main
 {
@@ -56,7 +56,19 @@ public class Main
         GsonBuilder builder = new GsonBuilder();
         builder.serializeNulls().setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
         Gson gsonParser = builder.create();
-        System.out.print(gsonParser.toJson(blocks));
+
+        // write the gson to a file
+        Writer writer = null;
+        try
+        {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("testing/output/mesh.json"), "utf-8"));
+        } catch (IOException ex)
+        {
+            System.err.println(ex.getMessage());
+            return;
+        }
+        writer.write(gsonParser.toJson(blocks));
+        writer.close();
 
 
         //TODO: Generate Instructions

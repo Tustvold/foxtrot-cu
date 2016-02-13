@@ -15,9 +15,8 @@ public class Mesh
 {
     // Anti-Clockwise winding order
     private Point3f offset;          // position of the mesh in the grid
-    private GeometryInfo info;       // the geometry info object
-    private TriangleArray triangles; // the list of triangles representing the mesh
-    private float blockSize = 3.5f;
+    private ArrayList<Point3f> triangles; // the list of triangles representing the mesh
+    private float blockSize = 0.03f;
 
     public Point3f getOffset()
     {
@@ -29,14 +28,14 @@ public class Mesh
         this.offset = offset;
     }
 
-    public TriangleArray getTriangles()
+    public ArrayList<Point3f> getTriangles()
     {
         return triangles;
     }
 
-    public GeometryInfo getGeometryInfo()
+    public void setTriangles(ArrayList<Point3f> trigs)
     {
-        return info;
+        triangles = new ArrayList<>(trigs);
     }
 
     // creates, rescales and centers the mesh
@@ -45,14 +44,25 @@ public class Mesh
         BranchGroup branch = scene.getSceneGroup();
         branch.setBoundsAutoCompute(true);
 
+        // TEMPORARY!!!
         // extract the triangle array
         Shape3D shape = (Shape3D) branch.getChild(0);
-        info = new GeometryInfo((GeometryArray) shape.getGeometry());
-        triangles = (TriangleArray) info.getGeometryArray();
+        GeometryInfo info = new GeometryInfo((GeometryArray) shape.getGeometry());
+        TriangleArray ta = (TriangleArray) info.getGeometryArray();
+
+        // load this into the triangle array
+        triangles = new ArrayList<>();
+        for(int i = 0; i < ta.getVertexCount(); i++)
+        {
+            Point3f curr = new Point3f();
+            ta.getCoordinate(i, curr);
+            triangles.add(curr);
+        }
+
+        // and finally rescale and ceter the mesh
         rescaleAndCenterMesh();
 
-        System.out.println("Loaded: " + triangles.getVertexCount() / 3 + " triangles");
-        System.out.println("Vertex format is: " + triangles.getVertexFormat());
+        System.out.println("Loaded: " + triangles.size() / 3 + " triangles");
         System.out.println("Mesh loaded...");
     }
 
@@ -60,11 +70,11 @@ public class Mesh
     private Point3f getCentreOfMass()
     {
         Point3f mc = new Point3f(0, 0, 0);
-        Point3f curr = new Point3f(0, 0, 0);
-        int cnt = triangles.getVertexCount();
+        Point3f curr;
+        int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
         {
-            triangles.getCoordinate(i, curr);
+            curr = triangles.get(i);
             mc.x += curr.x;
             mc.y += curr.y;
             mc.z += curr.z;
@@ -81,24 +91,19 @@ public class Mesh
         Point3f cm = getCentreOfMass();
 
         Point3f curr = new Point3f(0, 0, 0);
-        int cnt = triangles.getVertexCount();
+        int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
         {
-            triangles.getCoordinate(i, curr);
-            curr.x = (curr.x - cm.x) / blockSize;
-            curr.y = (curr.y - cm.y) / blockSize;
-            curr.z = (curr.z - cm.z) / blockSize;
-            triangles.setCoordinate(i, curr);
+            triangles.get(i).x = (triangles.get(i).x - cm.x) / blockSize;
+            triangles.get(i).y = (triangles.get(i).y - cm.y) / blockSize;
+            triangles.get(i).z = (triangles.get(i).z - cm.z) / blockSize;
         }
-
-        // TESTING METHOD!!
-        drawTriangles("../../testing/initial.obj");
     }
 
     // TESTING METHOD!!
     public void drawTriangles(String filename)
     {
-        System.out.println("Preparing mesh output...");
+        System.out.println("Preparing mesh representation...");
         Writer writer = null;
 
         try
@@ -111,10 +116,10 @@ public class Mesh
 
         int totalTriangles = 0;
 
-        for (int i = 0; i < triangles.getVertexCount(); i++)
+        for (int i = 0; i < triangles.size(); i++)
         {
-            Point3f currPt = new Point3f(0, 0, 0);
-            triangles.getCoordinate(i, currPt);
+            Point3f currPt;
+            currPt = triangles.get(i);
             try
             {
 
@@ -125,7 +130,7 @@ public class Mesh
             }
         }
 
-        for (int i = 1; i < triangles.getVertexCount(); i += 3)
+        for (int i = 1; i < triangles.size(); i += 3)
         {
             try
             {
@@ -140,7 +145,7 @@ public class Mesh
             writer.close();
         } catch (Exception ex)
         {/*ignore*/}
-        System.out.println("Mesh output created...");
+        System.out.println("Mesh representation created...");
     }
 
 }

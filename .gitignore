@@ -75,3 +75,6 @@ gradle-app.setting
 
 # NodeJS
 node_modules
+
+# Ignore backend testing output
+backend/testing/output/
