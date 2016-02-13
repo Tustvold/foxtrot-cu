@@ -543,7 +543,7 @@ public class MeshVoxeliser
         for (int x = 0; x < dim[0]; x++)
         {
             for (int y = 0; y < dim[1]; y++)
-            {
+            {/*
                 if (blocks[x][y][0] == null)
                 {
                     if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, 0) % 2 == 1)
@@ -551,31 +551,24 @@ public class MeshVoxeliser
                         // we create the block
                         blocks[x][y][0] = new Block(new Vector3f(x, y, 0), false);
                     }
-                }
-                for (int z = 1; z < dim[2]; z++)
+                }*/
+                for (int z = dim[2] - 2; z >= 0; z--)
                 {
-                    if (blocks[x][y][z] == null)
+                    if (blocks[x][y][z] == null && blocks[x][y][z + 1] != null)
                     {
-                        if (blocks[x][y][z - 1] == null)
+                        // the previous block was not empty, so we need to act
+                        if (blocks[x][y][z + 1].isCustom())
                         {
-                            // the previous block was empty, so this one must be as well
-                            continue;
+                            if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, z) % 2 == 1)
+                            {
+                                // we create the block
+                                blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
+                            }
                         }
                         else
                         {
-                            if (blocks[x][y][z - 1].isCustom())
-                            {
-                                if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, z) % 2 == 1)
-                                {
-                                    // we create the block
-                                    blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
-                                }
-                            }
-                            else
-                            {
-                                // the previous was full, so this one must also be
-                                blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
-                            }
+                            // the previous was full, so this one must also be
+                            blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
                         }
                     }
                 }
@@ -727,7 +720,7 @@ public class MeshVoxeliser
     private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
     {
         // prepare the ray
-        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z);
+        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z + 0.5f);
         Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
 
         // the number of intersections with the mesh
@@ -770,7 +763,7 @@ public class MeshVoxeliser
                     // positive or all negative. If this is not the case, then we do not add
                     // a new intersection point
                     code -= 3;
-                    // we setup the initial positive and neagitve counters
+                    // we setup the initial positive and negaitve counters
                     int positiveCnt = 0, negativeCnt = 0;
                     if (vectorProd2DisPositive(T.get(code), T.get((code - 1) % 3), T.get((code + 1) % 3)))
                         positiveCnt++;
@@ -782,15 +775,15 @@ public class MeshVoxeliser
                     {
                         // load the adjacent triangle
                         ArrayList<Point3f> adj = new ArrayList<>();
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3));
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 1));
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(touching) * 3 + 2));
+                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3));
+                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3 + 1));
+                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3 + 2));
 
                         // remove the ability of the triangle to participate in the rest of the cutting
-                        isConsidered[sharesEdge.get(curr).get(code).get(touching)] = false;
+                        isConsidered[sharesVertex.get(curr).get(code).get(touching)] = false;
 
                         // find the point on the adjacent triangle which is not on the line in common
-                        int other = 0;
+                        int other;
                         for (other = 0; other < 3; other++)
                             if (areIdentical(adj.get(other), T.get(code)))
                                 break;
@@ -800,7 +793,7 @@ public class MeshVoxeliser
                         else
                             negativeCnt++;
                     }
-                    if (Math.abs(positiveCnt - negativeCnt) == len + 1)
+                    if (positiveCnt == 0 || negativeCnt == 0)
                     {
                         // the tirangles are surrounding the punctuating ray so we increment the counter
                         intersectionNo++;
@@ -824,17 +817,18 @@ public class MeshVoxeliser
                         // remove the ability of the triangle to participate in the rest of the cutting
                         isConsidered[sharesEdge.get(curr).get(code).get(0)] = false;
 
-                        // find the point on the adjacent triangle which is not on the line in common
-                        int other = 0;
+                        // find the point X, on the adjacent triangle which is not on the line in common
+                        int other;
                         for (other = 0; other < 3; other++)
                             if (!areIdentical(adj.get(other), T.get(code)) || !areIdentical(adj.get(other), T.get((code + 1) % 3)))
                                 break;
 
-                        // then check if it has intersection with the model
-                        int adjcode = intersect3D_RayTriangle(adj.get(other), vectorAdd(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
-                        if (adjcode == 0)
+                        // then check if X can be vertically projected on the inside of the initial triangle
+                        int adjcodePos = intersect3D_RayTriangle(adj.get(other), vectorAdd(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
+                        int adjcodeNeg = intersect3D_RayTriangle(adj.get(other), vectorSub(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
+                        if (adjcodePos == 0 && adjcodeNeg == 0)
                         {
-                            // only if there is no intersection between the projection and the model do we increment the counter
+                            // only if there is no intersection between the projection and the initial triangle do we increment the counter
                             intersectionNo++;
                         }
                     }
@@ -1083,69 +1077,86 @@ public class MeshVoxeliser
         System.out.println("Sliced output created...");
     }
 
-    private ArrayList<Point3f> makeUnitCube()
+    private ArrayList<Point3f> makeUnitCube(int x, int y, int z)
     {
         ArrayList<Point3f> cube = new ArrayList<>();
-        //yz01
-        cube.add(new Point3f(0, 1, 0));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(0, 1, 1));
 
-        //yz02
-        cube.add(new Point3f(0, 1, 1));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(0, 0, 1));
+        if(x >= 1 && (blocks[x-1][y][z] == null || blocks[x-1][y][z].isCustom()))
+        {
+            //yz01
+            cube.add(new Point3f(0, 1, 0));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(0, 1, 1));
 
-        //xz01
-        cube.add(new Point3f(0, 0, 1));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(1, 0, 1));
+            //yz02
+            cube.add(new Point3f(0, 1, 1));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(0, 0, 1));
+        }
 
-        //xz02
-        cube.add(new Point3f(1, 0, 1));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(1, 0, 0));
+        if(y >= 1 && (blocks[x][y-1][z] == null || blocks[x][y-1][z].isCustom()))
+        {
+            //xz01
+            cube.add(new Point3f(0, 0, 1));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(1, 0, 1));
 
-        //xy01
-        cube.add(new Point3f(1, 0, 0));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(1, 1, 0));
+            //xz02
+            cube.add(new Point3f(1, 0, 1));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(1, 0, 0));
+        }
 
-        //xy02
-        cube.add(new Point3f(1, 1, 0));
-        cube.add(new Point3f(0, 0, 0));
-        cube.add(new Point3f(0, 1, 0));
+        if(z >= 1 && (blocks[x][y][z-1] == null || blocks[x][y][z-1].isCustom()))
+        {
+            //xy01
+            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(1, 1, 0));
 
-        //yz11
-        cube.add(new Point3f(1, 0, 0));
-        cube.add(new Point3f(1, 1, 0));
-        cube.add(new Point3f(1, 1, 1));
+            //xy02
+            cube.add(new Point3f(1, 1, 0));
+            cube.add(new Point3f(0, 0, 0));
+            cube.add(new Point3f(0, 1, 0));
+        }
+        if(x < dim[0]-1 && (blocks[x+1][y][z] == null || blocks[x+1][y][z].isCustom()))
+        {
+            //yz11
+            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3f(1, 1, 0));
+            cube.add(new Point3f(1, 1, 1));
 
-        //yz12
-        cube.add(new Point3f(1, 0, 0));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(1, 0, 1));
+            //yz12
+            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(1, 0, 1));
+        }
 
-        //xz11
-        cube.add(new Point3f(0, 1, 1));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(0, 1, 0));
+        if(y < dim[1]-1 && (blocks[x][y+1][z] == null || blocks[x][y+1][z].isCustom()))
+        {
+            //xz11
+            cube.add(new Point3f(0, 1, 1));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(0, 1, 0));
 
-        //xz12
-        cube.add(new Point3f(0, 1, 0));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(1, 1, 0));
+            //xz12
+            cube.add(new Point3f(0, 1, 0));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(1, 1, 0));
+        }
 
-        //xy11
-        cube.add(new Point3f(1, 0, 1));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(0, 0, 1));
+        if(z < dim[2]-1 && (blocks[x][y][z+1] == null || blocks[x][y][z+1].isCustom()))
+        {
+            //xy11
+            cube.add(new Point3f(1, 0, 1));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(0, 0, 1));
 
-        //xy12
-        cube.add(new Point3f(0, 0, 1));
-        cube.add(new Point3f(1, 1, 1));
-        cube.add(new Point3f(0, 1, 1));
-
+            //xy12
+            cube.add(new Point3f(0, 0, 1));
+            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3f(0, 1, 1));
+        }
         return cube;
     }
 
@@ -1173,9 +1184,9 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null || blocks[x][y][z].isCustom())
                         continue;
-                    ArrayList<Point3f> triangles = makeUnitCube();
+                    ArrayList<Point3f> triangles = makeUnitCube(x,y,z);
 
-                    totalTriangles += triangles.size()/3;
+                    totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
                     {
                         try

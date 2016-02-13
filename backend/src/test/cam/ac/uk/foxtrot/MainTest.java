@@ -44,22 +44,24 @@ public class MainTest {
             Assert.assertTrue(floatCompare(yproj[i].x, zproj[i].x, EPSILON));
         }*/
 
-        int NUM_PTS = 3;
+        int NUM_PTS = 9;
         Point3f[] points = new Point3f[NUM_PTS];
-        /*float[] point = new float[3];
+        float[] point = new float[3];
         for (int i = 0; i < NUM_PTS; i++) {
             point[0] = (float)(Math.random());
             point[1] = (float)(Math.random());
             point[2] = (float)(Math.random());
             points[i] = new Point3f(point);
-        }*/
+        }
 
-        points[0] = new Point3f(.25f,.25f,.25f);
-        points[1] = new Point3f(.5f,.5f,.25f);
-        points[2] = new Point3f(.25f,.25f,.5f);
+        //points[0] = new Point3f(.25f,.25f,.25f);
+        //points[1] = new Point3f(.5f,.5f,.25f);
+        //points[2] = new Point3f(.25f,.25f,.5f);
 
         CustomPartMouldGenerator p = new CustomPartMouldGenerator(points);
         p.generateMould(CustomPartMouldGenerator.ProjectionFace.ZX1);
+        System.out.println("\n\n-----\n\n");
+        p.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZX1);
 
 
 
