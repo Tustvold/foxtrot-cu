@@ -20,13 +20,15 @@ public class MeshVoxeliser
     private Point3i matrixDimensions;                       // dimesions of the block matrix
     private int[] dim;                                      // buffered version of dimensions in integers
     private Point3f meshOffset;                             // the offset of the mesh from the original origin
-    public static final float float_tolerance = 0.0000001f;   // global tolerance constant
+    public static final double float_tolerance = 0.0000001f;   // global tolerance constant
     private Block[][][] blocks;                             // list of the meshes blocks
+    private Random r = new Random();
 
     private ArrayList<Point3f> initTrigs;                   // list of the initial triangles of the mesh
     private ArrayList<ArrayList<ArrayList<Integer>>> sharesVertex;
     private ArrayList<ArrayList<ArrayList<Integer>>> sharesEdge;
 
+    int telemetry;
 
     public MeshVoxeliser(Mesh mesh)
     {
@@ -56,7 +58,9 @@ public class MeshVoxeliser
         setMeshOffsetAndDetermineDimensions();
         shiftMeshByOffset();
         mesh.drawTriangles("testing/output/mesh_positioned.obj");
+        telemetry = 0;
         generateBlocks(mesh);
+        System.out.println("Number of retries: " + telemetry);
     }
 
     // calculates the vector which needs to be added to all the points
@@ -64,8 +68,8 @@ public class MeshVoxeliser
     private void setMeshOffsetAndDetermineDimensions()
     {
         System.out.println("Setting mesh offset and determining dimensions...");
-        Point3f minBound = getMinimumInitialCoodrinateBounds();
-        Point3f maxBound = getMaximumInitialCoodrinateBounds();
+        Point3f minBound = getMinimumInitialCoordinateBounds();
+        Point3f maxBound = getMaximumInitialCoordinateBounds();
         float diffx = calculateSingleOffset(0, minBound.x, maxBound.x);
         float diffy = calculateSingleOffset(1, minBound.y, maxBound.y);
         float diffz = calculateSingleOffset(2, minBound.z, maxBound.z);
@@ -77,7 +81,7 @@ public class MeshVoxeliser
     }
 
     // determines the aximum values of the x,y, and z dimensions of the mesh separately
-    private Point3f getMinimumInitialCoodrinateBounds()
+    private Point3f getMinimumInitialCoordinateBounds()
     {
         Point3f min = null;
         Point3f curr;
@@ -104,7 +108,7 @@ public class MeshVoxeliser
     }
 
     // determines the minimum values of the x,y, and z dimensions of the mesh separately
-    private Point3f getMaximumInitialCoodrinateBounds()
+    private Point3f getMaximumInitialCoordinateBounds()
     {
         Point3f max = null;
         Point3f curr;
@@ -402,8 +406,8 @@ public class MeshVoxeliser
         }
 
         // prepare the grounds for a lot of numeric
-        float xNew = line;
-        float yNew = (y1 * (x2 - line) + y2 * (line - x1)) / (x2 - x1);
+        double xNew = line;
+        double yNew = (y1 * (x2 - line) + y2 * (line - x1)) / (x2 - x1);
         float[] coordNew = new float[3];
 
         // determine the ignored coordinate from the line division formula
@@ -414,8 +418,8 @@ public class MeshVoxeliser
         double drig = dtot - dlef;
 
         coordNew[ignore] = (float) ((coordfir[ignore] * drig + coordsec[ignore] * dlef) / dtot);
-        coordNew[idx] = xNew;
-        coordNew[idy] = yNew;
+        coordNew[idx] = (float)xNew;
+        coordNew[idy] = (float)yNew;
         res.set(coordNew);
         return true;
     }
@@ -702,9 +706,10 @@ public class MeshVoxeliser
     private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
     {
         // prepare the initial ray
-        float xOffset = 0.5f;
-        float yOffset = 0.5f;
-        float zOffset = 0.5f;
+        double xOffset = punchX();
+        double yOffset = punchY();
+        double zOffset = 0.5f;
+        int triangleCnt = initTrigs.size() / 3;
         Point3f R0 = new Point3f();
 
         // the number of intersections with the mesh
@@ -715,12 +720,11 @@ public class MeshVoxeliser
         do
         {
             // reset the parameters
-            R0.set(x + xOffset, y + yOffset, z + zOffset);
+            R0.set((float)(x + xOffset),(float)(y + yOffset), (float)(z + zOffset));
             intersectionNo = 0;
             restart = false;
 
             // mesh parameters
-            int triangleCnt = initTrigs.size() / 3;
             for (int curr = 0; curr < triangleCnt && !restart; curr++)
             {
                 // pack up the current triangle
@@ -740,24 +744,29 @@ public class MeshVoxeliser
                 {
                     // we restart with another starting point
                     restart = true;
+                    telemetry++;
                 }
             }
             if(restart)
             {
                 // we take another arbirtary point in the cube to shoot the ray from
-
-                xOffset = punch();
-                yOffset = punch();
+                xOffset = punchX();
+                yOffset = punchY();
             }
         } while (restart);
         return intersectionNo;
     }
 
-    private float punch()
+    private double punchX()
     {
-        Random r = new Random();
-        int rnd = r.nextInt(200);
-        return 0.5f + 0.001f*((float)rnd-100);
+       // return 0.34 + 0.001*((double)r.nextInt(200)-100);
+        return 0.02 + 0.01*(double)r.nextInt(98);
+    }
+
+    private double punchY()
+    {
+        //return 0.71 + 0.001*((double)r.nextInt(200)-100);
+        return 0.02 + 0.01*(double)r.nextInt(98);
     }
 
     private void drawRayTest(ArrayList<Point3f> T, Point3f I)
@@ -787,9 +796,9 @@ public class MeshVoxeliser
         if (areIdenticalInXY(R0, T.get(0))) return 2;
         if (areIdenticalInXY(R0, T.get(1))) return 3;
         if (areIdenticalInXY(R0, T.get(2))) return 4;
-        if (isOnLineXY(T.get(0), R0, T.get(1))) return 5;
-        if (isOnLineXY(T.get(1), R0, T.get(2))) return 6;
-        if (isOnLineXY(T.get(2), R0, T.get(0))) return 7;
+        if (!areIdenticalInXY(T.get(0), T.get(1)) && isOnLineXY(T.get(0), R0, T.get(1))) return 5;
+        if (!areIdenticalInXY(T.get(1), T.get(2)) && isOnLineXY(T.get(1), R0, T.get(2))) return 6;
+        if (!areIdenticalInXY(T.get(2), T.get(0)) && isOnLineXY(T.get(2), R0, T.get(0))) return 7;
         if (ptInTriangleXY(R0, T)) return 1;
         return 0;
     }
@@ -805,7 +814,7 @@ public class MeshVoxeliser
     }
 
     // returns the dot product: A.B
-    private float vectorDot(Point3f A, Point3f B)
+    private double vectorDot(Point3f A, Point3f B)
     {
         return A.x * B.x + A.y * B.y + A.z * B.z;
     }
@@ -837,7 +846,7 @@ public class MeshVoxeliser
         else
         {
             Point3f AM = vectorSub(M, A);
-            float val = vectorDot(AM, n);
+            double val = vectorDot(AM, n);
             if (n.z > 0)
             {
                 return val > 0;
@@ -864,13 +873,13 @@ public class MeshVoxeliser
     // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
     boolean ptInTriangleXY(Point3f I, ArrayList<Point3f> T)
     {
-        float dX = I.x - T.get(2).x;
-        float dY = I.y - T.get(2).y;
-        float dX21 = T.get(2).x - T.get(1).x;
-        float dY12 = T.get(1).y - T.get(2).y;
-        float D = dY12 * (T.get(0).x - T.get(2).x) + dX21 * (T.get(0).y - T.get(2).y);
-        float s = dY12 * dX + dX21 * dY;
-        float t = (T.get(2).y - T.get(0).y) * dX + (T.get(0).x - T.get(2).x) * dY;
+        double dX = I.x - T.get(2).x;
+        double dY = I.y - T.get(2).y;
+        double dX21 = T.get(2).x - T.get(1).x;
+        double dY12 = T.get(1).y - T.get(2).y;
+        double D = dY12 * (T.get(0).x - T.get(2).x) + dX21 * (T.get(0).y - T.get(2).y);
+        double s = dY12 * dX + dX21 * dY;
+        double t = (T.get(2).y - T.get(0).y) * dX + (T.get(0).x - T.get(2).x) * dY;
         if (D < 0) return s <= 0 && t <= 0 && s + t >= D;
         return s >= 0 && t >= 0 && s + t <= D;
     }
