@@ -16,7 +16,16 @@ public class Mesh
     // Anti-Clockwise winding order
     private Point3d offset;          // position of the mesh in the grid
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
-    private double blockSize = 0.1f;
+    private double blockSize = 0.04f;
+
+    // really fine scaling factors (limits of system)
+    // 0.008 for teapot.obj
+    // 0.04 for human.obj
+    // 0.015 for sphere.obj
+    // 0.15 for teddy.obj
+    // 0.3 for pumpkin.obj
+    // the system is capable of producing up to about a 200x200x200 grid of voxels
+    // in reasonable time
 
     public Point3d getOffset()
     {
