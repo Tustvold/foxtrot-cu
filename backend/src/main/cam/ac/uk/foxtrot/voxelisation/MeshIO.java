@@ -31,6 +31,45 @@ public class MeshIO
     {
         // TODO @rob implement and test
         ArrayList<Point3d> list = new ArrayList<>();
+        // OLD LOADER STARTS HERE
+        /*
+        ObjectFile theOBJFile = new ObjectFile();
+        theOBJFile.setFlags(ObjectFile.TRIANGULATE);
+        Scene theScene;
+        try
+        {
+            theScene = theOBJFile.load(filename);
+        }
+        catch(java.io.FileNotFoundException error)
+        {
+            throw new IOException("File was not found!");
+        }
+        catch (IncorrectFormatException error)
+        {
+            throw new IOException("Incorrect file format!");
+        }
+        catch (ParsingErrorException error)
+        {
+            throw new IOException("Parsing failed!");
+        }
+
+        System.out.println("Loading mesh...");
+        BranchGroup branch = theScene.getSceneGroup();
+        branch.setBoundsAutoCompute(true);
+
+        // extract the triangle array
+        Shape3D shape = (Shape3D) branch.getChild(0);
+        GeometryInfo info = new GeometryInfo((GeometryArray) shape.getGeometry());
+        TriangleArray triangles = (TriangleArray) info.getGeometryArray();
+
+        for(int i = 0; i < triangles.getVertexCount(); i++)
+        {
+            Point3d tmp = new Point3d();
+            triangles.getCoordinate(i,tmp);
+            list.add(tmp);
+        }
+        */
+        // OLD LOADER ENDS HERE
         return list;
     }
 
