@@ -44,17 +44,17 @@ public class Main
             input = meshIO.readFromFile(filePath);
         } catch (IOException error)
         {
-            System.err.println("Loading fialied:" + error.getMessage());
+            System.err.println("Loading failed:" + error.getMessage());
             return;
         }
         if(input == null || input.size() == 0)
         {
-            System.err.println("Loading fialied: Input file is empty!");
+            System.err.println("Loading failed: Input file is empty!");
             return;
         }
         if(input.size() % 3 != 0)
         {
-            System.err.println("Loading fialied: Input file is malformed!");
+            System.err.println("Loading failed: Input file is malformed!");
             return;
         }
         Mesh m = new Mesh(input);
@@ -63,7 +63,7 @@ public class Main
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
 
-
+        // TODO connect custom part processing
 
         GsonBuilder builder = new GsonBuilder();
         builder.serializeNulls().setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
@@ -81,9 +81,6 @@ public class Main
         }
         writer.write(gsonParser.toJson(blocks));
         writer.close();
-
-
-        //TODO: Generate Instructions
 
         //TODO: Generate Custom Parts Zip File
 

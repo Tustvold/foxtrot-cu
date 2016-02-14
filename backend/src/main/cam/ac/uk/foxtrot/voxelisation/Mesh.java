@@ -52,7 +52,7 @@ public class Mesh
     public Mesh(ArrayList<Point3d> inputTrigs)
     {
         // load this into the triangle array
-        triangles = inputTrigs;
+        triangles = new ArrayList<>(inputTrigs);
 
         // and finally rescale and center the mesh
         rescaleAndCenterMesh();
