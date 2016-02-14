@@ -5,7 +5,7 @@ import com.sun.j3d.loaders.Scene;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.*;
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
 import java.awt.*;
 import java.io.*;
@@ -14,26 +14,26 @@ import java.util.ArrayList;
 public class Mesh
 {
     // Anti-Clockwise winding order
-    private Point3f offset;          // position of the mesh in the grid
-    private ArrayList<Point3f> triangles; // the list of triangles representing the mesh
-    private float blockSize = 0.08f;
+    private Point3d offset;          // position of the mesh in the grid
+    private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
+    private double blockSize = 0.1f;
 
-    public Point3f getOffset()
+    public Point3d getOffset()
     {
         return offset;
     }
 
-    public void setOffset(Point3f offset)
+    public void setOffset(Point3d offset)
     {
         this.offset = offset;
     }
 
-    public ArrayList<Point3f> getTriangles()
+    public ArrayList<Point3d> getTriangles()
     {
         return triangles;
     }
 
-    public void setTriangles(ArrayList<Point3f> trigs)
+    public void setTriangles(ArrayList<Point3d> trigs)
     {
         triangles = new ArrayList<>(trigs);
     }
@@ -54,7 +54,7 @@ public class Mesh
         triangles = new ArrayList<>();
         for(int i = 0; i < ta.getVertexCount(); i++)
         {
-            Point3f curr = new Point3f();
+            Point3d curr = new Point3d();
             ta.getCoordinate(i, curr);
             triangles.add(curr);
         }
@@ -67,10 +67,10 @@ public class Mesh
     }
 
     // returns the meshes centre of mass
-    private Point3f getCentreOfMass()
+    private Point3d getCentreOfMass()
     {
-        Point3f mc = new Point3f(0, 0, 0);
-        Point3f curr;
+        Point3d mc = new Point3d(0, 0, 0);
+        Point3d curr;
         int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
         {
@@ -88,9 +88,9 @@ public class Mesh
     // scales the mesh in such a way so that a block is of unit size and centers it
     private void rescaleAndCenterMesh()
     {
-        Point3f cm = getCentreOfMass();
+        Point3d cm = getCentreOfMass();
 
-        Point3f curr = new Point3f(0, 0, 0);
+        Point3d curr = new Point3d(0, 0, 0);
         int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
         {
@@ -118,7 +118,7 @@ public class Mesh
 
         for (int i = 0; i < triangles.size(); i++)
         {
-            Point3f currPt;
+            Point3d currPt;
             currPt = triangles.get(i);
             try
             {

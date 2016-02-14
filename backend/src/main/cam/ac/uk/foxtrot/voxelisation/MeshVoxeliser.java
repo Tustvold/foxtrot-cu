@@ -4,7 +4,7 @@ import com.vividsolutions.jts.awt.PointTransformation;
 import javafx.util.Pair;
 
 import javax.media.j3d.TriangleArray;
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
 import javax.vecmath.Vector3f;
 import java.awt.*;
@@ -19,14 +19,12 @@ public class MeshVoxeliser
     private Mesh mesh;                                      // the mesh which is voxelised
     private Point3i matrixDimensions;                       // dimesions of the block matrix
     private int[] dim;                                      // buffered version of dimensions in integers
-    private Point3f meshOffset;                             // the offset of the mesh from the original origin
-    public static final double float_tolerance = 0.0000001f;   // global tolerance constant
+    private Point3d meshOffset;                             // the offset of the mesh from the original origin
+    public static final double double_tolerance = 0.000000001;   // global tolerance constant
     private Block[][][] blocks;                             // list of the meshes blocks
     private Random r = new Random();
 
-    private ArrayList<Point3f> initTrigs;                   // list of the initial triangles of the mesh
-    private ArrayList<ArrayList<ArrayList<Integer>>> sharesVertex;
-    private ArrayList<ArrayList<ArrayList<Integer>>> sharesEdge;
+    private ArrayList<Point3d> initTrigs;
 
     int telemetry;
 
@@ -34,7 +32,7 @@ public class MeshVoxeliser
     {
         // instantiates the voxeliser and initialises voxelisation
         this.mesh = mesh;
-        meshOffset = new Point3f(0, 0, 0);
+        meshOffset = new Point3d(0, 0, 0);
         initTrigs = mesh.getTriangles();
         voxeliseMesh();
     }
@@ -68,30 +66,30 @@ public class MeshVoxeliser
     private void setMeshOffsetAndDetermineDimensions()
     {
         System.out.println("Setting mesh offset and determining dimensions...");
-        Point3f minBound = getMinimumInitialCoordinateBounds();
-        Point3f maxBound = getMaximumInitialCoordinateBounds();
-        float diffx = calculateSingleOffset(0, minBound.x, maxBound.x);
-        float diffy = calculateSingleOffset(1, minBound.y, maxBound.y);
-        float diffz = calculateSingleOffset(2, minBound.z, maxBound.z);
+        Point3d minBound = getMinimumInitialCoordinateBounds();
+        Point3d maxBound = getMaximumInitialCoordinateBounds();
+        double diffx = calculateSingleOffset(0, minBound.x, maxBound.x);
+        double diffy = calculateSingleOffset(1, minBound.y, maxBound.y);
+        double diffz = calculateSingleOffset(2, minBound.z, maxBound.z);
         //System.out.println("Mesh offsets: " + diffx + " " + diffy + " " + diffz);
 
-        meshOffset = new Point3f(diffx, diffy, diffz);
+        meshOffset = new Point3d(diffx, diffy, diffz);
         mesh.setOffset(meshOffset);
         System.out.println("Mesh offset set and dimensions determined...");
     }
 
     // determines the aximum values of the x,y, and z dimensions of the mesh separately
-    private Point3f getMinimumInitialCoordinateBounds()
+    private Point3d getMinimumInitialCoordinateBounds()
     {
-        Point3f min = null;
-        Point3f curr;
+        Point3d min = null;
+        Point3d curr;
         int cnt = initTrigs.size();
         for (int i = 0; i < cnt; i++)
         {
             curr = initTrigs.get(i);
             if (min == null)
             {
-                min = new Point3f(curr);
+                min = new Point3d(curr);
             }
             else
             {
@@ -108,17 +106,17 @@ public class MeshVoxeliser
     }
 
     // determines the minimum values of the x,y, and z dimensions of the mesh separately
-    private Point3f getMaximumInitialCoordinateBounds()
+    private Point3d getMaximumInitialCoordinateBounds()
     {
-        Point3f max = null;
-        Point3f curr;
+        Point3d max = null;
+        Point3d curr;
         int cnt = initTrigs.size();
         for (int i = 0; i < cnt; i++)
         {
             curr = initTrigs.get(i);
             if (max == null)
             {
-                max = new Point3f(curr);
+                max = new Point3d(curr);
             }
             else
             {
@@ -135,7 +133,7 @@ public class MeshVoxeliser
     }
 
     // determines the offset of one coordinate and sets the dimensions value
-    private float calculateSingleOffset(int type, float minBound, float maxBound)
+    private double calculateSingleOffset(int type, double minBound, double maxBound)
     {
         int dimension = (int) Math.ceil(maxBound - minBound);
         switch (type)
@@ -150,8 +148,8 @@ public class MeshVoxeliser
                 matrixDimensions.z = dimension;
                 break;
         }
-        float diff = (dimension - maxBound + minBound) / 2;
-        float ret = diff - minBound;
+        double diff = (dimension - maxBound + minBound) / 2;
+        double ret = diff - minBound;
         return ret;
     }
 
@@ -186,10 +184,10 @@ public class MeshVoxeliser
         int cnt = initTrigs.size();
         for (int i = 0; i < cnt; i += 3)
         {
-            ArrayList<Point3f> tmp = new ArrayList<>();
-            tmp.add(new Point3f(initTrigs.get(i)));
-            tmp.add(new Point3f(initTrigs.get(i + 1)));
-            tmp.add(new Point3f(initTrigs.get(i + 2)));
+            ArrayList<Point3d> tmp = new ArrayList<>();
+            tmp.add(new Point3d(initTrigs.get(i)));
+            tmp.add(new Point3d(initTrigs.get(i + 1)));
+            tmp.add(new Point3d(initTrigs.get(i + 2)));
 
             classifyPolygons(subdivideTriangle(tmp));
         }
@@ -204,10 +202,10 @@ public class MeshVoxeliser
     }
 
     // cuts the triangle given by 3 vertices into pieces and puts the pieces into appropriate bins
-    private ArrayList<ArrayList<Point3f>> subdivideTriangle(ArrayList<Point3f> triangle)
+    private ArrayList<ArrayList<Point3d>> subdivideTriangle(ArrayList<Point3d> triangle)
     {
         // array which contains the intermediate results of triangle subdivision
-        ArrayList<ArrayList<Point3f>> polygonList = new ArrayList<>();
+        ArrayList<ArrayList<Point3d>> polygonList = new ArrayList<>();
 
         // initially we start dividing only the triangle
         polygonList.add(triangle);
@@ -231,12 +229,12 @@ public class MeshVoxeliser
                 // we iterate through all polygons in our list for every line
                 for (int curr = 0; curr < currLen; curr++)
                 {
-                    ArrayList<Point3f> poly = new ArrayList<>(polygonList.get(curr));
+                    ArrayList<Point3d> poly = new ArrayList<>(polygonList.get(curr));
                     int cnt = poly.size();
                     // now we perform the clipping and division
                     // since we can only have two intersections, we iterate through the points and check for new vertices that need to be added
                     // we prepare the new shapes if needed
-                    ArrayList<ArrayList<Point3f>> polys = new ArrayList<>();
+                    ArrayList<ArrayList<Point3d>> polys = new ArrayList<>();
                     polys.add(new ArrayList<>());
                     polys.add(new ArrayList<>());
                     int side = 0;
@@ -258,13 +256,13 @@ public class MeshVoxeliser
                     boolean onlyFirst = false;
                     for (int ver = 0; ver < cnt; ver++)
                     {
-                        Point3f res = new Point3f(0, 0, 0);
-                        Point3f nextVer = polys.get(side).get(0);
+                        Point3d res = new Point3d(0, 0, 0);
+                        Point3d nextVer = polys.get(side).get(0);
                         if (intersect(poly.get(ver), poly.get((ver + 1) % cnt), line, ignore, res))
                         {
                             // there was a proper intersection between the two points
-                            Point3f sec = new Point3f(poly.get((ver + 1) % cnt));
-                            Point3f resNew = new Point3f(res);
+                            Point3d sec = new Point3d(poly.get((ver + 1) % cnt));
+                            Point3d resNew = new Point3d(res);
 
                             polys.get(side).add(res);
                             side = (side + 1) % 2;
@@ -273,7 +271,7 @@ public class MeshVoxeliser
                         }
                         else
                         {
-                            if (res.x < -0.5f)
+                            if (res.x < -0.5)
                             {
                                 // both points are on the line
                                 // this means that we have no more intersections, and that the polygon
@@ -283,24 +281,24 @@ public class MeshVoxeliser
                                 polys.set(1, null);
                                 break;
                             }
-                            else if (res.x > 0.5f)
+                            else if (res.x > 0.5)
                             {
                                 // only one point is on the line
-                                if (res.y < -0.5f)
+                                if (res.y < -0.5)
                                 {
                                     // there was an intersection on a vertex, so no new vertices are introduced
                                     // the intersection was on the fir
-                                    Point3f sec = new Point3f(poly.get((ver + 1) % cnt));
+                                    Point3d sec = new Point3d(poly.get((ver + 1) % cnt));
 
                                     // we add the first vertex but stay on the same side
                                     nextVer = sec;
                                 }
-                                else if (res.y > 0.5f)
+                                else if (res.y > 0.5)
                                 {
                                     // there was an intersection on a vertex, so no new vertices are introduced
                                     // the intersection was on the sec
-                                    Point3f sec = new Point3f(poly.get((ver + 1) % cnt));
-                                    Point3f secNew = new Point3f(sec);
+                                    Point3d sec = new Point3d(poly.get((ver + 1) % cnt));
+                                    Point3d secNew = new Point3d(sec);
 
                                     polys.get(side).add(sec);
                                     side = (side + 1) % 2;
@@ -310,7 +308,7 @@ public class MeshVoxeliser
                             else
                             {
                                 // no intersection was observed, so we just add the second vertex
-                                Point3f sec = new Point3f(poly.get((ver + 1) % cnt));
+                                Point3d sec = new Point3d(poly.get((ver + 1) % cnt));
                                 nextVer = sec;
                             }
                         }
@@ -337,13 +335,13 @@ public class MeshVoxeliser
 
     // intersects the line between fir and sec with the vertical line at line ignoring the ignoreth coordinate
     // and writes the return in res. Returns true if there is an intersection
-    private boolean intersect(Point3f fir, Point3f sec, float line, int ignore, Point3f res)
+    private boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
     {
-        float x1, y1, x2, y2;
+        double x1, y1, x2, y2;
         int idx = (ignore + 1) % 3;
         int idy = (ignore + 2) % 3;
-        float[] coordfir = new float[3];
-        float[] coordsec = new float[3];
+        double[] coordfir = new double[3];
+        double[] coordsec = new double[3];
         fir.get(coordfir);
         sec.get(coordsec);
         if (coordfir[(ignore + 1) % 3] < coordsec[(ignore + 1) % 3])
@@ -363,17 +361,17 @@ public class MeshVoxeliser
 
         if (x1 > line
                 || x2 < line
-                || Math.abs(x1 - line) < float_tolerance
-                || Math.abs(x2 - line) < float_tolerance)
+                || Math.abs(x1 - line) < double_tolerance
+                || Math.abs(x2 - line) < double_tolerance)
         {
             // the line between fir and sec is intersecting the line on one of the points or not intersecting it at all
-            if (Math.abs(x1 - line) < float_tolerance)
+            if (Math.abs(x1 - line) < double_tolerance)
             {
                 // x1 is on the line
-                if (Math.abs(x2 - line) < float_tolerance)
+                if (Math.abs(x2 - line) < double_tolerance)
                 {
                     // x2 is also on the line, so we do not have a propper intersection
-                    res.set(-1f, 1f, 0f);
+                    res.set(-1, 1, 0);
                     // we do not create a new division of the polygon
                     return false;
                 }
@@ -381,20 +379,20 @@ public class MeshVoxeliser
                 {
                     // the intersecting point is the one with the lower x coordinate
                     if (coordfir[idx] < coordsec[idx])
-                        res.set(1f, -1f, 0f); // intersection is on fir
+                        res.set(1, -1, 0); // intersection is on fir
                     else
-                        res.set(1f, 1f, 0f); // intersection is on sec
+                        res.set(1, 1, 0); // intersection is on sec
                     // we create a new division, but do not create a new vertex
                     return false;
                 }
             }
-            else if (Math.abs(x2 - line) < float_tolerance)
+            else if (Math.abs(x2 - line) < double_tolerance)
             {
                 // the intersecting point is the one with the greater x coordinate
                 if (coordfir[idx] < coordsec[idx])
-                    res.set(1f, 1f, 0f); // intersection is on sec
+                    res.set(1, 1, 0); // intersection is on sec
                 else
-                    res.set(1f, -1f, 0f); // intersection is on fir
+                    res.set(1, -1, 0); // intersection is on fir
                 // we create a new division, but do not create a new vertex
                 return false;
             }
@@ -408,7 +406,7 @@ public class MeshVoxeliser
         // prepare the grounds for a lot of numeric
         double xNew = line;
         double yNew = (y1 * (x2 - line) + y2 * (line - x1)) / (x2 - x1);
-        float[] coordNew = new float[3];
+        double[] coordNew = new double[3];
 
         // determine the ignored coordinate from the line division formula
         double dtot = Math.sqrt((coordfir[idx] - coordsec[idx]) * (coordfir[idx] - coordsec[idx]) +
@@ -417,23 +415,23 @@ public class MeshVoxeliser
                 (coordfir[idy] - yNew) * (coordfir[idy] - yNew));
         double drig = dtot - dlef;
 
-        coordNew[ignore] = (float) ((coordfir[ignore] * drig + coordsec[ignore] * dlef) / dtot);
-        coordNew[idx] = (float)xNew;
-        coordNew[idy] = (float)yNew;
+        coordNew[ignore] = ((coordfir[ignore] * drig + coordsec[ignore] * dlef) / dtot);
+        coordNew[idx] = xNew;
+        coordNew[idy] = yNew;
         res.set(coordNew);
         return true;
     }
 
     // returns the minimum coordinates in the x, y and z plane which intersect the polygon
-    private int[] getMinBounds(ArrayList<Point3f> polygon)
+    private int[] getMinBounds(ArrayList<Point3d> polygon)
     {
-        float[] min = null;
+        double[] min = null;
         int cnt = polygon.size();
         for (int i = 0; i < cnt; i++)
         {
             if (min == null)
             {
-                min = new float[3];
+                min = new double[3];
                 polygon.get(i).get(min);
             }
             else
@@ -453,15 +451,15 @@ public class MeshVoxeliser
     }
 
     // returns the maximum coordinates in the x, y and z plane which intersect the polygon
-    private int[] getMaxBounds(ArrayList<Point3f> polygon)
+    private int[] getMaxBounds(ArrayList<Point3d> polygon)
     {
-        float[] max = null;
+        double[] max = null;
         int cnt = polygon.size();
         for (int i = 0; i < cnt; i++)
         {
             if (max == null)
             {
-                max = new float[3];
+                max = new double[3];
                 polygon.get(i).get(max);
             }
             else
@@ -481,15 +479,15 @@ public class MeshVoxeliser
     }
 
     // clasifies the polygons obtained in the polygon list by adding them to their respective bins
-    private void classifyPolygons(ArrayList<ArrayList<Point3f>> polygonList)
+    private void classifyPolygons(ArrayList<ArrayList<Point3d>> polygonList)
     {
         int cnt = polygonList.size();
         for (int curr = 0; curr < cnt; curr++)
         {
-            ArrayList<Point3f> poly = polygonList.get(curr);
+            ArrayList<Point3d> poly = polygonList.get(curr);
 
             // determine the block coordinates by rounding center of mass coordinates
-            Point3f cm = getCenterOfMass(poly);
+            Point3d cm = getCenterOfMass(poly);
             int x, y, z;
             x = (int) cm.x;
             y = (int) cm.y;
@@ -497,7 +495,7 @@ public class MeshVoxeliser
 
             // create a new block if it does not exist already
             if (blocks[x][y][z] == null)
-                blocks[x][y][z] = new Block(new Vector3f(x, y, z), true);
+                blocks[x][y][z] = new Block(new Point3d(x, y, z), true);
 
             // triangulate the current polygon and add the resulting triangles to the new block
             switch (poly.size())
@@ -520,9 +518,9 @@ public class MeshVoxeliser
         }
     }
 
-    private Point3f getCenterOfMass(ArrayList<Point3f> poly)
+    private Point3d getCenterOfMass(ArrayList<Point3d> poly)
     {
-        Point3f cm = new Point3f(0, 0, 0);
+        Point3d cm = new Point3d(0, 0, 0);
         int cnt = poly.size();
         for (int i = 0; i < cnt; i++)
         {
@@ -539,8 +537,6 @@ public class MeshVoxeliser
     // labels the remaining blocks within the mesh as full
     private void fillRemainingBlocks()
     {
-        // first precompute all the helpful structures that will be useful to save time
-        computeAssistiveStructures();
         System.out.println("Filling remaining blocks...");
 
         for (int x = 0; x < dim[0]; x++)
@@ -557,13 +553,13 @@ public class MeshVoxeliser
                             if (numberOfIntersectionsOfVerticalRayWithMesh(x, y, z) % 2 == 1)
                             {
                                 // we create the block
-                                blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
+                                blocks[x][y][z] = new Block(new Point3d(x, y, z), false);
                             }
                         }
                         else
                         {
                             // the previous was full, so this one must also be
-                            blocks[x][y][z] = new Block(new Vector3f(x, y, z), false);
+                            blocks[x][y][z] = new Block(new Point3d(x, y, z), false);
                         }
                     }
                 }
@@ -572,68 +568,109 @@ public class MeshVoxeliser
         System.out.println("Remaining blocks filled...");
     }
 
+/*
     private void computeAssistiveStructures()
     {
         System.out.println("Computing assistive structures...");
-        // mesh parameters
-        int triangleCnt = initTrigs.size() / 3;
-
-        // a list of vertices and their indexes, which will be used to determine the adjacency lists
-        ArrayList<Pair<Point3f, Integer>> sortedVertices = new ArrayList<>();
-
-        for (int i = 0; i < triangleCnt * 3; i++)
+        sharesVertexChunks = new ArrayList<>();
+        sharesEdgeChunks = new ArrayList<>();
+        initTrigsChunks = new ArrayList<>();
+        for (int x = 0; x < dim[0]; x++)
         {
-            // we initialise the array which we will sort
-            sortedVertices.add(new Pair<>(initTrigs.get(i), i));
-        }
-
-        // initialise the comparator and sort the vertices
-        PointComparator comp = new PointComparator();
-        sortedVertices.sort(comp);
-
-        // prepare the vertex adjacency array
-        sharesVertex = new ArrayList<>();
-        for (int i = 0; i < triangleCnt; i++)
-        {
-            // an array list for each triangle
-            ArrayList<ArrayList<Integer>> curr = new ArrayList<>();
-            // which contains three array lists (for each vertex of the particular triangle)
-            curr.add(new ArrayList<>());
-            curr.add(new ArrayList<>());
-            curr.add(new ArrayList<>());
-            sharesVertex.add(curr);
-        }
-
-        // prepare the edge adjacency array
-        sharesEdge = new ArrayList<>();
-        for (int i = 0; i < triangleCnt; i++)
-        {
-            // an array list for each triangle
-            ArrayList<ArrayList<Integer>> curr = new ArrayList<>();
-            // which contains three array lists (for each edge of the particular triangle)
-            curr.add(new ArrayList<>());
-            curr.add(new ArrayList<>());
-            curr.add(new ArrayList<>());
-            sharesEdge.add(curr);
-        }
-
-        // fill the vertex adjacency array
-        // we initialise a helper array which will hold the currently identical set of vertices
-        int[] currentSet = new int[triangleCnt * 3];
-        int setCnt = 1;
-        currentSet[0] = sortedVertices.get(0).getValue();
-
-        for (int curr = 1; curr < triangleCnt * 3; curr++)
-        {
-            if (areIdentical(sortedVertices.get(curr).getKey(), sortedVertices.get(curr - 1).getKey()))
+            sharesVertexChunks.add(new ArrayList<>());
+            sharesEdgeChunks.add(new ArrayList<>());
+            initTrigsChunks.add(new ArrayList<>());
+            for (int y = 0; y < dim[1]; y++)
             {
-                // add the new vertex to the current set
-                currentSet[setCnt] = sortedVertices.get(curr).getValue();
-                setCnt++;
-            }
-            else
-            {
-                if (setCnt > 2)
+                sharesVertexChunks.get(x).add(new ArrayList<>());
+                sharesEdgeChunks.get(x).add(new ArrayList<>());
+                initTrigsChunks.get(x).add(new ArrayList<>());
+                int triangleCnt = 0;
+                // load in the triangles for the current chunk
+                for (int z = 0; z < dim[2]; z++)
+                {
+                    // current parameters
+                    int currCnt = blocks[x][y][z].getTriangleCount();
+                    triangleCnt += currCnt;
+                    ArrayList<Point3d> currTrigs = blocks[x][y][z].getTriangles();
+                    for(int i = 0; i < currCnt*3; i++)
+                        initTrigsChunks.get(x).get(y).add(currTrigs.get(i));
+                }
+
+                // a list of vertices and their indexes, which will be used to determine the adjacency lists
+                ArrayList<Pair<Point3d, Integer>> sortedVertices = new ArrayList<>();
+                for (int i = 0; i < triangleCnt * 3; i++)
+                {
+                    // we initialise the array which we will sort
+                    sortedVertices.add(new Pair<>(initTrigsChunks.get(x).get(y).get(i), i));
+                }
+
+                // initialise the comparator and sort the vertices
+                PointComparator comp = new PointComparator();
+                sortedVertices.sort(comp);
+                // prepare the vertex adjacency array
+                for (int i = 0; i < triangleCnt; i++)
+                {
+                    // an array list for each triangle
+                    ArrayList<ArrayList<Integer>> curr = new ArrayList<>();
+                    // which contains three array lists (for each vertex of the particular triangle)
+                    curr.add(new ArrayList<>());
+                    curr.add(new ArrayList<>());
+                    curr.add(new ArrayList<>());
+                    sharesVertexChunks.get(x).get(y).add(curr);
+                }
+
+                // prepare the edge adjacency array
+                for (int i = 0; i < triangleCnt; i++)
+                {
+                    // an array list for each triangle
+                    ArrayList<ArrayList<Integer>> curr = new ArrayList<>();
+                    // which contains three array lists (for each edge of the particular triangle)
+                    curr.add(new ArrayList<>());
+                    curr.add(new ArrayList<>());
+                    curr.add(new ArrayList<>());
+                    sharesEdgeChunks.get(x).get(y).add(curr);
+                }
+
+                // fill the vertex adjacency array
+                // we initialise a helper array which will hold the currently identical set of vertices
+                int[] currentSet = new int[triangleCnt * 3];
+                int setCnt = 1;
+                currentSet[0] = sortedVertices.get(0).getValue();
+
+                for (int curr = 1; curr < triangleCnt * 3; curr++)
+                {
+                    if (areIdentical(sortedVertices.get(curr).getKey(), sortedVertices.get(curr - 1).getKey()))
+                    {
+                        // add the new vertex to the current set
+                        currentSet[setCnt] = sortedVertices.get(curr).getValue();
+                        setCnt++;
+                    }
+                    else
+                    {
+                        if (setCnt > 2)
+                        {
+                            // if the vertex is shared by at least two triangles
+                            for (int to = 0; to < setCnt; to++)
+                            {
+                                // we consider one of the touching triangles
+                                for (int from = 0; from < setCnt; from++)
+                                {
+                                    // and add all of the other ones to its adjacency list
+                                    if (from != to)
+                                        sharesVertexChunks.get(x).get(y).get(currentSet[to] / 3).get(currentSet[to] % 3).add(currentSet[from] / 3);
+                                }
+                            }
+                        }
+
+                        // reset the current set
+                        currentSet[0] = sortedVertices.get(curr).getValue();
+                        setCnt = 1;
+                    }
+                }
+
+                // perform final check in case there is something left in the current set
+                if (setCnt > 1)
                 {
                     // if the vertex is shared by at least two triangles
                     for (int to = 0; to < setCnt; to++)
@@ -643,63 +680,44 @@ public class MeshVoxeliser
                         {
                             // and add all of the other ones to its adjacency list
                             if (from != to)
-                                sharesVertex.get(currentSet[to] / 3).get(currentSet[to] % 3).add(currentSet[from] / 3);
+                                sharesVertexChunks.get(x).get(y).get(currentSet[to] / 3).get(currentSet[to] % 3).add(currentSet[from] / 3);
                         }
                     }
                 }
 
-                // reset the current set
-                currentSet[0] = sortedVertices.get(curr).getValue();
-                setCnt = 1;
-            }
-        }
-
-        // perform final check in case there is something left in the current set
-        if (setCnt > 1)
-        {
-            // if the vertex is shared by at least two triangles
-            for (int to = 0; to < setCnt; to++)
-            {
-                // we consider one of the touching triangles
-                for (int from = 0; from < setCnt; from++)
+                // now we determine the edge adjacency array
+                for (int curr = 0; curr < triangleCnt; curr++)
                 {
-                    // and add all of the other ones to its adjacency list
-                    if (from != to)
-                        sharesVertex.get(currentSet[to] / 3).get(currentSet[to] % 3).add(currentSet[from] / 3);
-                }
-            }
-        }
-
-        // now we determine the edge adjacency array
-        for (int curr = 0; curr < triangleCnt; curr++)
-        {
-            // we consider all the triangles, and observe their vertex adjacency lists
-            for (int vIdx = 0; vIdx < 3; vIdx++)
-            {
-                int fromIdx = vIdx; // the point we are pulling the line from
-                int toIdx = (vIdx + 1) % 3; // the point we are ending the line at
-                int fromSize = sharesVertex.get(curr).get(fromIdx).size();
-                int toSize = sharesVertex.get(curr).get(toIdx).size();
-                boolean done = false;
-                for (int from = 0; from < fromSize && !done; from++)
-                {
-                    // we consider a triangle in the first array and check if it can be found in the second
-                    int firTriangle = sharesVertex.get(curr).get(fromIdx).get(from);
-                    for (int to = 0; to < toSize; to++)
+                    // we consider all the triangles, and observe their vertex adjacency lists
+                    for (int vIdx = 0; vIdx < 3; vIdx++)
                     {
-                        if (sharesVertex.get(curr).get(toIdx).get(to) == firTriangle)
+                        int fromIdx = vIdx; // the point we are pulling the line from
+                        int toIdx = (vIdx + 1) % 3; // the point we are ending the line at
+                        int fromSize = sharesVertexChunks.get(x).get(y).get(curr).get(fromIdx).size();
+                        int toSize = sharesVertexChunks.get(x).get(y).get(curr).get(toIdx).size();
+                        boolean done = false;
+                        for (int from = 0; from < fromSize && !done; from++)
                         {
-                            // we found the triangle so we save and break
-                            sharesEdge.get(curr).get(fromIdx).add(firTriangle);
-                            done = true;
-                            break;
+                            // we consider a triangle in the first array and check if it can be found in the second
+                            int firTriangle = sharesVertexChunks.get(x).get(y).get(curr).get(fromIdx).get(from);
+                            for (int to = 0; to < toSize; to++)
+                            {
+                                if (sharesVertexChunks.get(x).get(y).get(curr).get(toIdx).get(to) == firTriangle)
+                                {
+                                    // we found the triangle so we save and break
+                                    sharesEdgeChunks.get(x).get(y).get(curr).get(fromIdx).add(firTriangle);
+                                    done = true;
+                                    break;
+                                }
+                            }
                         }
+
                     }
                 }
             }
         }
         System.out.println("Assistive structures computed...");
-    }
+    }*/
 
     // checks the original mesh for intersections with
     // the given ray (the ray is shot "upwards in the z direction")
@@ -708,9 +726,10 @@ public class MeshVoxeliser
         // prepare the initial ray
         double xOffset = punchX();
         double yOffset = punchY();
-        double zOffset = 0.5f;
-        int triangleCnt = initTrigs.size() / 3;
-        Point3f R0 = new Point3f();
+        double zOffset = 0.5;
+        ArrayList<Point3d> currTrigs;
+        int pointCnt;
+        Point3d R0 = new Point3d();
 
         // the number of intersections with the mesh
         int intersectionNo;
@@ -720,34 +739,41 @@ public class MeshVoxeliser
         do
         {
             // reset the parameters
-            R0.set((float)(x + xOffset),(float)(y + yOffset), (float)(z + zOffset));
+            R0.set((xOffset), (yOffset), -1.0);
             intersectionNo = 0;
             restart = false;
 
             // mesh parameters
-            for (int curr = 0; curr < triangleCnt && !restart; curr++)
+            for(int a = z+1; a < dim[2] && !restart; a++)
             {
-                // pack up the current triangle
-                ArrayList<Point3f> T = new ArrayList<>();
-                T.add(initTrigs.get(curr * 3));
-                T.add(initTrigs.get(curr * 3 + 1));
-                T.add(initTrigs.get(curr * 3 + 2));
+                if(blocks[x][y][a] == null || !blocks[x][y][a].isCustom())
+                    continue;
+                currTrigs = blocks[x][y][a].getTriangles();
+                pointCnt = currTrigs.size();
+                for (int curr = 0; curr < pointCnt && !restart; curr+=3)
+                {
+                    // pack up the current triangle
+                    ArrayList<Point3d> T = new ArrayList<>();
+                    T.add(currTrigs.get(curr));
+                    T.add(currTrigs.get(curr + 1));
+                    T.add(currTrigs.get(curr + 2));
 
-                // and check intersection
-                int code = cutVertically(R0, T);
-                if (code == 1)
-                {
-                    // we count the intersection
-                    intersectionNo++;
-                }
-                else if (2 <= code && code <= 7)
-                {
-                    // we restart with another starting point
-                    restart = true;
-                    telemetry++;
+                    // and check intersection
+                    int code = cutVertically(R0, T);
+                    if (code == 1)
+                    {
+                        // we count the intersection
+                        intersectionNo++;
+                    }
+                    else if (2 <= code && code <= 7)
+                    {
+                        // we restart with another starting point
+                        restart = true;
+                        telemetry++;
+                    }
                 }
             }
-            if(restart)
+            if (restart)
             {
                 // we take another arbirtary point in the cube to shoot the ray from
                 xOffset = punchX();
@@ -759,40 +785,39 @@ public class MeshVoxeliser
 
     private double punchX()
     {
-       // return 0.34 + 0.001*((double)r.nextInt(200)-100);
-        return 0.02 + 0.01*(double)r.nextInt(98);
+        return 0.34 + 0.001*((double)r.nextInt(200)-100);
+        //return 0.02 + 0.01 * (double) r.nextInt(98);
     }
 
     private double punchY()
     {
-        //return 0.71 + 0.001*((double)r.nextInt(200)-100);
-        return 0.02 + 0.01*(double)r.nextInt(98);
+        return 0.71 + 0.001*((double)r.nextInt(200)-100);
+        //return 0.02 + 0.01 * (double) r.nextInt(98);
     }
 
-    private void drawRayTest(ArrayList<Point3f> T, Point3f I)
+    private void drawRayTest(ArrayList<Point3d> T, Point3d I)
     {
-        ArrayList<ArrayList<Point3f>> poligoni = new ArrayList<>();
-        ArrayList<Point3f> fir = new ArrayList<>();
-        fir.add(new Point3f(T.get(0)));
-        fir.add(new Point3f(T.get(1)));
-        fir.add(new Point3f(I));
-        ArrayList<Point3f> sec = new ArrayList<>();
-        sec.add(new Point3f(T.get(1)));
-        sec.add(new Point3f(T.get(2)));
-        sec.add(new Point3f(I));
-        ArrayList<Point3f> trd = new ArrayList<>();
-        trd.add(new Point3f(T.get(2)));
-        trd.add(new Point3f(T.get(0)));
-        trd.add(new Point3f(I));
+        ArrayList<ArrayList<Point3d>> poligoni = new ArrayList<>();
+        ArrayList<Point3d> fir = new ArrayList<>();
+        fir.add(new Point3d(T.get(0)));
+        fir.add(new Point3d(T.get(1)));
+        fir.add(new Point3d(I));
+        ArrayList<Point3d> sec = new ArrayList<>();
+        sec.add(new Point3d(T.get(1)));
+        sec.add(new Point3d(T.get(2)));
+        sec.add(new Point3d(I));
+        ArrayList<Point3d> trd = new ArrayList<>();
+        trd.add(new Point3d(T.get(2)));
+        trd.add(new Point3d(T.get(0)));
+        trd.add(new Point3d(I));
         poligoni.add(fir);
         poligoni.add(sec);
         poligoni.add(trd);
         drawPolygonList(poligoni, "testing/output/poly.obj");
     }
 
-    int cutVertically(Point3f R0, ArrayList<Point3f> T)
+    int cutVertically(Point3d R0, ArrayList<Point3d> T)
     {
-        if (!isAbove(R0, T)) return 0;
         if (areIdenticalInXY(R0, T.get(0))) return 2;
         if (areIdenticalInXY(R0, T.get(1))) return 3;
         if (areIdenticalInXY(R0, T.get(2))) return 4;
@@ -803,10 +828,20 @@ public class MeshVoxeliser
         return 0;
     }
 
-    // returns A - B
-    private Point3f vectorSub(Point3f A, Point3f B)
+    // returns A + B
+    private Point3d vectorAdd(Point3d A, Point3d B)
     {
-        Point3f result = new Point3f(0, 0, 0);
+        Point3d result = new Point3d(0, 0, 0);
+        result.x = A.x + B.x;
+        result.y = A.y + B.y;
+        result.z = A.z + B.z;
+        return result;
+    }
+
+    // returns A - B
+    private Point3d vectorSub(Point3d A, Point3d B)
+    {
+        Point3d result = new Point3d(0, 0, 0);
         result.x = A.x - B.x;
         result.y = A.y - B.y;
         result.z = A.z - B.z;
@@ -814,15 +849,15 @@ public class MeshVoxeliser
     }
 
     // returns the dot product: A.B
-    private double vectorDot(Point3f A, Point3f B)
+    private double vectorDot(Point3d A, Point3d B)
     {
         return A.x * B.x + A.y * B.y + A.z * B.z;
     }
 
     // returns the vector product ABxAC
-    private Point3f vectorProd(Point3f A, Point3f B, Point3f C)
+    private Point3d vectorProd(Point3d A, Point3d B, Point3d C)
     {
-        Point3f result = new Point3f(0, 0, 0);
+        Point3d result = new Point3d(0, 0, 0);
         result.x = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
         result.y = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
         result.z = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
@@ -830,13 +865,13 @@ public class MeshVoxeliser
     }
 
     // returns true if the point is above the triangle in the positive z direction
-    boolean isAbove(Point3f M, ArrayList<Point3f> T)
+    boolean isAbove(Point3d M, ArrayList<Point3d> T)
     {
-        Point3f A = T.get(0);
-        Point3f B = T.get(1);
-        Point3f C = T.get(2);
-        Point3f n = vectorProd(A, B, C);
-        if (Math.abs(n.z) < float_tolerance)
+        Point3d A = T.get(0);
+        Point3d B = T.get(1);
+        Point3d C = T.get(2);
+        Point3d n = vectorProd(A, B, C);
+        if (Math.abs(n.z) < double_tolerance)
         {
             // the triangle is orthogonal to the xy plane
             return M.z > A.z
@@ -845,7 +880,7 @@ public class MeshVoxeliser
         }
         else
         {
-            Point3f AM = vectorSub(M, A);
+            Point3d AM = vectorSub(M, A);
             double val = vectorDot(AM, n);
             if (n.z > 0)
             {
@@ -858,20 +893,20 @@ public class MeshVoxeliser
         }
     }
 
-    boolean areIdenticalInXY(Point3f ver1, Point3f ver2)
+    boolean areIdenticalInXY(Point3d ver1, Point3d ver2)
     {
-        return Math.abs(ver1.x - ver2.x) < float_tolerance
-                && Math.abs(ver1.y - ver2.y) < float_tolerance;
+        return Math.abs(ver1.x - ver2.x) < double_tolerance
+                && Math.abs(ver1.y - ver2.y) < double_tolerance;
     }
 
     // returns true if B is between A and C
-    boolean isOnLineXY(Point3f A, Point3f B, Point3f C)
+    boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
     {
-        return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < float_tolerance;
+        return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < double_tolerance;
     }
 
     // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
-    boolean ptInTriangleXY(Point3f I, ArrayList<Point3f> T)
+    boolean ptInTriangleXY(Point3d I, ArrayList<Point3d> T)
     {
         double dX = I.x - T.get(2).x;
         double dY = I.y - T.get(2).y;
@@ -885,11 +920,11 @@ public class MeshVoxeliser
     }
 
     // checks if two 3d points are identical
-    private boolean areIdentical(Point3f ver1, Point3f ver2)
+    private boolean areIdentical(Point3d ver1, Point3d ver2)
     {
-        return Math.abs(ver1.x - ver2.x) < float_tolerance
-                && Math.abs(ver1.y - ver2.y) < float_tolerance
-                && Math.abs(ver1.z - ver2.z) < float_tolerance;
+        return Math.abs(ver1.x - ver2.x) < double_tolerance
+                && Math.abs(ver1.y - ver2.y) < double_tolerance
+                && Math.abs(ver1.z - ver2.z) < double_tolerance;
     }
 
     /**
@@ -917,7 +952,7 @@ public class MeshVoxeliser
             {
                 if (includeGrid)
                 {
-                    ArrayList<Point3f> triangles = makeHorizontalSquare(x, z);
+                    ArrayList<Point3d> triangles = makeHorizontalSquare(x, z);
                     totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
                     {
@@ -937,7 +972,7 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null)
                         continue;
-                    ArrayList<Point3f> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
+                    ArrayList<Point3d> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
                     for (int i = 0; i < blocks[x][y][z].getTriangleCount() * 3; i++)
@@ -975,101 +1010,101 @@ public class MeshVoxeliser
         System.out.println("Sliced output created...");
     }
 
-    private ArrayList<Point3f> makeUnitCube(int x, int y, int z)
+    private ArrayList<Point3d> makeUnitCube(int x, int y, int z)
     {
-        ArrayList<Point3f> cube = new ArrayList<>();
+        ArrayList<Point3d> cube = new ArrayList<>();
 
         if (x < 1 || (blocks[x - 1][y][z] == null || blocks[x - 1][y][z].isCustom()))
         {
             //yz01
-            cube.add(new Point3f(0, 1, 0));
-            cube.add(new Point3f(0, 0, 0));
-            cube.add(new Point3f(0, 1, 1));
+            cube.add(new Point3d(0, 1, 0));
+            cube.add(new Point3d(0, 0, 0));
+            cube.add(new Point3d(0, 1, 1));
 
             //yz02
-            cube.add(new Point3f(0, 1, 1));
-            cube.add(new Point3f(0, 0, 0));
-            cube.add(new Point3f(0, 0, 1));
+            cube.add(new Point3d(0, 1, 1));
+            cube.add(new Point3d(0, 0, 0));
+            cube.add(new Point3d(0, 0, 1));
         }
 
         if (y < 1 || (blocks[x][y - 1][z] == null || blocks[x][y - 1][z].isCustom()))
         {
             //xz01
-            cube.add(new Point3f(0, 0, 1));
-            cube.add(new Point3f(0, 0, 0));
-            cube.add(new Point3f(1, 0, 1));
+            cube.add(new Point3d(0, 0, 1));
+            cube.add(new Point3d(0, 0, 0));
+            cube.add(new Point3d(1, 0, 1));
 
             //xz02
-            cube.add(new Point3f(1, 0, 1));
-            cube.add(new Point3f(0, 0, 0));
-            cube.add(new Point3f(1, 0, 0));
+            cube.add(new Point3d(1, 0, 1));
+            cube.add(new Point3d(0, 0, 0));
+            cube.add(new Point3d(1, 0, 0));
         }
 
         if (z < 1 || (blocks[x][y][z - 1] == null || blocks[x][y][z - 1].isCustom()))
         {
             //xy01
-            cube.add(new Point3f(1, 0, 0));
-            cube.add(new Point3f(0, 0, 0));
-            cube.add(new Point3f(1, 1, 0));
+            cube.add(new Point3d(1, 0, 0));
+            cube.add(new Point3d(0, 0, 0));
+            cube.add(new Point3d(1, 1, 0));
 
             //xy02
-            cube.add(new Point3f(1, 1, 0));
-            cube.add(new Point3f(0, 0, 0));
-            cube.add(new Point3f(0, 1, 0));
+            cube.add(new Point3d(1, 1, 0));
+            cube.add(new Point3d(0, 0, 0));
+            cube.add(new Point3d(0, 1, 0));
         }
         if (x >= dim[0] - 1 || (blocks[x + 1][y][z] == null || blocks[x + 1][y][z].isCustom()))
         {
             //yz11
-            cube.add(new Point3f(1, 0, 0));
-            cube.add(new Point3f(1, 1, 0));
-            cube.add(new Point3f(1, 1, 1));
+            cube.add(new Point3d(1, 0, 0));
+            cube.add(new Point3d(1, 1, 0));
+            cube.add(new Point3d(1, 1, 1));
 
             //yz12
-            cube.add(new Point3f(1, 0, 0));
-            cube.add(new Point3f(1, 1, 1));
-            cube.add(new Point3f(1, 0, 1));
+            cube.add(new Point3d(1, 0, 0));
+            cube.add(new Point3d(1, 1, 1));
+            cube.add(new Point3d(1, 0, 1));
         }
 
         if (y >= dim[1] - 1 || (blocks[x][y + 1][z] == null || blocks[x][y + 1][z].isCustom()))
         {
             //xz11
-            cube.add(new Point3f(0, 1, 1));
-            cube.add(new Point3f(1, 1, 1));
-            cube.add(new Point3f(0, 1, 0));
+            cube.add(new Point3d(0, 1, 1));
+            cube.add(new Point3d(1, 1, 1));
+            cube.add(new Point3d(0, 1, 0));
 
             //xz12
-            cube.add(new Point3f(0, 1, 0));
-            cube.add(new Point3f(1, 1, 1));
-            cube.add(new Point3f(1, 1, 0));
+            cube.add(new Point3d(0, 1, 0));
+            cube.add(new Point3d(1, 1, 1));
+            cube.add(new Point3d(1, 1, 0));
         }
 
         if (z >= dim[2] - 1 || (blocks[x][y][z + 1] == null || blocks[x][y][z + 1].isCustom()))
         {
             //xy11
-            cube.add(new Point3f(1, 0, 1));
-            cube.add(new Point3f(1, 1, 1));
-            cube.add(new Point3f(0, 0, 1));
+            cube.add(new Point3d(1, 0, 1));
+            cube.add(new Point3d(1, 1, 1));
+            cube.add(new Point3d(0, 0, 1));
 
             //xy12
-            cube.add(new Point3f(0, 0, 1));
-            cube.add(new Point3f(1, 1, 1));
-            cube.add(new Point3f(0, 1, 1));
+            cube.add(new Point3d(0, 0, 1));
+            cube.add(new Point3d(1, 1, 1));
+            cube.add(new Point3d(0, 1, 1));
         }
         return cube;
     }
 
-    private ArrayList<Point3f> makeHorizontalSquare(int x, int z)
+    private ArrayList<Point3d> makeHorizontalSquare(int x, int z)
     {
-        ArrayList<Point3f> square = new ArrayList<>();
+        ArrayList<Point3d> square = new ArrayList<>();
         //xz01
-        square.add(new Point3f(0, 0, 1));
-        square.add(new Point3f(0, 0, 0));
-        square.add(new Point3f(1, 0, 1));
+        square.add(new Point3d(0, 0, 1));
+        square.add(new Point3d(0, 0, 0));
+        square.add(new Point3d(1, 0, 1));
 
         //xz02
-        square.add(new Point3f(1, 0, 1));
-        square.add(new Point3f(0, 0, 0));
-        square.add(new Point3f(1, 0, 0));
+        square.add(new Point3d(1, 0, 1));
+        square.add(new Point3d(0, 0, 0));
+        square.add(new Point3d(1, 0, 0));
 
         return square;
     }
@@ -1096,7 +1131,7 @@ public class MeshVoxeliser
             {
                 if (includeGrid)
                 {
-                    ArrayList<Point3f> triangles = makeHorizontalSquare(x, z);
+                    ArrayList<Point3d> triangles = makeHorizontalSquare(x, z);
                     totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
                     {
@@ -1116,7 +1151,7 @@ public class MeshVoxeliser
                 {
                     if (blocks[x][y][z] == null || blocks[x][y][z].isCustom())
                         continue;
-                    ArrayList<Point3f> triangles = makeUnitCube(x, y, z);
+                    ArrayList<Point3d> triangles = makeUnitCube(x, y, z);
 
                     totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
@@ -1154,7 +1189,7 @@ public class MeshVoxeliser
         System.out.println("Voxel output created...");
     }
 
-    private void drawPolygonList(ArrayList<ArrayList<Point3f>> polys, String filename)
+    private void drawPolygonList(ArrayList<ArrayList<Point3d>> polys, String filename)
     {
         Writer writer = null;
         try

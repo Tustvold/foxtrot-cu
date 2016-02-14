@@ -3,7 +3,7 @@ package cam.ac.uk.foxtrot.voxelisation;
 import com.google.gson.annotations.SerializedName;
 
 import javax.media.j3d.TriangleArray;
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
 import java.io.*;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ public class Block
 {
 
     @SerializedName("pos")
-    private Vector3f mPosition;
+    private Point3d mPosition;
 
     @SerializedName("custom_part_array")
     private CustomPart[] mCustomPart;
@@ -24,19 +24,19 @@ public class Block
     private int mSuggestedCustomPartIndex;
 
     private int triangleCnt; // number of triangles in the block
-    private ArrayList<Point3f> triangles; // the triangles representing the part of the mesh which is within the block
+    private ArrayList<Point3d> triangles; // the triangles representing the part of the mesh which is within the block
     private boolean isCustom;
 
-    public ArrayList<Point3f> getTriangles()
+    public ArrayList<Point3d> getTriangles()
     {
         return triangles;
     }
 
-    public void addTriangle(Point3f fir, Point3f sec, Point3f trd)
+    public void addTriangle(Point3d fir, Point3d sec, Point3d trd)
     {
-        triangles.add(new Point3f(fir.x - mPosition.x, fir.y - mPosition.y, fir.z - mPosition.z));
-        triangles.add(new Point3f(sec.x - mPosition.x, sec.y - mPosition.y, sec.z - mPosition.z));
-        triangles.add(new Point3f(trd.x - mPosition.x, trd.y - mPosition.y, trd.z - mPosition.z));
+        triangles.add(new Point3d(fir.x - mPosition.x, fir.y - mPosition.y, fir.z - mPosition.z));
+        triangles.add(new Point3d(sec.x - mPosition.x, sec.y - mPosition.y, sec.z - mPosition.z));
+        triangles.add(new Point3d(trd.x - mPosition.x, trd.y - mPosition.y, trd.z - mPosition.z));
         triangleCnt++;
     }
 
@@ -59,7 +59,7 @@ public class Block
 
 
 
-    public Block(Vector3f position, CustomPart[] customPart,
+    public Block(Point3d position, CustomPart[] customPart,
                  boolean suggestUseCustomPart, int suggestedCustomPartIndex)
     {
         // initialise internals
@@ -72,10 +72,10 @@ public class Block
         mSuggestedCustomPartIndex = suggestedCustomPartIndex;
     }
 
-    public Block(Vector3f position, boolean isCustom)
+    public Block(Point3d position, boolean isCustom)
     {
         // initialise internals
-        triangles = new ArrayList<Point3f>();
+        triangles = new ArrayList<Point3d>();
         triangleCnt = 0;
         this.isCustom = isCustom;
 
@@ -85,9 +85,9 @@ public class Block
         mSuggestedCustomPartIndex = 0;
     }
 
-    public Vector3f getPosition()
+    public Point3d getPosition()
     {
-        return mPosition;
+        return new Point3d(mPosition);
     }
 
     public CustomPart[] getCustomPart()
@@ -129,7 +129,7 @@ public class Block
         {
             try
             {
-                Point3f currPt = triangles.get(i);
+                Point3d currPt = triangles.get(i);
                 writer.write("v " + currPt.x + " " + currPt.y + " " + currPt.z + "\n");
             } catch (IOException err)
             {
