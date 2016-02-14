@@ -8,7 +8,10 @@ import com.sun.j3d.loaders.objectfile.ObjectFile;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.*;
+import javax.vecmath.Point3d;
+import javax.vecmath.Point3f;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 
@@ -24,30 +27,11 @@ public class MeshIO
      * @return the loaded mesh
      * @throws IOException
      */
-    public Scene readFromFile(String filename) throws IOException
+    public ArrayList<Point3d> readFromFile(String filename) throws IOException
     {
-        ObjectFile theOBJFile = new ObjectFile();
-        theOBJFile.setFlags(ObjectFile.TRIANGULATE);
-        Scene theScene;
-        try
-        {
-            theScene = theOBJFile.load(filename);
-        }
-        catch(java.io.FileNotFoundException error)
-        {
-            throw new IOException("File was not found!");
-        }
-        catch (IncorrectFormatException error)
-        {
-            throw new IOException("Incorrect file format!");
-        }
-        catch (ParsingErrorException error)
-        {
-            throw new IOException("Parsing failed!");
-        }
-
-        System.out.println("Loading mesh...");
-        return theScene;
+        // TODO @rob implement and test
+        ArrayList<Point3d> list = new ArrayList<>();
+        return list;
     }
 
     /**
