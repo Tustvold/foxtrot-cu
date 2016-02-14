@@ -12,6 +12,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Random;
 
 public class MeshVoxeliser
 {
@@ -19,7 +20,7 @@ public class MeshVoxeliser
     private Point3i matrixDimensions;                       // dimesions of the block matrix
     private int[] dim;                                      // buffered version of dimensions in integers
     private Point3f meshOffset;                             // the offset of the mesh from the original origin
-    public static final float float_tolerance = 0.00005f; // global tolerance constant
+    public static final float float_tolerance = 0.0000001f;   // global tolerance constant
     private Block[][][] blocks;                             // list of the meshes blocks
 
     private ArrayList<Point3f> initTrigs;                   // list of the initial triangles of the mesh
@@ -188,6 +189,7 @@ public class MeshVoxeliser
 
             classifyPolygons(subdivideTriangle(tmp));
         }
+
         fillRemainingBlocks();
 
         // TESTING METHODS
@@ -568,7 +570,7 @@ public class MeshVoxeliser
 
     private void computeAssistiveStructures()
     {
-        System.out.println("Computing assistive sturctures...");
+        System.out.println("Computing assistive structures...");
         // mesh parameters
         int triangleCnt = initTrigs.size() / 3;
 
@@ -699,26 +701,27 @@ public class MeshVoxeliser
     // the given ray (the ray is shot "upwards in the z direction")
     private int numberOfIntersectionsOfVerticalRayWithMesh(int x, int y, int z)
     {
-        // prepare the ray
-        Point3f R0 = new Point3f(x + 0.5f, y + 0.5f, z + 0.1f);
-        Point3f R1 = new Point3f(x + 0.5f, y + 0.5f, z + 1.0f);
+        // prepare the initial ray
+        float xOffset = 0.5f;
+        float yOffset = 0.5f;
+        float zOffset = 0.5f;
+        Point3f R0 = new Point3f();
 
         // the number of intersections with the mesh
-        int intersectionNo = 0;
+        int intersectionNo;
 
-        // mesh parameters
-        int triangleCnt = initTrigs.size() / 3;
-
-        // these labels will be used to determine if a triangle is to be checked for intersections
-        // with the intersection ray
-        boolean[] isConsidered = new boolean[triangleCnt];
-        for (int i = 0; i < triangleCnt; i++)
-            isConsidered[i] = true;
-
-        // the numeric ray tracing calculations
-        for (int curr = 0; curr < triangleCnt; curr++)
+        // and prep the loop
+        boolean restart;
+        do
         {
-            if (isConsidered[curr])
+            // reset the parameters
+            R0.set(x + xOffset, y + yOffset, z + zOffset);
+            intersectionNo = 0;
+            restart = false;
+
+            // mesh parameters
+            int triangleCnt = initTrigs.size() / 3;
+            for (int curr = 0; curr < triangleCnt && !restart; curr++)
             {
                 // pack up the current triangle
                 ArrayList<Point3f> T = new ArrayList<>();
@@ -726,216 +729,35 @@ public class MeshVoxeliser
                 T.add(initTrigs.get(curr * 3 + 1));
                 T.add(initTrigs.get(curr * 3 + 2));
 
-                // set up resulting point (if it exists)
-                Point3f I = new Point3f(0.0f, 0.0f, 0.0f);
                 // and check intersection
-                int code = intersect3D_RayTriangle(R0, R1, T, I);
+                int code = cutVertically(R0, T);
                 if (code == 1)
                 {
-                    // there was a strict intersection
+                    // we count the intersection
                     intersectionNo++;
                 }
-                else if (3 <= code && code <= 5)
+                else if (2 <= code && code <= 7)
                 {
-                    // there was a vertex intersection
-                    // so we extract all the triangles which are touching at this one point
-                    // and project them onto the xy plane. After this we check if all of the
-                    // vector products of the appropriately oriented edges are either all
-                    // positive or all negative. If this is not the case, then we do not add
-                    // a new intersection point
-                    code -= 3;
-                    // we setup the initial positive and negaitve counters
-                    int positiveCnt = 0, negativeCnt = 0;
-                    if (vectorProd2DisPositive(T.get(code), T.get((code - 1) % 3), T.get((code + 1) % 3)))
-                        positiveCnt++;
-                    else
-                        negativeCnt++;
-
-                    int len = sharesVertex.get(curr).get(code).size();
-                    for (int touching = 0; touching < len; touching++)
-                    {
-                        // load the adjacent triangle
-                        ArrayList<Point3f> adj = new ArrayList<>();
-                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3));
-                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3 + 1));
-                        adj.add(initTrigs.get(sharesVertex.get(curr).get(code).get(touching) * 3 + 2));
-
-                        // remove the ability of the triangle to participate in the rest of the cutting
-                        isConsidered[sharesVertex.get(curr).get(code).get(touching)] = false;
-
-                        // find the point on the adjacent triangle which is not on the line in common
-                        int other;
-                        for (other = 0; other < 3; other++)
-                            if (areIdentical(adj.get(other), T.get(code)))
-                                break;
-
-                        if (vectorProd2DisPositive(adj.get(other), adj.get((other - 1) % 3), adj.get((other + 1) % 3)))
-                            positiveCnt++;
-                        else
-                            negativeCnt++;
-                    }
-                    if (positiveCnt == 0 || negativeCnt == 0)
-                    {
-                        // the tirangles are surrounding the punctuating ray so we increment the counter
-                        intersectionNo++;
-                    }
+                    // we restart with another starting point
+                    restart = true;
                 }
-                else if (6 <= code && code <= 8)
-                {
-                    // there was an edge intersection
-                    // so we just check if the adjacent triangle cannot be projected
-                    // onto the current one, and if this is the case, increment the
-                    // counter, otherwise ignore it
-                    code -= 6;
-                    if (sharesEdge.get(curr).get(code).size() == 1)
-                    {
-                        // load the adjacent triangle
-                        ArrayList<Point3f> adj = new ArrayList<>();
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(0) * 3));
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(0) * 3 + 1));
-                        adj.add(initTrigs.get(sharesEdge.get(curr).get(code).get(0) * 3 + 2));
-
-                        // remove the ability of the triangle to participate in the rest of the cutting
-                        isConsidered[sharesEdge.get(curr).get(code).get(0)] = false;
-
-                        // find the point X, on the adjacent triangle which is not on the line in common
-                        int other;
-                        for (other = 0; other < 3; other++)
-                            if (!areIdentical(adj.get(other), T.get(code)) && !areIdentical(adj.get(other), T.get((code + 1) % 3)))
-                                break;
-
-                        // then check if X can be vertically projected on the inside of the initial triangle
-                        int adjcodePos = intersect3D_RayTriangle(adj.get(other), vectorAdd(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
-                        int adjcodeNeg = intersect3D_RayTriangle(adj.get(other), vectorSub(adj.get(other), new Point3f(0f, 0f, 1.0f)), T, I);
-                        if (adjcodePos == 0 && adjcodeNeg == 0)
-                        {
-                            // only if there is no intersection between the projection and the initial triangle do we increment the counter
-                            intersectionNo++;
-                        }
-                    }
-                    else
-                    {
-                        // THE MESH IS DISCONTINUOUS OR SELF INTERSECTING
-                    }
-                }
-                isConsidered[curr] = false;
             }
-        }
+            if(restart)
+            {
+                // we take another arbirtary point in the cube to shoot the ray from
+
+                xOffset = punch();
+                yOffset = punch();
+            }
+        } while (restart);
         return intersectionNo;
     }
 
-    // returns true if the vector product ABxAC is positive
-    private boolean vectorProd2DisPositive(Point3f A, Point3f B, Point3f C)
+    private float punch()
     {
-        return ((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) > 0;
-    }
-
-    // returns the vector product ABxAC
-    private Point3f vectorProd(Point3f A, Point3f B, Point3f C)
-    {
-        Point3f result = new Point3f(0, 0, 0);
-        result.x = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
-        result.y = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
-        result.z = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
-        return result;
-    }
-
-    // returns A - B
-    private Point3f vectorSub(Point3f A, Point3f B)
-    {
-        Point3f result = new Point3f(0, 0, 0);
-        result.x = A.x - B.x;
-        result.y = A.y - B.y;
-        result.z = A.z - B.z;
-        return result;
-    }
-
-    // returns A + B
-    private Point3f vectorAdd(Point3f A, Point3f B)
-    {
-        Point3f result = new Point3f(0, 0, 0);
-        result.x = A.x + B.x;
-        result.y = A.y + B.y;
-        result.z = A.z + B.z;
-        return result;
-    }
-
-    // returns the dot product: A.B
-    private float vectorDot(Point3f A, Point3f B)
-    {
-        return A.x * B.x + A.y * B.y + A.z * B.z;
-    }
-
-    // negates the given vector
-    private Point3f vectorNeg(Point3f A)
-    {
-        Point3f result = new Point3f(0, 0, 0);
-        result.x = -A.x;
-        result.y = -A.y;
-        result.z = -A.z;
-        return result;
-    }
-
-    // multiploes the given vector by a scalar
-    private Point3f vectorMul(float alpha, Point3f A)
-    {
-        Point3f result = new Point3f(0, 0, 0);
-        result.x = alpha * A.x;
-        result.y = alpha * A.y;
-        result.z = alpha * A.z;
-        return result;
-    }
-
-    // used for temporary debugging
-    boolean rayintersector_tester()
-    {
-        ArrayList<Point3f> T = new ArrayList<>();
-        T.add(new Point3f(19.5f, 69.5348f, 6.5275f));
-        T.add(new Point3f(19.895f, 69.5142f, 6.5265f));
-        T.add(new Point3f(19.5f, 69.4239f, 7f));
-        Point3f I = new Point3f();
-        Point3f R0;
-        Point3f R1;
-        int code;
-
-        // vertex testing
-        R0 = new Point3f(19.5f, 69.5348f, 0f);
-        R1 = new Point3f(19.5f, 69.5348f, 1f);
-        code = intersect3D_RayTriangle(R0, R1, T, I);
-        if (code != 3)
-            return false;
-
-        R0 = new Point3f(19.895f, 69.5142f, 0f);
-        R1 = new Point3f(19.895f, 69.5142f, 1f);
-        code = intersect3D_RayTriangle(R0, R1, T, I);
-        if (code != 4)
-            return false;
-
-        R0 = new Point3f(19.5f, 69.4239f, 0f);
-        R1 = new Point3f(19.5f, 69.4239f, 1f);
-        code = intersect3D_RayTriangle(R0, R1, T, I);
-        if (code != 5)
-            return false;
-
-        // edge testing
-        R0 = new Point3f(19.5f, 69.5f, 0f);
-        R1 = new Point3f(19.5f, 69.5f, 1f);
-        code = intersect3D_RayTriangle(R0, R1, T, I);
-        if (code != 8)
-            return false;
-
-        // IMPORTANT!!!
-        T = new ArrayList<>();
-        T.add(new Point3f(19.895f, 69.51416f, 6.5265f));
-        T.add(new Point3f(19.5f, 69.534836f, 6.5275f));
-        T.add(new Point3f(19.5f, 69.41484f, 7.0385003f));
-        code = intersect3D_RayTriangle(R0, R1, T, I);
-        if(code != 7)
-            return false;
-
-        if (code > 0)
-            drawRayTest(T, I);
-        return true;
+        Random r = new Random();
+        int rnd = r.nextInt(200);
+        return 0.5f + 0.001f*((float)rnd-100);
     }
 
     private void drawRayTest(ArrayList<Point3f> T, Point3f I)
@@ -959,91 +781,84 @@ public class MeshVoxeliser
         drawPolygonList(poligoni, "testing/output/poly.obj");
     }
 
-    // intersect3D_RayTriangle(): find the 3D intersection of a ray with a triangle
-    //    Input:  a ray R0->R1, and a triangle T
-    //    Output: I = intersection point (when it exists)
-    //    Return: -1 = triangle is degenerate (a segment or point)
-    //             0 = triangle and ray disjoint (no intersect)
-    //             1 = intersect in unique point I1 (on the strict inside)
-    //             2 = triangle and ray are in the same plane
-    //             ----------------------------------------------------------
-    //             3 = the ray intersects the triangle on the vertex T[0]
-    //             4 = the ray intersects the triangle on the vertex T[1]
-    //             5 = the ray intersects the triangle on the vertex T[2]
-    //             ----------------------------------------------------------
-    //             6 = the ray intersects the triangle on the edge T[0]->T[1]
-    //             7 = the ray intersects the triangle on the edge T[1]->T[2]
-    //             8 = the ray intersects the triangle on the edge T[2]->T[0]
-    //             ----------------------------------------------------------
-    int intersect3D_RayTriangle(Point3f R0, Point3f R1, ArrayList<Point3f> T, Point3f I)
+    int cutVertically(Point3f R0, ArrayList<Point3f> T)
     {
-        Point3f u, v, n;    // triangle vectors
-        Point3f dir, w0, w; // ray vectors
-        float r, a, b;     // parameters to calculate ray-plane intersect
+        if (!isAbove(R0, T)) return 0;
+        if (areIdenticalInXY(R0, T.get(0))) return 2;
+        if (areIdenticalInXY(R0, T.get(1))) return 3;
+        if (areIdenticalInXY(R0, T.get(2))) return 4;
+        if (isOnLineXY(T.get(0), R0, T.get(1))) return 5;
+        if (isOnLineXY(T.get(1), R0, T.get(2))) return 6;
+        if (isOnLineXY(T.get(2), R0, T.get(0))) return 7;
+        if (ptInTriangleXY(R0, T)) return 1;
+        return 0;
+    }
 
-        // get triangle edge vectors and plane normal
-        u = vectorSub(T.get(1), T.get(0));
-        v = vectorSub(T.get(2), T.get(0));
-        n = vectorProd(T.get(0), T.get(1), T.get(2)); // cross product
+    // returns A - B
+    private Point3f vectorSub(Point3f A, Point3f B)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = A.x - B.x;
+        result.y = A.y - B.y;
+        result.z = A.z - B.z;
+        return result;
+    }
 
-        dir = vectorSub(R1, R0); // ray direction vector
-        w0 = vectorSub(R0, T.get(0));
-        a = -vectorDot(n, w0);
-        b = vectorDot(n, dir);
+    // returns the dot product: A.B
+    private float vectorDot(Point3f A, Point3f B)
+    {
+        return A.x * B.x + A.y * B.y + A.z * B.z;
+    }
 
-        if (Math.abs(b) < float_tolerance)
+    // returns the vector product ABxAC
+    private Point3f vectorProd(Point3f A, Point3f B, Point3f C)
+    {
+        Point3f result = new Point3f(0, 0, 0);
+        result.x = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
+        result.y = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
+        result.z = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+        return result;
+    }
+
+    // returns true if the point is above the triangle in the positive z direction
+    boolean isAbove(Point3f M, ArrayList<Point3f> T)
+    {
+        Point3f A = T.get(0);
+        Point3f B = T.get(1);
+        Point3f C = T.get(2);
+        Point3f n = vectorProd(A, B, C);
+        if (Math.abs(n.z) < float_tolerance)
         {
-            // ray is  parallel to triangle plane
-            if (a == 0) return 2; // ray lies in triangle plane
-            else return 0; // ray disjoint from plane
+            // the triangle is orthogonal to the xy plane
+            return M.z > A.z
+                    && M.z > B.z
+                    && M.z > C.z;
         }
-
-        // get intersect point of ray with triangle plane
-        r = a / b;
-        if (r < 0.0)
+        else
         {
-            // ray goes away from triangle
-            return 0; // => no intersect
+            Point3f AM = vectorSub(M, A);
+            float val = vectorDot(AM, n);
+            if (n.z > 0)
+            {
+                return val > 0;
+            }
+            else
+            {
+                return val < 0;
+            }
         }
+    }
 
-        // intersect point of ray and plane
-        I.set(R0.x + r * dir.x, R0.y + r * dir.y, R0.z + r * dir.z);
+    boolean areIdenticalInXY(Point3f ver1, Point3f ver2)
+    {
+        return Math.abs(ver1.x - ver2.x) < float_tolerance
+                && Math.abs(ver1.y - ver2.y) < float_tolerance;
+    }
 
-        if (!ptInTriangleXY(I, T))
-        {
-            // I is outside T
-            return 0;
-        }
-
-        // Vertex and edge calculations
-        float uu, uv, vv, wu, wv, D;
-        uu = vectorDot(u, u);
-        uv = vectorDot(u, v);
-        vv = vectorDot(v, v);
-        w = vectorSub(I, T.get(0));
-        wu = vectorDot(w, u);
-        wv = vectorDot(w, v);
-        D = uv * uv - uu * vv;
-
-        float s, t;
-        s = (uv * wv - vv * wu) / D;
-        t = (uv * wu - uu * wv) / D;
-
-        boolean[] onEdge = new boolean[3];
-        if (s < float_tolerance)
-            onEdge[2] = true;
-        if (Math.abs(s + t - 1) < float_tolerance)
-            onEdge[1] = true;
-        if (t < float_tolerance)
-            onEdge[0] = true;
-
-        if (onEdge[2] && onEdge[0]) return 3; // the ray intersects the triangle on the vertex T[0]
-        if (onEdge[0] && onEdge[1]) return 4; // the ray intersects the triangle on the vertex T[1]
-        if (onEdge[1] && onEdge[2]) return 5; // the ray intersects the triangle on the vertex T[2]
-        if (onEdge[0]) return 6; // the ray intersects the triangle on the edge T[0]->T[1]
-        if (onEdge[1]) return 7; // the ray intersects the triangle on the edge T[1]->T[2]
-        if (onEdge[2]) return 8; // the ray intersects the triangle on the edge T[2]->T[0]
-        return 1; // I is in T
+    // returns true if B is between A and C
+    boolean isOnLineXY(Point3f A, Point3f B, Point3f C)
+    {
+        return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < float_tolerance;
     }
 
     // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
