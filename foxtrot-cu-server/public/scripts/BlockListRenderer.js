@@ -4,10 +4,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     var blockList;
     var vertices, indices, colors, normals;
     var maxX, maxY = 0,
-        maxZ = 0;
+        maxZ = 0, yCap = 0;
     var camera, scene, renderer, stats, controls;
     var model_renderer = null;
     var model_picker = null;
+    var gridXZ = null;
     var mouse = new THREE.Vector2();
 
     var pickingScene, pickingTexture;
@@ -78,28 +79,25 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         renderer.domElement.addEventListener('mousedown', onMouseDown);
         renderer.domElement.addEventListener('mousemove', onMouseMove);
+        // For some reason renderer.domElement doesn't work here...
+        // TODO: Determine why
+        document.addEventListener('keydown', onKeyDown);
     }
 
     function generateMesh() {
-        console.log("Started Mesh Generation");
+        //console.log("Started Mesh Generation");
         vertices = [], indices = [], colors = [], normals = [];
 
         var cur_index = 0;
         var block_id = -1;
         var color = new THREE.Color();
 
-        maxX = blockList.length;
-        if (maxX > 0)
-            maxY = blockList[0].length;
-        if (maxY > 0)
-            maxZ = blockList[0][0].length;
-
         // The color ID space isn't sufficient for more blocks than this number
         if (maxX * maxY * maxZ > 16777214)
             throw new FatalError("Generated model has too many blocks");
 
-        for (var x = 0; x < maxX; x++) {
-            for (var y = 0; y < maxY; y++) {
+        for (var y = 0; y < Math.min(yCap, maxY); y++) {
+            for (var x = 0; x < maxX; x++) {
                 for (var z = 0; z < maxZ; z++) {
                     block_id++;
                     var block = blockList[x][y][z];
@@ -154,7 +152,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == maxY - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part) {
+                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part) {
                         // Add top face
                         vertices.push(x, y + 1, z);
                         vertices.push(x + 1, y + 1, z);
@@ -248,7 +246,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                 }
             }
         }
-        console.log("Generated Mesh");
+        //console.log("Generated Mesh");
     }
 
     function generateBuffer() {
@@ -265,7 +263,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         geom.addAttribute('position', new THREE.BufferAttribute(floatVertices, 3));
         geom.addAttribute('normal', new THREE.BufferAttribute(floatNormals, 3));
         geom.addAttribute('color', new THREE.BufferAttribute(floatColors, 3));
-        geom.addAttribute('index', new THREE.BufferAttribute(intIndices, 1));
+        geom.setIndex(new THREE.BufferAttribute(intIndices, 1));
 
         model_renderer = new THREE.Mesh(geom, render_material);
 
@@ -284,26 +282,57 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     this.setBlockList = function(blockList_) {
         blockList = blockList_;
+
+        maxX = blockList.length;
+        if (maxX > 0)
+            maxY = blockList[0].length;
+        if (maxY > 0)
+            maxZ = blockList[0][0].length;
+        yCap = maxY;
+
+        this.refresh();
+
+        var center = new THREE.Vector3(-maxX / 2, -maxY / 2, -maxZ / 2);
+        var radius = center.length() + 10.0;
+        controls.position0 = new THREE.Vector3(radius, radius, radius);
+        controls.reset();
+    }
+
+    this.refresh = function() {
         if (model_renderer != null)
             scene.remove(model_renderer);
         if (model_picker != null)
-            pickingScene.remove(model_picker)
-
-
+            pickingScene.remove(model_picker);
+        if (gridXZ != null)
+            scene.remove(gridXZ);
 
         generateMesh();
         generateBuffer();
 
-        var center = new THREE.Vector3(maxX / 2, maxY / 2, maxZ / 2);
-        var radius = center.length() + 10.0;
 
-        controls.position0.addVectors(center, new THREE.Vector3(radius,radius,radius));
-        controls.target0 = center;
-        controls.reset();
+
+        model_renderer.position.set(-maxX / 2, 0, -maxZ / 2);
+        model_picker.position.set(-maxX / 2, 0, -maxZ / 2);
+
+        var gridSize = Math.floor(Math.max(maxX,maxZ)/2) + 2
+
+        gridXZ = new THREE.GridHelper(gridSize, 1);
+        scene.add(gridXZ);
     }
 
     this.onBlockSelected = function(x, y, z, block) {
         console.log("Selected Block at X: " + x + " Y: " + y + " Z: " + z);
+    }
+
+    this.setYRenderCap = function(newYCap) {
+        if (newYCap > maxY || newYCap < 1)
+            return;
+        yCap = newYCap;
+        this.refresh();
+    }
+
+    this.getYRenderCap = function() {
+        return yCap;
     }
 
     function pick() {
@@ -325,15 +354,17 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         // This will need to be changed if the clear color is changed
         if (id != 0xFFFFFF) {
-            var x = Math.floor(id % (maxX * maxY * maxZ) / maxZ / maxY);
-            var y = Math.floor((id % (maxZ * maxY)) / maxZ);
+            var y = Math.floor((id % (maxX *maxZ * maxY)) / maxZ / maxX);
+            var x = Math.floor(id % (maxX * maxZ) / maxZ);
             var z = id % maxZ;
 
 
 
             if (x >= 0 && x < maxX && y >= 0 && y < maxY && z >= 0 && z < maxZ) {
-
-                scope.onBlockSelected(x, y, z, blockList[x][y][z]);
+                if (typeof blockList[x][y][z] === "undefined")
+                    console.log("Error: Picking selected non-existent block");
+                else
+                    scope.onBlockSelected(x, y, z, blockList[x][y][z]);
             }
 
         }
@@ -359,9 +390,25 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     }
 
     function onMouseMove(e) {
-
         mouse.x = e.clientX;
         mouse.y = e.clientY;
+    }
 
+    function onKeyDown(e) {
+        if (e.keyCode == 37) {
+            // Left Arrow
+            e.preventDefault();
+        } else if (e.keyCode == 38) {
+            // Up Arrow
+            scope.setYRenderCap(scope.getYRenderCap() + 1);
+            e.preventDefault();
+        } else if (e.keyCode == 39) {
+            // Right Arrow
+            e.preventDefault();
+        } else if (e.keyCode == 40) {
+            // Down Arrow
+            scope.setYRenderCap(scope.getYRenderCap() - 1);
+            e.preventDefault();
+        }
     }
 }
