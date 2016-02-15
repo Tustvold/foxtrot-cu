@@ -47,13 +47,22 @@ public class Main
             System.err.println("Loading failed:" + error.getMessage());
             return;
         }
+        if(tri == null || tri.size() == 0)
+        {
+            System.err.println("Loading failed: Input file is empty!");
+            return;
+        }
+        if(tri.size() % 3 != 0)
+        {
+            System.err.println("Loading failed: Input file is malformed!");
+            return;
+        }
         Mesh m = new Mesh(tri);
-
         // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
 
-
+        // TODO connect custom part processing
 
         GsonBuilder builder = new GsonBuilder();
         builder.serializeNulls().setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
@@ -71,9 +80,6 @@ public class Main
         }
         writer.write(gsonParser.toJson(blocks));
         writer.close();
-
-
-        //TODO: Generate Instructions
 
         //TODO: Generate Custom Parts Zip File
 

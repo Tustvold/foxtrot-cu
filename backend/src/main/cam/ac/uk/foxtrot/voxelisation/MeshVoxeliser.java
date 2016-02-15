@@ -169,7 +169,7 @@ public class MeshVoxeliser
         mesh.setTriangles(initTrigs);
 
         // TESTING METHOD!!!
-        mesh.drawTriangles("testing/output/mesh_centered.obj");
+            mesh.drawTriangles("testing/output/mesh_centered.obj");
         System.out.println("Mesh shifted...");
     }
 
