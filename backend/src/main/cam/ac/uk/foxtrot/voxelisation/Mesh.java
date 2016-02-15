@@ -48,25 +48,25 @@ public class Mesh
     }
 
     // creates, rescales and centers the mesh
-    public Mesh(Scene scene)
+    public Mesh(ArrayList<Point3d> tri)
     {
-        BranchGroup branch = scene.getSceneGroup();
-        branch.setBoundsAutoCompute(true);
+       // BranchGroup branch = scene.getSceneGroup();
+        //branch.setBoundsAutoCompute(true);
 
         // TEMPORARY!!!
         // extract the triangle array
-        Shape3D shape = (Shape3D) branch.getChild(0);
-        GeometryInfo info = new GeometryInfo((GeometryArray) shape.getGeometry());
-        TriangleArray ta = (TriangleArray) info.getGeometryArray();
+        //Shape3D shape = (Shape3D) branch.getChild(0);
+        //GeometryInfo info = new GeometryInfo((GeometryArray) shape.getGeometry());
+        //TriangleArray ta = (TriangleArray) info.getGeometryArray();
 
         // load this into the triangle array
-        triangles = new ArrayList<>();
-        for(int i = 0; i < ta.getVertexCount(); i++)
-        {
-            Point3d curr = new Point3d();
-            ta.getCoordinate(i, curr);
-            triangles.add(curr);
-        }
+        triangles = tri;
+        //for(int i = 0; i < ta.getVertexCount(); i++)
+        //{
+        //    Point3d curr = new Point3d();
+        //    ta.getCoordinate(i, curr);
+        //    triangles.add(curr);
+        //}
 
         // and finally rescale and ceter the mesh
         rescaleAndCenterMesh();

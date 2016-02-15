@@ -9,7 +9,9 @@ import com.google.gson.GsonBuilder;
 import com.sun.j3d.loaders.Scene;
 import com.google.gson.Gson;
 
+import javax.vecmath.Point3d;
 import java.io.*;
+import java.util.ArrayList;
 
 public class Main
 {
@@ -36,16 +38,16 @@ public class Main
 
         // input the mesh
         MeshIO meshIO = new MeshIO();
-        Scene scene;
+        ArrayList<Point3d> tri;
         try
         {
-            scene = meshIO.readFromFile(filePath);
+            tri = meshIO.getTriangles(filePath);
         } catch (IOException error)
         {
-            System.err.println("Loading fialied:" + error.getMessage());
+            System.err.println("Loading failed:" + error.getMessage());
             return;
         }
-        Mesh m = new Mesh(scene);
+        Mesh m = new Mesh(tri);
 
         // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);

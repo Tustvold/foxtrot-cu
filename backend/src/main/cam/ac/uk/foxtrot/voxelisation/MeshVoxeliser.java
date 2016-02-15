@@ -186,7 +186,7 @@ public class MeshVoxeliser
         int cnt = initTrigs.size();
         for (int i = 0; i < cnt; i += 3)
         {
-            ArrayList<Point3d> tmp = new ArrayList<>();
+            ArrayList<Point3d> tmp = new ArrayList<Point3d>();
             tmp.add(new Point3d(initTrigs.get(i)));
             tmp.add(new Point3d(initTrigs.get(i + 1)));
             tmp.add(new Point3d(initTrigs.get(i + 2)));
