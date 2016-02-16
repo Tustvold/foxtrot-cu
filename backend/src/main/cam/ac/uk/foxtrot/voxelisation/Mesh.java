@@ -1,13 +1,7 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-
-import javax.media.j3d.*;
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
-import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -16,9 +10,9 @@ public class Mesh
     // Anti-Clockwise winding order
     private Point3d offset;          // position of the mesh in the grid
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
-    private double blockSize = 3.5;
+    private double blockSize = 1.0;
 
-    // really fine scaling factors (limits of system)
+    // really fine scaling factors (limits of system)á
     // 0.2 for Zucarello.obj
     // 0.004 for teapot.obj
     // 0.02 for human.obj
