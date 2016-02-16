@@ -6,6 +6,7 @@ import com.sun.j3d.loaders.ParsingErrorException;
 import com.sun.j3d.loaders.Scene;
 import com.sun.j3d.loaders.objectfile.ObjectFile;
 import com.sun.j3d.utils.geometry.GeometryInfo;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import javax.media.j3d.*;
 import javax.vecmath.Point3d;
@@ -35,7 +36,7 @@ public class MeshIO
     	ArrayList<Point3d> points = new ArrayList<>();
     	//Vertexes in triangle order T[0], T[1], T[2] represents Triangle 1
     	ArrayList<Point3d> triangles = new ArrayList<>();
-    
+
     	try {
             File theOBJFILE = new File(filename);
             FileReader fr = new FileReader(theOBJFILE);
@@ -55,10 +56,22 @@ public class MeshIO
                     //    System.out.println("a: "+S);
                     //}
                     double[] co = new double[3];
-                    try {
+                    try
+                    {
+                        int fir = 1;
+                        for(int curr = 0; curr < 3; curr++)
+                        {
+                            for(; fir < sa.length && (sa[fir].compareTo("\\s") == 0 || sa[fir].compareTo("") == 0); fir++);
+                            if(fir == sa.length)
+                                throw new IOException("Vertex has too many coordinates");
+                            co[curr] = Double.parseDouble(sa[fir]);
+                            fir++;
+                        }
+                        /*
                         co[0] = Double.parseDouble(sa[1]);
                         co[1] = Double.parseDouble(sa[2]);
                         co[2] = Double.parseDouble(sa[3]);
+                        */
                     }
                     catch(java.lang.NumberFormatException error){
                         throw new IOException("Vertex Format Error");
@@ -101,7 +114,7 @@ public class MeshIO
                         */
                     }
                     catch(java.lang.NumberFormatException error){
-                        throw new IOException("Triangle Format Error");
+                        throw new IOException("Polygon Format Error");
                     }
                 }
             }

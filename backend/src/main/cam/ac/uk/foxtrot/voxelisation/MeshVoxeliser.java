@@ -1,17 +1,9 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
-import com.vividsolutions.jts.awt.PointTransformation;
-import javafx.util.Pair;
-
-import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
-import javax.vecmath.Vector3f;
-import java.awt.*;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Random;
 
 public class MeshVoxeliser
@@ -73,7 +65,6 @@ public class MeshVoxeliser
         double diffx = calculateSingleOffset(0, minBound.x, maxBound.x);
         double diffy = calculateSingleOffset(1, minBound.y, maxBound.y);
         double diffz = calculateSingleOffset(2, minBound.z, maxBound.z);
-        //System.out.println("Mesh offsets: " + diffx + " " + diffy + " " + diffz);
 
         meshOffset = new Point3d(diffx, diffy, diffz);
         mesh.setOffset(meshOffset);
@@ -169,7 +160,7 @@ public class MeshVoxeliser
         mesh.setTriangles(initTrigs);
 
         // TESTING METHOD!!!
-            mesh.drawTriangles("testing/output/mesh_centered.obj");
+        // mesh.drawTriangles("testing/output/mesh_centered.obj");
         System.out.println("Mesh shifted...");
     }
 
@@ -194,11 +185,11 @@ public class MeshVoxeliser
             classifyPolygons(subdivideTriangle(tmp));
         }
 
-        fillRemainingBlocks();
+        fillAllChunks();
 
         // TESTING METHODS
         drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
-        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        // drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
 
         System.out.println("All blocks filled...");
     }
@@ -480,7 +471,7 @@ public class MeshVoxeliser
         return res;
     }
 
-    // clasifies the polygons obtained in the polygon list by adding them to their respective bins
+    // classifies the polygons obtained in the polygon list by adding them to their respective bins
     private void classifyPolygons(ArrayList<ArrayList<Point3d>> polygonList)
     {
         int cnt = polygonList.size();
@@ -537,42 +528,23 @@ public class MeshVoxeliser
         return cm;
     }
 
-    // labels the appropriate remaining blocks within the mesh as full
-    private void fillRemainingBlocks()
+    // fills the entire block matrix with appropriate full/empty blocks
+    private void fillAllChunks()
     {
-        System.out.println("Filling remaining blocks...");
+        System.out.println("Filling chunks...");
 
         for (int x = 0; x < dim[0]; x++)
         {
             for (int y = 0; y < dim[1]; y++)
             {
-                for (int z = dim[2] - 2; z >= 0; z--)
-                {
-                    if (blocks[x][y][z] == null && blocks[x][y][z + 1] != null)
-                    {
-                        if (blocks[x][y][z + 1].isCustom())
-                        {
-                            if (numberOfIntersectionsOfVerticalRayWithChunk(x, y, z) % 2 == 1)
-                            {
-                                // we create a new full block
-                                blocks[x][y][z] = new Block(new Point3d(x, y, z), false);
-                            }
-                        }
-                        else
-                        {
-                            // the previous block was full, so this one must also be
-                            blocks[x][y][z] = new Block(new Point3d(x, y, z), false);
-                        }
-                    }
-                }
+                fillChunk(x, y);
             }
         }
-        System.out.println("Remaining blocks filled...");
+        System.out.println("Chunks filled...");
     }
 
-    // checks the appropriate blocks for intersections with
-    // the given ray (the ray is shot "upwards in the z direction")
-    private int numberOfIntersectionsOfVerticalRayWithChunk(int x, int y, int z)
+    // fills a single xy chunk of blocks
+    private void fillChunk(int x, int y)
     {
         // prepare the initial ray
         double xOffset = punchX();
@@ -581,10 +553,10 @@ public class MeshVoxeliser
         int pointCnt;
         Point3d R0 = new Point3d();
 
-        // the number of intersections with the mesh
+        // the number of current intersections with the mesh
         int intersectionNo;
 
-        // and prep the loop
+        // the intersection filling loop
         boolean restart;
         do
         {
@@ -593,11 +565,23 @@ public class MeshVoxeliser
             intersectionNo = 0;
             restart = false;
 
-            // loop over all the blocks with a greater z in the chunk
-            for (int a = z + 1; a < dim[2] && !restart; a++)
+            // loop over all the blocks within the chunk
+            for (int a = dim[2] - 1; a >= 0 && !restart; a--)
             {
-                if (blocks[x][y][a] == null || !blocks[x][y][a].isCustom())
+                if (blocks[x][y][a] == null)
+                {
+                    if (intersectionNo % 2 == 1)
+                    {
+                        // create the block
+                        blocks[x][y][a] = new Block(new Point3d(x, y, a), false);
+                    }
                     continue;
+                }
+                if (!blocks[x][y][a].isCustom())
+                {
+                    // ignore the block we have already filled
+                    continue;
+                }
                 currTrigs = blocks[x][y][a].getTriangles();
                 pointCnt = currTrigs.size();
                 for (int curr = 0; curr < pointCnt && !restart; curr += 3)
@@ -619,7 +603,6 @@ public class MeshVoxeliser
                     {
                         // we restart with another starting point
                         restart = true;
-                        code = cutVertically(R0, T);
                         telemetry++;
                     }
                 }
@@ -631,7 +614,6 @@ public class MeshVoxeliser
                 yOffset = punchY();
             }
         } while (restart);
-        return intersectionNo;
     }
 
     // probability function for x
@@ -654,7 +636,7 @@ public class MeshVoxeliser
         if (!areIdenticalInXY(T.get(0), T.get(1)) && isOnLineXY(T.get(0), R0, T.get(1))) return 5;
         if (!areIdenticalInXY(T.get(1), T.get(2)) && isOnLineXY(T.get(1), R0, T.get(2))) return 6;
         if (!areIdenticalInXY(T.get(2), T.get(0)) && isOnLineXY(T.get(2), R0, T.get(0))) return 7;
-        if (!isOnLineXY(T.get(0),T.get(1),T.get(2)) && ptInTriangleXY(R0, T)) return 1;
+        if (!isOnLineXY(T.get(0), T.get(1), T.get(2)) && ptInTriangleXY(R0, T)) return 1;
         return 0;
     }
 
@@ -719,7 +701,7 @@ public class MeshVoxeliser
             {
                 if (includeGrid)
                 {
-                    ArrayList<Point3d> triangles = makeHorizontalSquare(x, z);
+                    ArrayList<Point3d> triangles = makeHorizontalSquare();
                     totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
                     {
@@ -777,9 +759,6 @@ public class MeshVoxeliser
         System.out.println("Sliced output created...");
     }
 
-    /**
-     * TESTING method
-     */
     private ArrayList<Point3d> makeUnitCube(int x, int y, int z)
     {
         ArrayList<Point3d> cube = new ArrayList<>();
@@ -863,10 +842,7 @@ public class MeshVoxeliser
         return cube;
     }
 
-    /**
-     * TESTING method
-     */
-    private ArrayList<Point3d> makeHorizontalSquare(int x, int z)
+    private ArrayList<Point3d> makeHorizontalSquare()
     {
         ArrayList<Point3d> square = new ArrayList<>();
         //xz01
@@ -907,7 +883,7 @@ public class MeshVoxeliser
             {
                 if (includeGrid)
                 {
-                    ArrayList<Point3d> triangles = makeHorizontalSquare(x, z);
+                    ArrayList<Point3d> triangles = makeHorizontalSquare();
                     totalTriangles += triangles.size() / 3;
                     for (int i = 0; i < triangles.size(); i++)
                     {
