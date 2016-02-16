@@ -32,7 +32,7 @@ public class MeshIO
         // TODO @rob implement and test
         ArrayList<Point3d> list = new ArrayList<>();
         // OLD LOADER STARTS HERE
-        /*
+
         ObjectFile theOBJFile = new ObjectFile();
         theOBJFile.setFlags(ObjectFile.TRIANGULATE);
         Scene theScene;
@@ -68,7 +68,7 @@ public class MeshIO
             triangles.getCoordinate(i,tmp);
             list.add(tmp);
         }
-        */
+
         // OLD LOADER ENDS HERE
         return list;
     }
