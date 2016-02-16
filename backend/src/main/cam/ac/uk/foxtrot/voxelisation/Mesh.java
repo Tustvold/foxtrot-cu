@@ -16,9 +16,10 @@ public class Mesh
     // Anti-Clockwise winding order
     private Point3d offset;          // position of the mesh in the grid
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
-    private double blockSize = 0.8;
+    private double blockSize = 0.5;
 
     // really fine scaling factors (limits of system)
+    // 0.5 for Zucarello.obj
     // 0.008 for teapot.obj
     // 0.04 for human.obj
     // 0.015 for sphere.obj

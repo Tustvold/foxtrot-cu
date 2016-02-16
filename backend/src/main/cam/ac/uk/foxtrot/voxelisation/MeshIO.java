@@ -20,7 +20,6 @@ import java.util.ArrayList;
 
 public class MeshIO
 {
-
     /**
      * Read the mesh from the file at path filename
      * <p/>
@@ -30,58 +29,12 @@ public class MeshIO
      * @return the loaded mesh
      * @throws IOException
      */
-    public ArrayList<Point3d> readFromFile(String filename) throws IOException
-    {
-        // TODO @rob implement and test
-        ArrayList<Point3d> list = new ArrayList<>();
-        // OLD LOADER STARTS HERE
-
-        ObjectFile theOBJFile = new ObjectFile();
-        theOBJFile.setFlags(ObjectFile.TRIANGULATE);
-        Scene theScene;
-        try
-        {
-            theScene = theOBJFile.load(filename);
-        }
-        catch(java.io.FileNotFoundException error)
-        {
-            throw new IOException("File was not found!");
-        }
-        catch (IncorrectFormatException error)
-        {
-            throw new IOException("Incorrect file format!");
-        }
-        catch (ParsingErrorException error)
-        {
-            throw new IOException("Parsing failed!");
-        }
-
-        System.out.println("Loading mesh...");
-        BranchGroup branch = theScene.getSceneGroup();
-        branch.setBoundsAutoCompute(true);
-
-        // extract the triangle array
-        Shape3D shape = (Shape3D) branch.getChild(0);
-        GeometryInfo info = new GeometryInfo((GeometryArray) shape.getGeometry());
-        TriangleArray triangles = (TriangleArray) info.getGeometryArray();
-
-        for(int i = 0; i < triangles.getVertexCount(); i++)
-        {
-            Point3d tmp = new Point3d();
-            triangles.getCoordinate(i,tmp);
-            list.add(tmp);
-        }
-
-        // OLD LOADER ENDS HERE
-        return list;
-    }
-    
     public ArrayList<Point3d> getTriangles(String filename) throws IOException
     {
     	//All vertexes
-    	ArrayList<Point3d> points = new ArrayList<Point3d>();
+    	ArrayList<Point3d> points = new ArrayList<>();
     	//Vertexes in triangle order T[0], T[1], T[2] represents Triangle 1
-    	ArrayList<Point3d> triangles = new ArrayList<Point3d>();
+    	ArrayList<Point3d> triangles = new ArrayList<>();
     
     	try {
             File theOBJFILE = new File(filename);
@@ -92,7 +45,7 @@ public class MeshIO
 
             while (true) {
                 l = bfr.readLine();
-                System.out.println(l);
+                //System.out.println(l);
                 if(l==null){
                     break;
                 }
@@ -119,12 +72,33 @@ public class MeshIO
                     //    System.out.println("a: "+S);
                     //}
                     try {
+                        ArrayList<Point3d> polygon = new ArrayList<>();
+                        for(int i = 1; i < sa.length; i++)
+                        {
+                            // parse the polygon
+                            String[] sai = sa[i].split("/");
+                            polygon.add(points.get(Integer.parseInt(sai[0]) - 1));
+                        }
+                        for(int i = 0; i < 3; i++)
+                        {
+                            // add the initial triangle
+                            triangles.add(new Point3d(polygon.get((i))));
+                        }
+                        for(int i = 3; i < polygon.size(); i++)
+                        {
+                            // and ear clip the rest
+                            triangles.add(new Point3d(polygon.get(0)));
+                            triangles.add(new Point3d(polygon.get(i-1)));
+                            triangles.add(new Point3d(polygon.get(i)));
+                        }
+                        /*
                         String[] sa1 = sa[1].split("/");
                         String[] sa2 = sa[2].split("/");
                         String[] sa3 = sa[3].split("/");
                         triangles.add(points.get(Integer.parseInt(sa1[0]) - 1));
                         triangles.add(points.get(Integer.parseInt(sa2[0]) - 1));
                         triangles.add(points.get(Integer.parseInt(sa3[0]) - 1));
+                        */
                     }
                     catch(java.lang.NumberFormatException error){
                         throw new IOException("Triangle Format Error");
