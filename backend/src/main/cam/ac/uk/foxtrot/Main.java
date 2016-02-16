@@ -38,27 +38,26 @@ public class Main
 
         // input the mesh
         MeshIO meshIO = new MeshIO();
-        ArrayList<Point3d> input;
+        ArrayList<Point3d> tri;
         try
         {
-            input = meshIO.readFromFile(filePath);
+            tri = meshIO.getTriangles(filePath);
         } catch (IOException error)
         {
             System.err.println("Loading failed:" + error.getMessage());
             return;
         }
-        if(input == null || input.size() == 0)
+        if(tri == null || tri.size() == 0)
         {
             System.err.println("Loading failed: Input file is empty!");
             return;
         }
-        if(input.size() % 3 != 0)
+        if(tri.size() % 3 != 0)
         {
             System.err.println("Loading failed: Input file is malformed!");
             return;
         }
-        Mesh m = new Mesh(input);
-
+        Mesh m = new Mesh(tri);
         // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
