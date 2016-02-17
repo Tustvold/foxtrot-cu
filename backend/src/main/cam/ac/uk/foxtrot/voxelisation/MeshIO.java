@@ -6,7 +6,6 @@ import com.sun.j3d.loaders.ParsingErrorException;
 import com.sun.j3d.loaders.Scene;
 import com.sun.j3d.loaders.objectfile.ObjectFile;
 import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import javax.media.j3d.*;
 import javax.vecmath.Point3d;

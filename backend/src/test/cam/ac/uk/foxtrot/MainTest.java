@@ -46,18 +46,18 @@ public class MainTest {
 
         int NUM_PTS = 9;
         Point3f[] points = new Point3f[NUM_PTS];
-        /*float[] point = new float[3];
+        float[] point = new float[3];
         for (int i = 0; i < NUM_PTS; i++) {
             point[0] = (float)(Math.random());
             point[1] = (float)(Math.random());
             point[2] = (float)(Math.random());
             points[i] = new Point3f(point);
-        }*/
+        }
 
         //points[0] = new Point3f(.25f,.25f,.25f);
         //points[1] = new Point3f(.5f,.5f,.25f);
         //points[2] = new Point3f(.25f,.25f,.5f);
-
+        /*
         points[0] = new Point3f(0, 0, 0);
         points[1] = new Point3f(.66f, 0, 0);
         points[2] = new Point3f(.4f, .7f, 0);
@@ -68,12 +68,12 @@ public class MainTest {
 
         points[6] = new Point3f(.2f, .5f, 0);
         points[7] = new Point3f(.8f, .5f, 0);
-        points[8] = new Point3f(.5f, 1, 0);
+        points[8] = new Point3f(.5f, 1, 0);*/
 
         CustomPartMouldGenerator p = new CustomPartMouldGenerator(points);
-        p.generateMould(CustomPartMouldGenerator.ProjectionFace.XY1);
+        p.generateMould(CustomPartMouldGenerator.ProjectionFace.ZY1);
         System.out.println("\n\n-----\n\n");
-        p.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.XY1);
+        p.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZY1);
 
 
 

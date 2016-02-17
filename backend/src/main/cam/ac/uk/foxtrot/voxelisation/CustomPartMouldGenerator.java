@@ -215,7 +215,7 @@ public class CustomPartMouldGenerator {
         Point3f[] projectionCoords = getProjectionCoords(face);
 
         // remove self-intersections in the projection
-        IntersectionRemover ir = new IntersectionRemover(projectionCoords); //todo IR should take a face
+        IntersectionRemover ir = new IntersectionRemover(projectionCoords, face);
         Point3fPolygon[] combinedPolygons = ir.getCombinedArray();
         Point3f[][] projectionPolygons = ir.getPolygonArray();
         Point3f[][] projectionHoles = ir.getHoleArray();
@@ -258,7 +258,7 @@ public class CustomPartMouldGenerator {
         Point3f[] projectionCoords = getMouldProjectionCoords(face);
 
         // remove self-intersections in the projection
-        IntersectionRemover ir = new IntersectionRemover(projectionCoords);
+        IntersectionRemover ir = new IntersectionRemover(projectionCoords, ProjectionFace.XY1);
         Point3fPolygon[] combinedPolygons = ir.getCombinedArray();
         Point3f[][] projectionPolygons = ir.getPolygonArray();
         Point3f[][] projectionHoles = ir.getHoleArray();
