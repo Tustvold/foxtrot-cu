@@ -1,13 +1,7 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-
-import javax.media.j3d.*;
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
-import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -16,20 +10,20 @@ public class Mesh
     // Anti-Clockwise winding order
     private Point3d offset;          // position of the mesh in the grid
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
-    private double blockSize = 0.5;
+    private double blockSize = 1.0;
 
-    // really fine scaling factors (limits of system)
-    // 0.5 for Zucarello.obj
-    // 0.008 for teapot.obj
-    // 0.04 for human.obj
+    // really fine scaling factors (limits of system)á
+    // 0.2 for Zucarello.obj
+    // 0.004 for teapot.obj
+    // 0.02 for human.obj
     // 0.015 for sphere.obj
     // 0.15 for teddy.obj
     // 0.3 for pumpkin.obj
     // 0.7 for bunny.obj
-    // 0.8 for lenin_test.obj
+    // 0.5 for lenin_test.obj
     // 0.009 for Jesus_statue.obj
     //
-    // the system is capable of producing up to about a 200x200x200 grid of voxels
+    // the system is capable of producing up to about a 300x300x300 grid of voxels
     // in reasonable timeS
 
     public Point3d getOffset()
@@ -55,21 +49,6 @@ public class Mesh
     // creates, rescales and centers the mesh
     public Mesh(ArrayList<Point3d> tri)
     {
-       // BranchGroup branch = scene.getSceneGroup();
-        //branch.setBoundsAutoCompute(true);
-
-        // TEMPORARY!!!
-        // extract the triangle array
-        //Shape3D shape = (Shape3D) branch.getChild(0);
-        //GeometryInfo info = new GeometryInfo((GeometryArray) shape.getGeometry());
-        //TriangleArray ta = (TriangleArray) info.getGeometryArray();
-        //for(int i = 0; i < ta.getVertexCount(); i++)
-        //{
-        //    Point3d curr = new Point3d();
-        //    ta.getCoordinate(i, curr);
-        //    triangles.add(curr);
-        //}
-        // load this into the triangle array
         triangles = new ArrayList<>(tri);
 
         // and finally rescale and center the mesh
