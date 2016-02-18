@@ -49,7 +49,7 @@ public class MeshVoxeliser
 
         setMeshOffsetAndDetermineDimensions();
         shiftMeshByOffset();
-        mesh.drawTriangles("testing/output/mesh_positioned.obj");
+        //mesh.drawTriangles("testing/output/mesh_positioned.obj");
         telemetry = 0;
         generateBlocks(mesh);
         System.out.println("Number of retries: " + telemetry);
@@ -188,8 +188,8 @@ public class MeshVoxeliser
         fillAllChunks();
 
         // TESTING METHODS
-        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
-        // drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        //drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
+        //drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
 
         System.out.println("All blocks filled...");
     }

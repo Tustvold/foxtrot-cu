@@ -119,7 +119,7 @@ public class Main
         }
 
         sortedBlocks.sort((Block o1, Block o2) -> o2.getTriangleCount() - o1.getTriangleCount());
-        for (int i = 0; i < numCustomParts; i++)
+        for (int i = 0; i < sortedBlocks.size() && i < numCustomParts; i++)
         {
             sortedBlocks.get(i).setIsCustom(true);
         }
