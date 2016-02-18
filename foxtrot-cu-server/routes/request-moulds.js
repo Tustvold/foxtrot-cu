@@ -1,25 +1,42 @@
 var express = require('express');
-var multer  = require('multer');
+var archiver = require('archiver');
 var exec = require('child_process').exec;
 var router = express.Router();
 var temp = require('temp');
-var fs = require('fs');
-
-var upload = multer({ dest: '/tmp/uploads/' });
 
 
-router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
+
+router.post('/', function(req,res,next){
 
     temp.track();
+    var archive = archiver('zip')
+
+    archive.on('error', function(err){
+        throw err;
+    });
+
+    // close the stream nicely.
+    archive.on('end', function(err) {
+        if(!res.finished) {
+            res.end();
+        }
+        console.log(archive.pointer() + ' total bytes');
+        console.log('archiver has been finalized and the output file descriptor has closed.');
+    });
+
 
     temp.mkdir('outputDir', function(err, dirPath) {
         if (err)
             throw err;
-        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" ' + req.file.path + " " + dirPath);
+        console.log(req)
+        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" mouldify' + req.file.path + " " + dirPath);
         console.log(req.file)
         console.log(dirPath);
 
-        res.header("Content-Type", "application/json");
+        archive.pipe(res);
+        archive.bulk([
+            { expand: true, cwd: dirPath, src: ['*.stl'], dest: 'parts'}
+        ]);
 
         hasError = false;
         errorBuffer = "";
@@ -33,16 +50,14 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
         // If the jar finished successfully
         child.on('exit', function (code) {
             if (hasError) {
+                res.header("Content-Type", "application/json");
                 console.log(errorBuffer);
                 res.status(200).json({error: errorBuffer});
                 res.end();
             }
             else if(!res.finished) {
-                fs.readFile(dirPath+"/output.json", function(err, data) {
-                    if (err)
-                        throw err;
-                    res.send(data);
-                });
+                res.header("Content-Type", "application/octet-stream");
+                archive.finalize();
             }
         });
     });
