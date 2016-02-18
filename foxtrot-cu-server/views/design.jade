@@ -33,8 +33,9 @@ html(lang='en')
                                                       input(type="file",name="uploaded-mesh")
                                               input(type="text",class="form-control",readonly)
                                               span(class="input-group-btn")
-                                                button(type="submit",class="btn btn-primary btn-file")
-                                                    |Submit
+                                                button(type="submit",class="btn btn-primary btn-file" data-toggle='collapse', href='#collapse2')
+                                                  |View Generated Design
+
                                     
             row
 
@@ -66,9 +67,9 @@ html(lang='en')
                                             .panel.panel-default
                                                 .panel-body
                                                 div#output-container.model-viewer
-                             .col-md-6
-                                   button(type="submit",class="btn btn-primary btn-file")
-                                      |Submit
+                                .col-md-6
+                                       button(type="submit",class="btn btn-primary btn-file" data-toggle='collapse', href='#collapse3')
+                                         |Submit Custom Generated Design
 
             .panel-group
                 .col-md-12
