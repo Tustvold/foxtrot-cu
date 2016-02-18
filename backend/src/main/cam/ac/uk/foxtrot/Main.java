@@ -17,12 +17,13 @@ public class Main
     /**
      * Voxelise a given object file and write the output to a temporary JSON file representing a block list.
      *
-     * @param objPath path to object to voxelise
-     * @param jsonOut temporary filename to write output JSON to
+     * @param objPath        path to object to voxelise
+     * @param jsonOut        temporary filename to write output JSON to
      * @param numCustomParts number of custom parts to suggest by default
-     * @param scale size of a block in mm
+     * @param scale          size of a block in mm
      */
-    private static void voxelise(String objPath, String jsonOut, int numCustomParts, float scale) {
+    private static void voxelise(String objPath, String jsonOut, int numCustomParts, float scale)
+    {
         // input the mesh
         MeshIO meshIO = new MeshIO();
         ArrayList<Point3d> tri;
@@ -34,30 +35,35 @@ public class Main
             System.err.println("Loading failed:" + error.getMessage());
             return;
         }
-        if(tri == null || tri.size() == 0)
+        if (tri == null || tri.size() == 0)
         {
             System.err.println("Loading failed: Input file is empty!");
             return;
         }
-        if(tri.size() % 3 != 0)
+        if (tri.size() % 3 != 0)
         {
             System.err.println("Loading failed: Input file is malformed!");
             return;
         }
-        Mesh m = new Mesh(tri);
+        Mesh m = new Mesh(tri, scale);
         // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
 
-        
+
         // add custom parts
-        ArrayList<Block> sortedBlocks = new ArrayList<Block>();
-        int[] dim = { blocks.length, blocks[0].length, blocks[0][0].length };
-        for (int x = 0; x < dim[0]; x++) {
-            for (int y = 0; y < dim[1]; y++) {
-                for (int z = 0; z < dim[2]; z++) {
+        ArrayList<Block> sortedBlocks = new ArrayList<>();
+        int[] dim = {blocks.length, blocks[0].length, blocks[0][0].length};
+        for (int x = 0; x < dim[0]; x++)
+        {
+            for (int y = 0; y < dim[1]; y++)
+            {
+                for (int z = 0; z < dim[2]; z++)
+                {
                     Block block = blocks[x][y][z];
-                    if (block == null || !block.isCustom()) {
+                    if (block == null || !block.isCustom())
+                    {
+                        // we ignore all non custom blocks
                         continue;
                     }
 
@@ -78,33 +84,44 @@ public class Main
                     CustomPart p5 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZY1));
                     block.setCustomPart(5, p5);
 
-                    //todo accept scale for voxels and custom parts
+                    //todo accept scale for custom parts
 
                     // set suggested custom part
+                    // nullify the selection initially, so that we can later select the top n as custom
                     block.setIsCustom(false);
-                    if (x + 1 < dim[0] && blocks[x + 1][y][z] != null) {
+                    if (x + 1 < dim[0] && blocks[x + 1][y][z] != null)
+                    {
                         block.setSuggestedCustomPartIndex(5);
-                    } else if (x - 1 > 0 && blocks[x - 1][y][z] != null) {
+                    }
+                    else if (x - 1 > 0 && blocks[x - 1][y][z] != null)
+                    {
                         block.setSuggestedCustomPartIndex(4);
-                    } else if (z + 1 < dim[2] && blocks[x][y][z + 1] != null) {
+                    }
+                    else if (z + 1 < dim[2] && blocks[x][y][z + 1] != null)
+                    {
                         block.setSuggestedCustomPartIndex(1);
-                    } else if (z - 1 > 0 && blocks[x][y][z - 1] != null) {
+                    }
+                    else if (z - 1 > 0 && blocks[x][y][z - 1] != null)
+                    {
                         block.setSuggestedCustomPartIndex(0);
-                    } else if (y - 1 > 0 && blocks[x][y - 1][z] != null) {
+                    }
+                    else if (y - 1 > 0 && blocks[x][y - 1][z] != null)
+                    {
                         block.setSuggestedCustomPartIndex(2);
-                    } else if (y + 1 < dim[1] && blocks[x][y + 1][z] != null) {
+                    }
+                    else if (y + 1 < dim[1] && blocks[x][y + 1][z] != null)
+                    {
                         block.setSuggestedCustomPartIndex(3);
                     }
                 }
             }
         }
 
-        sortedBlocks.sort((Block o1, Block o2) -> o1.getTriangleCount() - o2.getTriangleCount());
-        for (int i = 0; i < numCustomParts; i++) {
+        sortedBlocks.sort((Block o1, Block o2) -> o2.getTriangleCount() - o1.getTriangleCount());
+        for (int i = 0; i < numCustomParts; i++)
+        {
             sortedBlocks.get(i).setIsCustom(true);
         }
-
-        blocks[0][0][0].getTriangles();
 
         GsonBuilder builder = new GsonBuilder();
         builder.serializeNulls().setPrettyPrinting().registerTypeAdapter(Block.class, new BlockJSONSerializer());
@@ -131,13 +148,13 @@ public class Main
      * @param jsonIn
      * @param mouldDirectoryPath
      */
-    private static void mouldify(String jsonIn, String mouldDirectoryPath) {
+    private static void mouldify(String jsonIn, String mouldDirectoryPath)
+    {
 
     }
 
 
     /**
-     *
      * @param args arguments
      * @throws Exception
      */
@@ -150,26 +167,32 @@ public class Main
             return;
         }
         String methodName = args[0];
-        if (methodName.equals("voxelise")) {
-            if (args.length < 5) {
+        if (methodName.equals("voxelise"))
+        {
+            if (args.length < 5)
+            {
                 System.err.println("Error: Need at least 5 arguments for voxelisation.");
                 return;
             }
-            try {
+            try
+            {
                 voxelise(args[1], args[2], Integer.parseInt(args[3]), Float.parseFloat(args[4]));
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException e)
+            {
                 System.err.println("Error: arguments 4 and 5 should be numbers for voxelisation.");
             }
-        } else if (methodName.equals("mouldify")) {
+        }
+        else if (methodName.equals("mouldify"))
+        {
             mouldify(args[1], args[2]);
-        } else {
+        }
+        else
+        {
             System.err.println("Error: invalid method name.");
         }
 
 
-
         String filePath = args[0];
-
 
 
     }

@@ -95,7 +95,8 @@ public class MeshIO
                         int fir = 1;
                         while (true)
                         {
-                            for (; fir < sa.length && (sa[fir].compareTo("\\s") == 0 || sa[fir].compareTo("") == 0); fir++);
+                            for (; fir < sa.length && (sa[fir].compareTo("\\s") == 0 || sa[fir].compareTo("") == 0); fir++)
+                                ;
                             if (fir == sa.length)
                             {
                                 break;
