@@ -10,7 +10,7 @@ public class Mesh
     // Anti-Clockwise winding order
     private Point3d offset;          // position of the mesh in the grid
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
-    private double blockSize = 1.0;
+    private double blockSize;
 
     // really fine scaling factors (limits of system)á
     // 0.2 for Zucarello.obj
@@ -47,9 +47,10 @@ public class Mesh
     }
 
     // creates, rescales and centers the mesh
-    public Mesh(ArrayList<Point3d> tri)
+    public Mesh(ArrayList<Point3d> tri, double scale)
     {
         triangles = new ArrayList<>(tri);
+        blockSize = scale;
 
         // and finally rescale and center the mesh
         rescaleAndCenterMesh();

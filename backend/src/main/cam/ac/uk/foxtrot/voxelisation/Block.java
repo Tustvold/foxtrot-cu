@@ -38,7 +38,8 @@ public class Block
         triangleCnt++;
     }
 
-    public void setIsCustom(boolean custom) {
+    public void setIsCustom(boolean custom)
+    {
         isCustom = custom;
     }
 
@@ -59,18 +60,20 @@ public class Block
         return ta;
     }
 
-    public void setCustomPart(int i, CustomPart newPart) {
-        if (i < 0 || i > 5) {
+    public void setCustomPart(int i, CustomPart newPart)
+    {
+        if (i < 0 || i > 5)
+        {
             throw new IllegalArgumentException("setCustomPart: part index out of bounds (should be between 0 and 5)");
         }
 
         customParts[i] = newPart;
     }
 
-    public void setSuggestedCustomPartIndex(int index) {
+    public void setSuggestedCustomPartIndex(int index)
+    {
         customPartIndex = index;
     }
-
 
 
     public Block(Point3d position, CustomPart[] customPart,
