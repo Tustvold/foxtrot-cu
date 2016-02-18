@@ -1,70 +1,73 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-
-import javax.media.j3d.*;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-import java.awt.*;
+import javax.vecmath.Point3d;
 import java.io.*;
 import java.util.ArrayList;
 
 public class Mesh
 {
     // Anti-Clockwise winding order
-    private Point3f offset;          // position of the mesh in the grid
-    private GeometryInfo info;       // the geometry info object
-    private TriangleArray triangles; // the list of triangles representing the mesh
-    private float blockSize = 3.5f;
+    private Point3d offset;          // position of the mesh in the grid
+    private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
+    private double blockSize;
 
-    public Point3f getOffset()
+    // really fine scaling factors (limits of system)á
+    // 0.2 for Zucarello.obj
+    // 0.004 for teapot.obj
+    // 0.02 for human.obj
+    // 0.015 for sphere.obj
+    // 0.15 for teddy.obj
+    // 0.3 for pumpkin.obj
+    // 0.7 for bunny.obj
+    // 0.5 for lenin_test.obj
+    // 0.009 for Jesus_statue.obj
+    //
+    // the system is capable of producing up to about a 300x300x300 grid of voxels
+    // in reasonable timeS
+
+    public Point3d getOffset()
     {
         return offset;
     }
 
-    public void setOffset(Point3f offset)
+    public void setOffset(Point3d offset)
     {
         this.offset = offset;
     }
 
-    public TriangleArray getTriangles()
+    public ArrayList<Point3d> getTriangles()
     {
         return triangles;
     }
 
-    public GeometryInfo getGeometryInfo()
+    public void setTriangles(ArrayList<Point3d> trigs)
     {
-        return info;
+        triangles = new ArrayList<>(trigs);
     }
 
     // creates, rescales and centers the mesh
-    public Mesh(Scene scene)
+    public Mesh(ArrayList<Point3d> tri, double scale)
     {
-        BranchGroup branch = scene.getSceneGroup();
-        branch.setBoundsAutoCompute(true);
+        triangles = new ArrayList<>(tri);
+        blockSize = scale;
 
-        // extract the triangle array
-        Shape3D shape = (Shape3D) branch.getChild(0);
-        info = new GeometryInfo((GeometryArray) shape.getGeometry());
-        triangles = (TriangleArray) info.getGeometryArray();
+        // and finally rescale and center the mesh
         rescaleAndCenterMesh();
 
-        System.out.println("Loaded: " + triangles.getVertexCount() / 3 + " triangles");
-        System.out.println("Vertex format is: " + triangles.getVertexFormat());
+        System.out.println("Loaded: " + triangles.size() / 3 + " triangles");
         System.out.println("Mesh loaded...");
     }
 
     // returns the meshes centre of mass
-    private Point3f getCentreOfMass()
+    private Point3d getCentreOfMass()
     {
-        Point3f mc = new Point3f(0, 0, 0);
-        Point3f curr = new Point3f(0, 0, 0);
-        int cnt = triangles.getVertexCount();
+        Point3d mc = new Point3d(0, 0, 0);
+        Point3d curr;
+        int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
         {
-            triangles.getCoordinate(i, curr);
+            curr = triangles.get(i);
             mc.x += curr.x;
             mc.y += curr.y;
             mc.z += curr.z;
@@ -78,27 +81,22 @@ public class Mesh
     // scales the mesh in such a way so that a block is of unit size and centers it
     private void rescaleAndCenterMesh()
     {
-        Point3f cm = getCentreOfMass();
+        Point3d cm = getCentreOfMass();
 
-        Point3f curr = new Point3f(0, 0, 0);
-        int cnt = triangles.getVertexCount();
+        Point3d curr = new Point3d(0, 0, 0);
+        int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
         {
-            triangles.getCoordinate(i, curr);
-            curr.x = (curr.x - cm.x) / blockSize;
-            curr.y = (curr.y - cm.y) / blockSize;
-            curr.z = (curr.z - cm.z) / blockSize;
-            triangles.setCoordinate(i, curr);
+            triangles.get(i).x = (triangles.get(i).x - cm.x) / blockSize;
+            triangles.get(i).y = (triangles.get(i).y - cm.y) / blockSize;
+            triangles.get(i).z = (triangles.get(i).z - cm.z) / blockSize;
         }
-
-        // TESTING METHOD!!
-        //drawTriangles("../../testing/initial.obj");
     }
 
     // TESTING METHOD!!
     public void drawTriangles(String filename)
     {
-        System.out.println("Preparing mesh output...");
+        System.out.println("Preparing mesh representation...");
         Writer writer = null;
 
         try
@@ -111,10 +109,10 @@ public class Mesh
 
         int totalTriangles = 0;
 
-        for (int i = 0; i < triangles.getVertexCount(); i++)
+        for (int i = 0; i < triangles.size(); i++)
         {
-            Point3f currPt = new Point3f(0, 0, 0);
-            triangles.getCoordinate(i, currPt);
+            Point3d currPt;
+            currPt = triangles.get(i);
             try
             {
 
@@ -125,7 +123,7 @@ public class Mesh
             }
         }
 
-        for (int i = 1; i < triangles.getVertexCount(); i += 3)
+        for (int i = 1; i < triangles.size(); i += 3)
         {
             try
             {
@@ -140,7 +138,7 @@ public class Mesh
             writer.close();
         } catch (Exception ex)
         {/*ignore*/}
-        System.out.println("Mesh output created...");
+        System.out.println("Mesh representation created...");
     }
 
 }

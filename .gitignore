@@ -74,3 +74,5 @@ node_modules
 # Mac OSX
 .DS_Store
 backend/output/
+# Ignore backend testing output
+backend/testing/output/

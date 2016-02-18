@@ -9,64 +9,64 @@ import java.util.Collections;
 
 public class CustomPartMouldGenerator {
 
-    //TODO questions: have two custom parts? can hole extrusion go on top of part intrusion? duplicate vertices?
-
     // codes used to tell what projection our custom part should use
     public enum ProjectionFace { XY0, XY1, ZY0, ZY1, ZX0, ZX1 }
 
+    private final float MOULD_DEPTH = .25f; // distance from face projection will go
+    private final float MOULD_PADDING = .1f;
+    private final float EXTRA_WH = .1f;
+    private final float SCALE = 35;
 
     // sides of unit cube in the first octant of 3D space specified clockwise
     private final Point3f[] FACE_XY0 =
             {
-                new Point3f(0, 0, 0),
-                new Point3f(1, 0, 0),
-                new Point3f(1, 1, 0),
-                new Point3f(0, 1, 0)
+                new Point3f(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 1 + EXTRA_WH, 0),
+                new Point3f(0 - EXTRA_WH, 1 + EXTRA_WH, 0)
             };
 
     private final Point3f[] FACE_XY1 =
             {
-                new Point3f(0, 0, 1),
-                new Point3f(1, 0, 1),
-                new Point3f(1, 1, 1),
-                new Point3f(0, 1, 1)
+                new Point3f(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
 
             };
 
     private final Point3f[] FACE_ZY0 =
             {
-                new Point3f(0, 0, 0),
-                new Point3f(0, 0, 1),
-                new Point3f(0, 1, 1),
-                new Point3f(0, 1, 0)
+                new Point3f(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
+                new Point3f(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(0 - EXTRA_WH, 1 + EXTRA_WH, 0)
             };
 
     private final Point3f[] FACE_ZY1 =
             {
-                new Point3f(1, 0, 0),
-                new Point3f(1, 0, 1),
-                new Point3f(1, 1, 1),
-                new Point3f(1, 1, 0)
+                new Point3f(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(1 + EXTRA_WH, 1 + EXTRA_WH, 0)
             };
 
     private final Point3f[] FACE_ZX0 =
             {
-                new Point3f(0, 0, 0),
-                new Point3f(1, 0, 0),
-                new Point3f(1, 0, 1),
-                new Point3f(0, 0, 1)
+                new Point3f(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
             };
 
     private final Point3f[] FACE_ZX1 =
             {
-                new Point3f(0, 1, 0),
-                new Point3f(1, 1, 0),
-                new Point3f(1, 1, 1),
-                new Point3f(0, 1, 1)
+                new Point3f(0 - EXTRA_WH, 1 + EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 1 + EXTRA_WH, 0),
+                new Point3f(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                new Point3f(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
             };
 
-
-    private final float PROJECTION_DEPTH = .25f; // distance from face projection will go
     private Point3f[] mesh;
 
     // takes an array of Point3f that represents a mesh of triangles (each 3 points is a triangle)
@@ -86,7 +86,7 @@ public class CustomPartMouldGenerator {
         mesh = inMesh;
     }
 
-    // make a projected copy of the mesh coordinates onto the inputted plane
+    // project the inputted mesh onto the inputted face of the unit cube
     private Point3f[] getProjectionCoords(ProjectionFace face) {
         Point3f[] projectionCoords = new Point3f[mesh.length];
 
@@ -108,24 +108,61 @@ public class CustomPartMouldGenerator {
         return projectionCoords;
     }
 
-    // add the cube face with holes for the intrusions
-    private void addIntrudedFace(ArrayList<Point3f> coordinates, ArrayList<Integer> stripCounts,
-                                 ArrayList<Integer> contourCounts, ProjectionFace face,
-                                 Point3f[][] projectionPolygons) {
-        Point3f[] faceCoords = null;
+    // convert between z-y plane and x-y plane
+    private Point3f[] convertZyXy(Point3f[] originalCoordinates) {
+        int length = originalCoordinates.length;
+        Point3f[] newCoordinates = new Point3f[length];
+        for (int i = 0; i < length; i++) {
+            Point3f point = originalCoordinates[i];
+            newCoordinates[i] = new Point3f(point.z, point.y, point.x);
+        }
+        return newCoordinates;
+    }
 
-        switch (face) {
-            case XY0: faceCoords = FACE_XY0; break;
-            case XY1: faceCoords = FACE_XY1; break;
-            case ZY0: faceCoords = FACE_ZY0; break;
-            case ZY1: faceCoords = FACE_ZY1; break;
-            case ZX0: faceCoords = FACE_ZX0; break;
-            case ZX1: faceCoords = FACE_ZX1; break;
+    // convert between z-x plane and x-y plane
+    private Point3f[] convertZxXy(Point3f[] originalCoordinates) {
+        int length = originalCoordinates.length;
+        Point3f[] newCoordinates = new Point3f[length];
+        for (int i = 0; i < length; i++) {
+            Point3f point = originalCoordinates[i];
+            newCoordinates[i] = new Point3f(point.x, point.z, point.y);
+        }
+        return newCoordinates;
+    }
+
+    // project the mesh onto the face and rotate so that face ends up as XY1
+    private Point3f[] getMouldProjectionCoords(ProjectionFace face) {
+
+        Point3f[] projectionCoords = new Point3f[mesh.length];
+
+        for (int i = 0; i < projectionCoords.length; i++) {
+            Point3f point = new Point3f(mesh[i]);
+
+            switch (face) {
+                case XY0:case XY1: point.z = MOULD_DEPTH + MOULD_PADDING; break;
+                case ZY0:case ZY1: point.x = MOULD_DEPTH + MOULD_PADDING; break;
+                case ZX0:case ZX1: point.y = MOULD_DEPTH + MOULD_PADDING; break;
+            }
+
+            projectionCoords[i] = point;
         }
 
-        // add coordinates of square as one strip
-        Collections.addAll(coordinates, faceCoords);
-        stripCounts.add(faceCoords.length);
+        if (face == ProjectionFace.ZY0 || face == ProjectionFace.ZY1) {
+            projectionCoords = convertZyXy(projectionCoords);
+        }
+        if (face == ProjectionFace.ZX0 || face == ProjectionFace.ZX1) {
+            projectionCoords = convertZxXy(projectionCoords);
+        }
+
+        return projectionCoords;
+    }
+
+    // add the top mould face face with holes for the intrusions
+    private void addIntrudedMouldFace(ArrayList<Point3f> coordinates, ArrayList<Integer> stripCounts,
+                                      ArrayList<Integer> contourCounts, Point3f[][] projectionPolygons) {
+        // add coordinates of face as one strip
+        Collections.addAll(coordinates, FACE_XY1);
+        stripCounts.add(FACE_XY1.length);
 
         // add coordinates of each projection polygon as a strip
         for (Point3f[] projectionPolygon : projectionPolygons) {
@@ -138,75 +175,54 @@ public class CustomPartMouldGenerator {
         contourCounts.add(stripCounts.size());
     }
 
-    // add all cube faces besides the one passed in
-    private void addSqareCubeFaces(ArrayList<Point3f> coordinates, ArrayList<Integer> stripCounts,
-                                          ArrayList<Integer> contourCounts, ProjectionFace face) {
-        if (face != ProjectionFace.XY0) {
-            Collections.addAll(coordinates, FACE_XY0);
-            stripCounts.add(FACE_XY0.length);
-            contourCounts.add(1);
-        }
-        if (face != ProjectionFace.XY1) {
-            Collections.addAll(coordinates, FACE_XY1);
-            stripCounts.add(FACE_XY1.length);
-            contourCounts.add(1);
-        }
-        if (face != ProjectionFace.ZY0) {
-            Collections.addAll(coordinates, FACE_ZY0);
-            stripCounts.add(FACE_ZY0.length);
-            contourCounts.add(1);
-        }
-        if (face != ProjectionFace.ZY1) {
-            Collections.addAll(coordinates, FACE_ZY1);
-            stripCounts.add(FACE_ZY1.length);
-            contourCounts.add(1);
-        }
-        if (face != ProjectionFace.ZX0) {
-            Collections.addAll(coordinates, FACE_ZX0);
-            stripCounts.add(FACE_ZX0.length);
-            contourCounts.add(1);
-        }
-        if (face != ProjectionFace.ZX1) {
-            Collections.addAll(coordinates, FACE_ZX1);
-            stripCounts.add(FACE_ZX1.length);
-            contourCounts.add(1);
-        }
+    // add the flat faces of the mould
+    private void addFlatMouldFaces(ArrayList<Point3f> coordinates, ArrayList<Integer> stripCounts,
+                                   ArrayList<Integer> contourCounts) {
+        Collections.addAll(coordinates, FACE_XY0);
+        stripCounts.add(FACE_XY0.length);
+        contourCounts.add(1);
+
+        Collections.addAll(coordinates, FACE_ZY0);
+        stripCounts.add(FACE_ZY0.length);
+        contourCounts.add(1);
+
+        Collections.addAll(coordinates, FACE_ZY1);
+        stripCounts.add(FACE_ZY1.length);
+        contourCounts.add(1);
+
+        Collections.addAll(coordinates, FACE_ZX0);
+        stripCounts.add(FACE_ZX0.length);
+        contourCounts.add(1);
+
+        Collections.addAll(coordinates, FACE_ZX1);
+        stripCounts.add(FACE_ZX1.length);
+        contourCounts.add(1);
     }
 
-    // generate a mould for mesh projected onto face
-    public void generateMould(ProjectionFace face) {
+
+    // generate a custom part for mesh projected onto face
+    public Point3f[] generateCustomPart(ProjectionFace face) {
         if (face == null) {
-            throw new IllegalArgumentException("generateMould: face cannot be null");
+            throw new IllegalArgumentException("generateCustomPart: face cannot be null");
         }
 
-        // data about the polygons that will make up the mould
+        // data about the polygons that will make up the part
         ArrayList<Point3f> coordinates = new ArrayList<>();
         ArrayList<Integer> stripCounts = new ArrayList<>();
         ArrayList<Integer> contourCounts = new ArrayList<>();
 
-        // project the mesh onto face and remove self-intersections
+        // project the mesh onto face of the unit cube
         Point3f[] projectionCoords = getProjectionCoords(face);
-        //todo use this
-        IntersectionRemover ir = new IntersectionRemover(projectionCoords,face);
-        Point3f[][] test = ir.getPolygonArray();
-        Point3f[][] projectionPolygons = new Point3f[][] {projectionCoords};
-        Point3f[][] projectionHoles = new Point3f[][] {new Point3f[] {new Point3f(.3f,1f,.3f),new Point3f(.4f,1f,.3f),new Point3f(.3f,1f,.4f)}};
-        //todo fail gracefully if these have less than 2 unique points (what behavior do we want?)
 
-        // add the faces of the mould
-        addIntrudedFace(coordinates, stripCounts, contourCounts, face, projectionPolygons);
-        addSqareCubeFaces(coordinates, stripCounts, contourCounts, face);
+        // remove self-intersections in the projection
+        IntersectionRemover ir = new IntersectionRemover(projectionCoords, face);
+        Point3fPolygon[] combinedPolygons = ir.getCombinedArray();
+        Point3f[][] projectionPolygons = ir.getPolygonArray();
+        Point3f[][] projectionHoles = ir.getHoleArray();
 
-        // prepare and add the projection polygons at their appropriate depth
-        addProjectionPolygons(coordinates, stripCounts, contourCounts, face, projectionPolygons);
-
-        // add the polygons representing holes on the face of the cube
-        //todo test
-        for (Point3f[] hole : projectionHoles) {
-            Collections.addAll(coordinates, hole);
-            stripCounts.add(hole.length);
-            contourCounts.add(1);
-        }
+        // add the polygons (with holes omitted) on the face and at depth
+        addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, false);
+        addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, true);
 
         // prepare and add side rectangles for each hole and non-hole
         addSideRectangles(coordinates, stripCounts, contourCounts, face, projectionPolygons);
@@ -224,31 +240,110 @@ public class CustomPartMouldGenerator {
         }
         ga.getCoordinates(0, pts);
 
-        generateObjFile(pts);
+        //generateObjFile(pts);
+        return pts;
     }
 
-    // add polygons obtained from the projection at the appropriate depth inside the cube
-    private void addProjectionPolygons(ArrayList<Point3f> coordinates, ArrayList<Integer> stripCounts,
-                                       ArrayList<Integer> contourCounts, ProjectionFace face,
-                                       Point3f[][] projectionPolygons) {
-        for (Point3f[] projectionPolygon : projectionPolygons) {
-            for (Point3f ppPoint : projectionPolygon) {
-                Point3f point = new Point3f(ppPoint);
+    // generate a mould for mesh projected onto face
+    public Point3f[] generateMould(ProjectionFace face) {
+        if (face == null) {
+            throw new IllegalArgumentException("generateMould: face cannot be null");
+        }
 
-                // shift to projection depth
-                switch (face) {
-                    case XY0: point.z += PROJECTION_DEPTH; break;
-                    case XY1: point.z -= PROJECTION_DEPTH; break;
-                    case ZY0: point.x += PROJECTION_DEPTH; break;
-                    case ZY1: point.x -= PROJECTION_DEPTH; break;
-                    case ZX0: point.y += PROJECTION_DEPTH; break;
-                    case ZX1: point.y -= PROJECTION_DEPTH; break;
+        // data about the polygons that will make up the mould
+        ArrayList<Point3f> coordinates = new ArrayList<>();
+        ArrayList<Integer> stripCounts = new ArrayList<>();
+        ArrayList<Integer> contourCounts = new ArrayList<>();
+
+        // project the mesh onto the face and rotate so that face ends up as XY1
+        Point3f[] projectionCoords = getMouldProjectionCoords(face);
+
+        // remove self-intersections in the projection
+        IntersectionRemover ir = new IntersectionRemover(projectionCoords, ProjectionFace.XY1);
+        Point3fPolygon[] combinedPolygons = ir.getCombinedArray();
+        Point3f[][] projectionPolygons = ir.getPolygonArray();
+        Point3f[][] projectionHoles = ir.getHoleArray();
+
+        // add the faces of the mould
+        addIntrudedMouldFace(coordinates, stripCounts, contourCounts, projectionPolygons);
+        addFlatMouldFaces(coordinates, stripCounts, contourCounts);
+
+        // prepare and add the polygons (with holes omitted) at depth
+        addPolygons(coordinates, stripCounts, contourCounts, ProjectionFace.XY1, combinedPolygons, true);
+
+        // add the polygons representing holes to the top of the mould
+        for (Point3f[] hole : projectionHoles) {
+            Collections.addAll(coordinates, hole);
+            stripCounts.add(hole.length);
+            contourCounts.add(1);
+        }
+
+        // prepare and add side rectangles for each hole and non-hole
+        addSideRectangles(coordinates, stripCounts, contourCounts, ProjectionFace.XY1, projectionPolygons);
+        addSideRectangles(coordinates, stripCounts, contourCounts, ProjectionFace.XY1, projectionHoles);
+
+        // triangulate the result
+        GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
+        gi.setCoordinates(coordinates.toArray(new Point3f[coordinates.size()]));
+        gi.setStripCounts(stripCounts.stream().mapToInt(i -> i).toArray());
+        gi.setContourCounts(contourCounts.stream().mapToInt(i -> i).toArray());
+        GeometryArray ga = gi.getGeometryArray();
+        Point3f[] pts = new Point3f[ga.getVertexCount()];
+        for (int i = 0; i < pts.length; i++) {
+            pts[i] = new Point3f();
+        }
+        ga.getCoordinates(0, pts);
+
+        //generateObjFile(pts);
+        return pts;
+    }
+
+    // add polygons obtained from the projection at the appropriate depth
+    private void addPolygons(ArrayList<Point3f> coordinates, ArrayList<Integer> stripCounts,
+                             ArrayList<Integer> contourCounts, ProjectionFace face,
+                             Point3fPolygon[] projectionPolygons, boolean intrude) {
+        for (Point3fPolygon projectionPolygon : projectionPolygons) {
+
+            // add polygon
+            for (Point3f point : projectionPolygon.getExterior()) {
+                if (intrude) {
+                    point = new Point3f(point);
+                    switch (face) {
+                        case XY0: point.z += MOULD_DEPTH; break;
+                        case XY1: point.z -= MOULD_DEPTH; break;
+                        case ZY0: point.x += MOULD_DEPTH; break;
+                        case ZY1: point.x -= MOULD_DEPTH; break;
+                        case ZX0: point.y += MOULD_DEPTH; break;
+                        case ZX1: point.y -= MOULD_DEPTH; break;
+                    }
                 }
 
                 coordinates.add(point);
             }
-            stripCounts.add(projectionPolygon.length);
-            contourCounts.add(1);
+            stripCounts.add(projectionPolygon.getExterior().length);
+
+            // add holes
+            for (Point3f[] hole : projectionPolygon.getHoles()) {
+                for (Point3f point : hole) {
+                    if (intrude) {
+                        point = new Point3f(point);
+                        switch (face) {
+                            case XY0: point.z += MOULD_DEPTH; break;
+                            case XY1: point.z -= MOULD_DEPTH; break;
+                            case ZY0: point.x += MOULD_DEPTH; break;
+                            case ZY1: point.x -= MOULD_DEPTH; break;
+                            case ZX0: point.y += MOULD_DEPTH; break;
+                            case ZX1: point.y -= MOULD_DEPTH; break;
+                        }
+                    }
+
+                    coordinates.add(point);
+                }
+                stripCounts.add(hole.length);
+            }
+
+            // one contour from polygon, the rest from holes
+            contourCounts.add(1 + projectionPolygon.getHoles().length);
         }
     }
 
@@ -261,7 +356,7 @@ public class CustomPartMouldGenerator {
 
         // print vertices
         for (Point3f pt : pts) {
-            System.out.println("v " + pt.x + " " + pt.y + " " + pt.z);
+            System.out.println("v " + pt.x * SCALE + " " + pt.y * SCALE + " " + pt.z * SCALE);
         }
 
         // print faces
@@ -318,12 +413,12 @@ public class CustomPartMouldGenerator {
     // given a projected coordinate and what face it is on, intrude it to the appropriate depth
     private void intrudeCoordinate(Point3f coord, ProjectionFace face) {
         switch (face) {
-            case XY0: coord.z += PROJECTION_DEPTH; break;
-            case XY1: coord.z -= PROJECTION_DEPTH; break;
-            case ZY0: coord.x += PROJECTION_DEPTH; break;
-            case ZY1: coord.x -= PROJECTION_DEPTH; break;
-            case ZX0: coord.y += PROJECTION_DEPTH; break;
-            case ZX1: coord.y -= PROJECTION_DEPTH; break;
+            case XY0: coord.z += MOULD_DEPTH; break;
+            case XY1: coord.z -= MOULD_DEPTH; break;
+            case ZY0: coord.x += MOULD_DEPTH; break;
+            case ZY1: coord.x -= MOULD_DEPTH; break;
+            case ZX0: coord.y += MOULD_DEPTH; break;
+            case ZX1: coord.y -= MOULD_DEPTH; break;
         }
     }
 

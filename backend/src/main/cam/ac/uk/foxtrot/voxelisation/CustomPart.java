@@ -1,7 +1,16 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
-/**
- * Created by joeisaacs on 04/02/2016.
- */
+import com.google.gson.annotations.SerializedName;
+
+import javax.vecmath.Point3f;
+
 public class CustomPart {
+
+    @SerializedName("triangle_array")
+    private Point3f[] triangles;
+
+    public CustomPart(Point3f[] inTriangles) {
+        triangles = new Point3f[inTriangles.length];
+        System.arraycopy(triangles, 0, inTriangles, 0, triangles.length);
+    }
 }
