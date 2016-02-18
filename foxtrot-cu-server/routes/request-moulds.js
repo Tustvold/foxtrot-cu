@@ -15,8 +15,7 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
     temp.mkdir('outputDir', function(err, dirPath) {
         if (err)
             throw err;
-        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + dirPath + '3' + '1.0'
-        child = exec(args);
+        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" ' + req.file.path + " " + dirPath);
         console.log(req.file)
         console.log(dirPath);
 
