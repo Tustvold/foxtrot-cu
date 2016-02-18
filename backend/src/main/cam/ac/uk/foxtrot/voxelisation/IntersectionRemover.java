@@ -7,17 +7,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 
 public class IntersectionRemover {
     Geometry union;
-    Point3f[][] polygonArray;
-    Point3f[][] holeArray;
-    Point3fPolygon[] combinedArray;
-    float z;
+    Point3d[][] polygonArray;
+    Point3d[][] holeArray;
+    Point3dPolygon[] combinedArray;
+    double z;
     CustomPartMouldGenerator.ProjectionFace projectionFace;
 
-    public IntersectionRemover(Point3f[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace face){ // in x-y plane
+    public IntersectionRemover(Point3d[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace face){ // in x-y plane
         projectionFace = face;
         convertBetweenPlanes(originalCoordinates);
         List<Geometry> geometryList = new ArrayList<>();
@@ -36,23 +36,23 @@ public class IntersectionRemover {
         generateArrays();
     }
 
-    private void zy(Point3f[] coordinates) {
+    private void zy(Point3d[] coordinates) {
         int length = coordinates.length;
         for (int i = 0; i < length; i++) {
-            Point3f point = coordinates[i];
-            coordinates[i] = new Point3f(point.z, point.y, point.x);
+            Point3d point = coordinates[i];
+            coordinates[i] = new Point3d(point.z, point.y, point.x);
         }
     }
 
-    private void zx(Point3f[] coordinates) {
+    private void zx(Point3d[] coordinates) {
         int length = coordinates.length;
         for (int i = 0; i < length; i++) {
-            Point3f point = coordinates[i];
-            coordinates[i] = new Point3f(point.x,point.z,point.y);
+            Point3d point = coordinates[i];
+            coordinates[i] = new Point3d(point.x,point.z,point.y);
         }
     }
 
-    private void convertBetweenPlanes(Point3f[] coordinates) {
+    private void convertBetweenPlanes(Point3d[] coordinates) {
         switch (projectionFace) {
             case ZX0: zx(coordinates); break;
             case ZX1: zx(coordinates); break;
@@ -62,21 +62,21 @@ public class IntersectionRemover {
         }
     }
 
-    // convert original J3D Point3f to JTS Coordinates
-    private Coordinate toJTSCoordinate(Point3f point) {
+    // convert original J3D Point3d to JTS Coordinates
+    private Coordinate toJTSCoordinate(Point3d point) {
         return new Coordinate(point.x, point.y, point.z);
     }
 
-    // convert Geometry to array of arrays of Point3fs for original plane
+    // convert Geometry to array of arrays of Point3ds for original plane
     private void generateArrays() {
         int length = union.getNumGeometries();
-        polygonArray = new Point3f[length][];
-        combinedArray = new Point3fPolygon[length];
-        ArrayList<Point3f[]> holeList = new ArrayList<>();
+        polygonArray = new Point3d[length][];
+        combinedArray = new Point3dPolygon[length];
+        ArrayList<Point3d[]> holeList = new ArrayList<>();
         for(int i = 0; i < length; i++) {
-            Point3fPolygon polygon = new Point3fPolygon(((Polygon)union.getGeometryN(i)),z);
+            Point3dPolygon polygon = new Point3dPolygon(((Polygon)union.getGeometryN(i)),z);
             convertBetweenPlanes(polygon.getExterior());
-            Point3f[][] holes = polygon.getHoles();
+            Point3d[][] holes = polygon.getHoles();
             polygonArray[i] = polygon.getExterior();
             int numHoles = holes.length;
             for(int j = 0; j < numHoles; j++) {
@@ -85,24 +85,24 @@ public class IntersectionRemover {
             }
             combinedArray[i] = polygon;
         }
-        holeArray = holeList.toArray(new Point3f[0][]);
+        holeArray = holeList.toArray(new Point3d[0][]);
     }
 
-    public Point3f[][] getPolygonArray() {
+    public Point3d[][] getPolygonArray() {
         return polygonArray;
     }
 
-    public Point3f[][] getHoleArray() {
+    public Point3d[][] getHoleArray() {
         return holeArray;
     }
 
-    public Point3fPolygon[] getCombinedArray() {
+    public Point3dPolygon[] getCombinedArray() {
         return combinedArray;
     }
 
     public static void main(String[] args) {
-        Point3f[] point3fs = {new Point3f(0,0,0), new Point3f(2,0,0), new Point3f(1,0,2)};
-        IntersectionRemover merged = new IntersectionRemover(point3fs, CustomPartMouldGenerator.ProjectionFace.ZX0);
+        Point3d[] Point3ds = {new Point3d(0,0,0), new Point3d(2,0,0), new Point3d(1,0,2)};
+        IntersectionRemover merged = new IntersectionRemover(Point3ds, CustomPartMouldGenerator.ProjectionFace.ZX0);
         System.out.println(Arrays.toString(merged.getCombinedArray()[0].getExterior()));
         System.out.println(Arrays.deepToString(merged.getCombinedArray()[0].getHoles()));
         System.out.println(Arrays.deepToString(merged.getPolygonArray()));

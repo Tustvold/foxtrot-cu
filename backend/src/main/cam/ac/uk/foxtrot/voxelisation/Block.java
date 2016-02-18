@@ -97,7 +97,7 @@ public class Block
         this.isCustom = isCustom;
 
         mPosition = position;
-        customParts = null;
+        customParts = new CustomPart[6];
         customPartIndex = 0;
     }
 

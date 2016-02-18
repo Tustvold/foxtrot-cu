@@ -9,7 +9,7 @@ import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.*;
 import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;

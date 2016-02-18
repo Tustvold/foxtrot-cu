@@ -12,21 +12,27 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
 
     temp.track();
 
-    temp.mkdir('outputDir', function(err, dirPath) {
+    temp.open("outputjson", function (err, tempfile) {
         if (err)
             throw err;
-        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + dirPath + '3' + '1.0'
-        child = exec(args);
         console.log(req.file)
-        console.log(dirPath);
+        console.log(tempfile.path);
+        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + "3" + " " + "1.0"
+        console.log(args);
+        child = exec(args);
 
         res.header("Content-Type", "application/json");
 
         hasError = false;
         errorBuffer = "";
 
+        child.stdout.on('data', function(data) {
+            //console.log(data);
+        })
+
         // Any error will return those errors
         child.stderr.on('data', function(data) {
+            hasError = true;
             errorBuffer += data;
             console.log(data)
         });
@@ -39,14 +45,14 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
                 res.end();
             }
             else if(!res.finished) {
-                fs.readFile(dirPath+"/output.json", function(err, data) {
+                fs.readFile(tempfile.path, function(err, data) {
                     if (err)
                         throw err;
                     res.send(data);
                 });
             }
         });
-    });
+    })
 });
 
 

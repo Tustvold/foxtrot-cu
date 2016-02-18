@@ -4,7 +4,7 @@ import cam.ac.uk.foxtrot.voxelisation.CustomPartMouldGenerator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 
 public class MainTest {
 
@@ -27,9 +27,9 @@ public class MainTest {
 
         
         CustomPartMouldGenerator p = new CustomPartMouldGenerator(ta);
-        Point3f[] xproj = p.setX(X_SET);
-        Point3f[] yproj = p.setY(Y_SET);
-        Point3f[] zproj = p.setZ(Z_SET);
+        Point3d[] xproj = p.setX(X_SET);
+        Point3d[] yproj = p.setY(Y_SET);
+        Point3d[] zproj = p.setZ(Z_SET);
 
         for (int i = 0; i < NUM_PTS; i++) {
             //System.out.println("     x       y      z ");
@@ -45,30 +45,30 @@ public class MainTest {
         }*/
 
         int NUM_PTS = 9;
-        Point3f[] points = new Point3f[NUM_PTS];
+        Point3d[] points = new Point3d[NUM_PTS];
        /* float[] point = new float[3];
         for (int i = 0; i < NUM_PTS; i++) {
             point[0] = (float)(Math.random());
             point[1] = (float)(Math.random());
             point[2] = (float)(Math.random());
-            points[i] = new Point3f(point);
+            points[i] = new Point3d(point);
         }*/
 
-        //points[0] = new Point3f(.25f,.25f,.25f);
-        //points[1] = new Point3f(.5f,.5f,.25f);
-        //points[2] = new Point3f(.25f,.25f,.5f);
+        //points[0] = new Point3d(.25f,.25f,.25f);
+        //points[1] = new Point3d(.5f,.5f,.25f);
+        //points[2] = new Point3d(.25f,.25f,.5f);
 
-        points[0] = new Point3f(0, 0, 0);
-        points[1] = new Point3f(.66f, 0, 0);
-        points[2] = new Point3f(.4f, .7f, 0);
+        points[0] = new Point3d(0, 0, 0);
+        points[1] = new Point3d(.66f, 0, 0);
+        points[2] = new Point3d(.4f, .7f, 0);
 
-        points[3] = new Point3f(.33f, 0, 0);
-        points[4] = new Point3f(1, 0, 0);
-        points[5] = new Point3f(.6f, .7f, 0);
+        points[3] = new Point3d(.33f, 0, 0);
+        points[4] = new Point3d(1, 0, 0);
+        points[5] = new Point3d(.6f, .7f, 0);
 
-        points[6] = new Point3f(.2f, .5f, 0);
-        points[7] = new Point3f(.8f, .5f, 0);
-        points[8] = new Point3f(.5f, 1, 0);
+        points[6] = new Point3d(.2f, .5f, 0);
+        points[7] = new Point3d(.8f, .5f, 0);
+        points[8] = new Point3d(.5f, 1, 0);
 
         CustomPartMouldGenerator p = new CustomPartMouldGenerator(points);
         p.generateMould(CustomPartMouldGenerator.ProjectionFace.XY1);

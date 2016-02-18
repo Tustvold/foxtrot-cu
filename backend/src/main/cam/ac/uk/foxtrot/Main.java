@@ -3,16 +3,12 @@ package cam.ac.uk.foxtrot;
 import cam.ac.uk.foxtrot.serializer.BlockJSONSerializer;
 import cam.ac.uk.foxtrot.voxelisation.*;
 import com.google.gson.GsonBuilder;
-import com.sun.j3d.loaders.Scene;
 import com.google.gson.Gson;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Objects;
 import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -75,7 +71,7 @@ public class Main
                     sortedBlocks.add(block);
                     ArrayList<Point3d> al = block.getTriangles();
 
-                    CustomPartMouldGenerator cp = new CustomPartMouldGenerator(al.toArray(new Point3f[al.size()]));
+                    CustomPartMouldGenerator cp = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]));
                     CustomPart p0 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.XY0));
                     block.setCustomPart(0, p0);
                     CustomPart p1 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.XY1));

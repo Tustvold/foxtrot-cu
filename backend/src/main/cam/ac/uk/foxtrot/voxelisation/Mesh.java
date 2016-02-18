@@ -104,7 +104,8 @@ public class Mesh
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
         } catch (IOException ex)
         {
-            System.err.println(ex.getMessage());
+            //System.err.println(ex.getMessage());
+            return;
         }
 
         int totalTriangles = 0;
