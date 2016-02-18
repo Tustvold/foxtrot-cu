@@ -10,6 +10,7 @@ var nodetemp = require('temp')
 var index = require('./routes/index');
 var upload = require('./routes/upload');
 var require_moulds = require('./routes/request-moulds');
+var tests = require('./routes/tests');
 
 
 var app = express();
@@ -29,7 +30,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/upload', upload);
-app.use('/request-moulds', upload);
+app.use('/request-moulds', require_moulds);
+app.use('/tests', tests);
 
 
 
