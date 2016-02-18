@@ -46,29 +46,29 @@ html(lang='en')
                                 a(data-toggle='collapse', href='#collapse2') Mesh Viewer
                         div#collapse2.panel-collapse.collapse
                             .panel-body
-                                .col-md-6
-                                    row
-                                        div
-                                            h3(class="text-center") Uploaded Mesh
-                                    row
-                                        div(style="margin-left:auto; margin-right:auto" align="center")
-                                            .panel.panel-default
-                                                .panel-body
-                                                    div#input-container
+
+                                row
+                                    div
+                                        h3(class="text-center") Uploaded Mesh
+                                row
+                                    div(style="margin-left:auto; margin-right:auto" align="center")
+                                        .panel.panel-default
+                                            .panel-body
+                                                div#input-container.model-viewer
 
 
-                                .col-md-6
-                                    row
-                                        div
-                                            h3(class="text-center") Generated Design
-                                    row
-                                        div(style="margin-left:auto; margin-right:auto" align="center")
-                                            .panel.panel-default
-                                                .panel-body
-                                                div#output-container
-                                .col-md-6
-                                    button(type="submit",class="btn btn-primary btn-file")
-                                        |Submit
+
+                                row
+                                    div
+                                        h3(class="text-center") Generated Design
+                                row
+                                    div(style="margin-left:auto; margin-right:auto" align="center")
+                                        .panel.panel-default
+                                            .panel-body
+                                            div#output-container.model-viewer
+                            .col-md-6
+                                button(type="submit",class="btn btn-primary btn-file")
+                                    |Submit
 
             .panel-group
                 .col-md-12
@@ -87,7 +87,7 @@ html(lang='en')
             
             
             
-            var width = document.getElementById("input-container").getBoundingClientRect().width;
+            var width = 500
             var height = width;
     
             $('document').ready(function () {
