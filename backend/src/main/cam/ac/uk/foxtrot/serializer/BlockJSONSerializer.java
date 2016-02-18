@@ -17,7 +17,7 @@ public class BlockJSONSerializer implements JsonSerializer<Block> {
     public JsonElement serialize(Block block, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject object = new JsonObject();
         object.addProperty("custom_part_array", String.valueOf(block.getCustomPart()));
-        object.addProperty("use_custom_part", block.isUsingSuggestCustomPart());
+        object.addProperty("use_custom_part", block.isCustom());
         object.addProperty("suggested_custom_part", block.getSuggestedCustomPartIndex());
 
         return object;

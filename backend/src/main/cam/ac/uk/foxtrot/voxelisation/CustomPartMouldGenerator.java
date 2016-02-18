@@ -201,7 +201,7 @@ public class CustomPartMouldGenerator {
 
 
     // generate a custom part for mesh projected onto face
-    public void generateCustomPart(ProjectionFace face) {
+    public Point3f[] generateCustomPart(ProjectionFace face) {
         if (face == null) {
             throw new IllegalArgumentException("generateCustomPart: face cannot be null");
         }
@@ -240,11 +240,12 @@ public class CustomPartMouldGenerator {
         }
         ga.getCoordinates(0, pts);
 
-        generateObjFile(pts);
+        //generateObjFile(pts);
+        return pts;
     }
 
     // generate a mould for mesh projected onto face
-    public void generateMould(ProjectionFace face) {
+    public Point3f[] generateMould(ProjectionFace face) {
         if (face == null) {
             throw new IllegalArgumentException("generateMould: face cannot be null");
         }
@@ -293,7 +294,8 @@ public class CustomPartMouldGenerator {
         }
         ga.getCoordinates(0, pts);
 
-        generateObjFile(pts);
+        //generateObjFile(pts);
+        return pts;
     }
 
     // add polygons obtained from the projection at the appropriate depth

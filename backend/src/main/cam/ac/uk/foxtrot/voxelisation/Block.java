@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 
 import javax.media.j3d.TriangleArray;
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -15,17 +14,16 @@ public class Block
     private Point3d mPosition;
 
     @SerializedName("custom_part_array")
-    private CustomPart[] mCustomPart;
+    private CustomPart[] customParts;
 
     @SerializedName("use_custom_part")
-    private boolean mUsingSuggestCustomPart;
+    private boolean isCustom;
 
-    @SerializedName("suggested_custom_part")
-    private int mSuggestedCustomPartIndex;
+    @SerializedName("custom_part_index")
+    private int customPartIndex;
 
     private int triangleCnt; // number of triangles in the block
     private ArrayList<Point3d> triangles; // the triangles representing the part of the mesh which is within the block
-    private boolean isCustom;
 
     public ArrayList<Point3d> getTriangles()
     {
@@ -38,6 +36,10 @@ public class Block
         triangles.add(new Point3d(sec.x - mPosition.x, sec.y - mPosition.y, sec.z - mPosition.z));
         triangles.add(new Point3d(trd.x - mPosition.x, trd.y - mPosition.y, trd.z - mPosition.z));
         triangleCnt++;
+    }
+
+    public void setIsCustom(boolean custom) {
+        isCustom = custom;
     }
 
     public int getTriangleCount()
@@ -57,6 +59,18 @@ public class Block
         return ta;
     }
 
+    public void setCustomPart(int i, CustomPart newPart) {
+        if (i < 0 || i > 5) {
+            throw new IllegalArgumentException("setCustomPart: part index out of bounds (should be between 0 and 5)");
+        }
+
+        customParts[i] = newPart;
+    }
+
+    public void setSuggestedCustomPartIndex(int index) {
+        customPartIndex = index;
+    }
+
 
 
     public Block(Point3d position, CustomPart[] customPart,
@@ -67,9 +81,9 @@ public class Block
         triangleCnt = 0;
 
         mPosition = position;
-        mCustomPart = customPart;
-        mUsingSuggestCustomPart = suggestUseCustomPart;
-        mSuggestedCustomPartIndex = suggestedCustomPartIndex;
+        customParts = customPart;
+        isCustom = suggestUseCustomPart;
+        customPartIndex = suggestedCustomPartIndex;
     }
 
     public Block(Point3d position, boolean isCustom)
@@ -80,9 +94,8 @@ public class Block
         this.isCustom = isCustom;
 
         mPosition = position;
-        mCustomPart = null;
-        mUsingSuggestCustomPart = false;
-        mSuggestedCustomPartIndex = 0;
+        customParts = null;
+        customPartIndex = 0;
     }
 
     public Point3d getPosition()
@@ -92,7 +105,7 @@ public class Block
 
     public CustomPart[] getCustomPart()
     {
-        return mCustomPart;
+        return customParts;
     }
 
     public boolean isCustom()
@@ -100,14 +113,9 @@ public class Block
         return isCustom;
     }
 
-    public boolean isUsingSuggestCustomPart()
-    {
-        return mUsingSuggestCustomPart;
-    }
-
     public int getSuggestedCustomPartIndex()
     {
-        return mSuggestedCustomPartIndex;
+        return customPartIndex;
     }
 
     public void drawBlock(String filename)
