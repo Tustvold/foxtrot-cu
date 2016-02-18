@@ -86,6 +86,12 @@ public class Block
         customPartIndex = suggestedCustomPartIndex;
     }
 
+    public Block(CustomPart[] parts, boolean usingCustomPart, int partNumber) {
+        customParts = parts;
+        isCustom = usingCustomPart;
+        customPartIndex = partNumber;
+    }
+
     public Block(Point3d position, boolean isCustom)
     {
         // initialise internals

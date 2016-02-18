@@ -11,6 +11,6 @@ public class CustomPart {
 
     public CustomPart(Point3f[] inTriangles) {
         triangles = new Point3f[inTriangles.length];
-        System.arraycopy(triangles, 0, inTriangles, 0, triangles.length);
+        System.arraycopy(inTriangles, 0, triangles, 0, inTriangles.length);
     }
 }
