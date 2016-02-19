@@ -335,6 +335,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         return yCap;
     }
 
+    this.getBlockList = function() {
+        return blockList;
+    }
+
     function pick() {
 
         //render the picking scene off-screen
