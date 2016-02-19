@@ -68,7 +68,7 @@ html(lang='en')
                                                 .panel-body
                                                 div#output-container.model-viewer
                                 .col-md-6
-                                       button(type="submit",class="btn btn-primary btn-file" data-toggle='collapse', href='#collapse3')
+                                       button#request-mould(type="submit",class="btn btn-primary btn-file" data-toggle='collapse', href='#collapse3')
                                          |Submit Custom Generated Design
 
             .panel-group
@@ -85,8 +85,7 @@ html(lang='en')
             var objRenderer, BlockRenderer;
             var objRendererContainer = document.getElementById("input-container")
             var blockRendererContainer = document.getElementById("output-container")
-            
-            
+
             
             var width = 500
             var height = width;
@@ -125,6 +124,24 @@ html(lang='en')
                     } else {
                         BlockRenderer.setBlockList(response)
                     }
-                } 
-            })            
+                }
+
+                var request_moulds = function() {
+                    var blockList = {}
+                    $.ajax({
+                        url: '/request-moulds',
+                        method: 'POST',
+                        data: JSON.stringify({block_list: blockList}),
+                        contentType: "application/json; charset=utf-8",
+                        dataTpye: 'json'
+                    }).done(function( data ) {
+                        console.log(data);
+                    })
+                };
+
+                $('#request-mould').click(function(event) {
+                    request_moulds();
+                    console.log('test')
+                })
+            });
                     

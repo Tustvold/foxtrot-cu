@@ -29,9 +29,11 @@ router.post('/', function(req,res,next){
         if (err)
             throw err;
         console.log(req)
-        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" mouldify' + req.file.path + " " + dirPath);
-        console.log(req.file)
-        console.log(dirPath);
+        //var body =
+        console.log(req.body)
+        console.log(req.body.block_list)
+        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" mouldify' + JSON.stringify(req.body.block_list) + " " + dirPath);
+
 
         archive.pipe(res);
         archive.bulk([
