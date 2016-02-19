@@ -14,8 +14,15 @@ public class IntersectionRemover {
     Point3d[][] polygonArray;
     Point3d[][] holeArray;
     Point3dPolygon[] combinedArray;
+    private static final double approximate_tolerance = 0.00001;
     double z;
     CustomPartMouldGenerator.ProjectionFace projectionFace;
+
+    // checks if the three points can be approximated as on the same line
+    public boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
+    {
+        return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < approximate_tolerance;
+    }
 
     public IntersectionRemover(Point3d[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace face){ // in x-y plane
         projectionFace = face;

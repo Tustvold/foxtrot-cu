@@ -643,7 +643,6 @@ public class MeshVoxeliser
     // returns true if B is between A and C (all xy projections)
     boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
     {
-        double inter = Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y));
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < double_tolerance;
     }
 
