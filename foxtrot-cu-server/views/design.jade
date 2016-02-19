@@ -11,7 +11,8 @@ html(lang='en')
         script(stc='/scripts/Delegate.js')
         script(src='/scripts/ObjFileRenderer.js')
         script(src='/scripts/BlockListRenderer.js')
-        
+        script(src='/scripts/FileSaver.js')
+
         .container
             row
                 h1(class="text-center") Edible Lego
@@ -127,17 +128,21 @@ html(lang='en')
                 }
 
                 var request_moulds = function() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", '/tests/zipper', true);
+                    xhr.setRequestHeader("Content-type", "application/json");
+                    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4 && xhr.status == 200) {
+                            var blob = new Blob([xhr.response], {type: "octet/stream"});
+                            var fileName = "moulds.zip";
+                            saveAs(blob, fileName);
+                        }
+                    }
                     var blockList = {}
-                    $.ajax({
-                        url: '/request-moulds',
-                        method: 'POST',
-                        data: JSON.stringify({block_list: blockList}),
-                        contentType: "application/json; charset=utf-8",
-                        dataTpye: 'json'
-                    }).done(function( data ) {
-                        console.log(data);
-                    })
-                };
+                    xhr.responseType = "arraybuffer";
+                    xhr.send(JSON.stringify({block_list: blockList}));
+                }
 
                 $('#request-mould').click(function(event) {
                     request_moulds();

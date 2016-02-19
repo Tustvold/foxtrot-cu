@@ -6,7 +6,7 @@ var temp = require('temp');
 var fs = require('fs');
 
 
-router.get('/zipper', function(req,res,next){
+router.post('/zipper', function(req,res,next){
 
     temp.track();
     var archive = archiver('zip')
@@ -39,7 +39,7 @@ router.get('/zipper', function(req,res,next){
             { expand: true, cwd: dirPath, src: ['*.stl'], dest: 'parts'}
         ]);
 
-        res.header("Content-Type", "application/octet-stream");
+        res.header("Content-Type", "application/zip");
         archive.finalize();
 
 
