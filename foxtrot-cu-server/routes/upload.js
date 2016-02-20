@@ -15,9 +15,11 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
     temp.open("outputjson", function (err, tempfile) {
         if (err)
             throw err;
-        console.log(req.file)
-        console.log(tempfile.path);
-        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + "3" + " " + "1.0"
+        //console.log(req.file)
+        console.log(req.body.block_size)
+        console.log(req.body.block_number)
+       // console.log(tempfile.path);
+        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + req.body.block_number + " " + req.body.block_size
         console.log(args);
         child = exec(args);
 
