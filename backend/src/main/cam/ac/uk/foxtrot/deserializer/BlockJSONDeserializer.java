@@ -15,7 +15,10 @@ public class BlockJSONDeserializer implements JsonDeserializer<Block> {
     public Block deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObj = json.getAsJsonObject();
 
-        CustomPart[] parts = new Gson().fromJson(jsonObj.get("custom_part_array"), CustomPart[].class);
+        CustomPart[] parts = null;
+        if (jsonObj.get("custom_part_array") != null) {
+            new Gson().fromJson(jsonObj.get("custom_part_array"), CustomPart[].class);
+        }
 
         boolean usingCustomPart = jsonObj.getAsJsonPrimitive("use_custom_part").isBoolean();
         int partNumber = jsonObj.getAsJsonPrimitive("custom_part_index").getAsInt();

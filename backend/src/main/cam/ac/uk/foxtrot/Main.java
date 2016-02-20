@@ -1,9 +1,11 @@
 package cam.ac.uk.foxtrot;
 
+import cam.ac.uk.foxtrot.deserializer.BlockJSONDeserializer;
 import cam.ac.uk.foxtrot.serializer.BlockJSONSerializer;
 import cam.ac.uk.foxtrot.voxelisation.*;
 import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -153,41 +155,56 @@ public class Main
     private static void mouldify(String jsonIn, String mouldDirectoryPath, float scale)
     {
         Block[][][] blocks = null;
-        //todo fill blocks using BlockJSONSerializer on jsonIn
 
-        int[] dim = {blocks.length, blocks[0].length, blocks[0][0].length};
-        for (int x = 0; x < dim[0]; x++)
-        {
-            for (int y = 0; y < dim[1]; y++)
+        try {
+
+            GsonBuilder b = new GsonBuilder();
+            b.registerTypeAdapter(Block.class, new BlockJSONDeserializer());
+
+
+            Gson gson = b.create();
+            JsonReader reader = new JsonReader(new FileReader(jsonIn));
+            blocks = gson.fromJson(reader, Block[][][].class);
+
+
+
+            int[] dim = {blocks.length, blocks[0].length, blocks[0][0].length};
+            for (int x = 0; x < dim[0]; x++)
             {
-                for (int z = 0; z < dim[2]; z++)
+                for (int y = 0; y < dim[1]; y++)
                 {
-                    Block block = blocks[x][y][z];
-                    if (block == null || !block.isCustom())
+                    for (int z = 0; z < dim[2]; z++)
                     {
-                        // we ignore all non custom blocks
-                        continue;
-                    }
+                        Block block = blocks[x][y][z];
+                        if (block == null || !block.isCustom())
+                        {
+                            // we ignore all non custom blocks
+                            continue;
+                        }
 
-                    CustomPartMouldGenerator.ProjectionFace face = null;
-                    switch (block.getCustomPartIndex()) {
-                        case 0: face = CustomPartMouldGenerator.ProjectionFace.XY0;break;
-                        case 1: face = CustomPartMouldGenerator.ProjectionFace.XY1;break;
-                        case 2: face = CustomPartMouldGenerator.ProjectionFace.ZX0;break;
-                        case 3: face = CustomPartMouldGenerator.ProjectionFace.ZX1;break;
-                        case 4: face = CustomPartMouldGenerator.ProjectionFace.ZY0;break;
-                        case 5: face = CustomPartMouldGenerator.ProjectionFace.ZY1;break;
-                        default: throw new IllegalArgumentException("mouldify: block's custom part index must be between 0 and 5.");
-                    }
+                        CustomPartMouldGenerator.ProjectionFace face = null;
+                        switch (block.getCustomPartIndex()) {
+                            case 0: face = CustomPartMouldGenerator.ProjectionFace.XY0;break;
+                            case 1: face = CustomPartMouldGenerator.ProjectionFace.XY1;break;
+                            case 2: face = CustomPartMouldGenerator.ProjectionFace.ZX0;break;
+                            case 3: face = CustomPartMouldGenerator.ProjectionFace.ZX1;break;
+                            case 4: face = CustomPartMouldGenerator.ProjectionFace.ZY0;break;
+                            case 5: face = CustomPartMouldGenerator.ProjectionFace.ZY1;break;
+                            default: throw new IllegalArgumentException("mouldify: block's custom part index must be between 0 and 5.");
+                        }
 
-                    ArrayList<Point3d> al = block.getTriangles();
-                    //todo accept scale
-                    CustomPartMouldGenerator m = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]));
-                    File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
-                    m.generateMould(face, outFile);
+                        ArrayList<Point3d> al = block.getTriangles();
+                        //todo accept scale
+                        CustomPartMouldGenerator m = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]));
+                        File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
+                        m.generateMould(face, outFile);
+                    }
                 }
             }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
+
     }
 
 
