@@ -78,7 +78,7 @@ public class VoxeliserTests {
         F = new Point3d(1, 0, 0);
         S = new Point3d(1, 2, 0);
         R = new Point3d(0, 0, 0);
-        T = new Point3d(0, 0, 0);
+        T = new Point3d(-1, 1, 0);
         L = 1;
         val = MeshVoxeliser.intersect(F, S, L, I, R);
         Assert.assertEquals(val, false);
