@@ -4,6 +4,10 @@ import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.GeometryArray;
 import javax.vecmath.Point3d;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -21,7 +25,7 @@ public class CustomPartMouldGenerator
     private final float EXTRA_WH = .1f;
     private final float SCALE = 35;
 
-    // sides of unit cube in the first octant of 3D space specified clockwise
+    // sides of unit cube
     private final Point3d[] FACE_XY0 =
             {
                     new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
@@ -42,33 +46,33 @@ public class CustomPartMouldGenerator
     private final Point3d[] FACE_ZY0 =
             {
                     new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0),
                     new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0)
+                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
             };
 
     private final Point3d[] FACE_ZY1 =
             {
                     new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
+                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0),
                     new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0)
+                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
             };
 
     private final Point3d[] FACE_ZX0 =
             {
                     new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
+                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
                     new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
+                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0)
             };
 
     private final Point3d[] FACE_ZX1 =
             {
                     new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0),
+                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
                     new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
+                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0)
             };
 
     private Point3d[] mesh;
@@ -333,7 +337,7 @@ public class CustomPartMouldGenerator
     }
 
     // generate a mould for mesh projected onto face
-    public Point3d[] generateMould(ProjectionFace face)
+    public Point3d[] generateMould(ProjectionFace face, File file)
     {
         if (face == null)
         {
@@ -386,7 +390,7 @@ public class CustomPartMouldGenerator
         }
         ga.getCoordinates(0, pts);
 
-        //generateObjFile(pts);
+        generateObjFile(pts, file);
         return pts;
     }
 
@@ -473,24 +477,35 @@ public class CustomPartMouldGenerator
     }
 
     // given a mesh of Point3ds representing triangles (each 3 is a triangle), print an obj
-    // file representing this mesh to stdout
-    private void generateObjFile(Point3d[] pts)
+    // file representing this mesh to stdout - PATH MUST BE APPROPRIATELY ESCAPED
+    private void generateObjFile(Point3d[] pts, File file)
     {
-        if (pts.length % 3 != 0)
-        {
-            throw new IllegalArgumentException("generateObjFile: number of vertices not a multiple of 3");
-        }
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 
-        // print vertices
-        for (Point3d pt : pts)
-        {
-            System.out.println("v " + pt.x * SCALE + " " + pt.y * SCALE + " " + pt.z * SCALE);
-        }
+            if (pts.length % 3 != 0)
+            {
+                throw new IllegalArgumentException("generateObjFile: number of vertices not a multiple of 3");
+            }
 
-        // print faces
-        for (int i = 1; i < pts.length + 1; i += 3)
-        {
-            System.out.println("f " + i + " " + (i + 1) + " " + (i + 2));
+            // print vertices
+            for (Point3d pt : pts)
+            {
+                bw.write("v " + pt.x * SCALE + " " + pt.y * SCALE + " " + pt.z * SCALE);
+                bw.newLine();
+            }
+
+            // print faces
+            for (int i = 1; i < pts.length + 1; i += 3)
+            {
+                bw.write("f " + i + " " + (i + 1) + " " + (i + 2));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            System.err.println("generateObjFile: couldn't write to file");
+            e.printStackTrace();
         }
     }
 

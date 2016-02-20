@@ -146,12 +146,48 @@ public class Main
      * Given a JSON file representing a block list and a directory, output mould files from the block list into the
      * directory.
      *
-     * @param jsonIn
-     * @param mouldDirectoryPath
+     * @param jsonIn                path to JSON file representing a block list
+     * @param mouldDirectoryPath    directory in which to write mould files
+     * @param scale                 size of a block in mm
      */
-    private static void mouldify(String jsonIn, String mouldDirectoryPath)
+    private static void mouldify(String jsonIn, String mouldDirectoryPath, float scale)
     {
+        Block[][][] blocks = null;
+        //todo fill blocks using BlockJSONSerializer on jsonIn
 
+        int[] dim = {blocks.length, blocks[0].length, blocks[0][0].length};
+        for (int x = 0; x < dim[0]; x++)
+        {
+            for (int y = 0; y < dim[1]; y++)
+            {
+                for (int z = 0; z < dim[2]; z++)
+                {
+                    Block block = blocks[x][y][z];
+                    if (block == null || !block.isCustom())
+                    {
+                        // we ignore all non custom blocks
+                        continue;
+                    }
+
+                    CustomPartMouldGenerator.ProjectionFace face = null;
+                    switch (block.getCustomPartIndex()) {
+                        case 0: face = CustomPartMouldGenerator.ProjectionFace.XY0;break;
+                        case 1: face = CustomPartMouldGenerator.ProjectionFace.XY1;break;
+                        case 2: face = CustomPartMouldGenerator.ProjectionFace.ZX0;break;
+                        case 3: face = CustomPartMouldGenerator.ProjectionFace.ZX1;break;
+                        case 4: face = CustomPartMouldGenerator.ProjectionFace.ZY0;break;
+                        case 5: face = CustomPartMouldGenerator.ProjectionFace.ZY1;break;
+                        default: throw new IllegalArgumentException("mouldify: block's custom part index must be between 0 and 5.");
+                    }
+
+                    ArrayList<Point3d> al = block.getTriangles();
+                    //todo accept scale
+                    CustomPartMouldGenerator m = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]));
+                    File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
+                    m.generateMould(face, outFile);
+                }
+            }
+        }
     }
 
 
@@ -162,9 +198,9 @@ public class Main
     public static void main(String[] args) throws Exception
     {
         System.out.println("Starting...");
-        if (args.length < 3)
+        if (args.length < 4)
         {
-            System.err.println("Error: Need at least 3 arguments.");
+            System.err.println("Error: Need at least 4 arguments.");
             return;
         }
         String methodName = args[0];
@@ -183,9 +219,14 @@ public class Main
                 System.err.println("Error: arguments 4 and 5 should be numbers for voxelisation.");
             }
         }
-        else if (methodName.equals("mouldify"))
-        {
-            mouldify(args[1], args[2]);
+        else if (methodName.equals("mouldify")) {
+            try
+            {
+                mouldify(args[1], args[2], Float.parseFloat(args[3]));
+            } catch (NumberFormatException e)
+            {
+                System.err.println("Error: argument 3 should be a number for mouldification.");
+            }
         }
         else
         {

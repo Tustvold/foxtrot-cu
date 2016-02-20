@@ -18,7 +18,7 @@ public class BlockJSONDeserializer implements JsonDeserializer<Block> {
         CustomPart[] parts = new Gson().fromJson(jsonObj.get("custom_part_array"), CustomPart[].class);
 
         boolean usingCustomPart = jsonObj.getAsJsonPrimitive("use_custom_part").isBoolean();
-        int partNumber = jsonObj.getAsJsonPrimitive("suggested_custom_part").getAsInt();
+        int partNumber = jsonObj.getAsJsonPrimitive("custom_part_index").getAsInt();
 
 
         return new Block(parts, usingCustomPart, partNumber);

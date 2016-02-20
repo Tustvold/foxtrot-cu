@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.vecmath.Point3d;
+import java.io.File;
 
 public class MainTest {
 
@@ -13,12 +14,8 @@ public class MainTest {
         Assert.assertTrue(true);
     }
 
-    private boolean floatCompare(float a, float b, float epsilon) {
-        return Math.abs(a-b) <= epsilon;
-    }
-
     @Test
-    public void testProjection() throws Exception {
+    public void testGeneration() throws Exception {
         /*float EPSILON = .00000001f;
 
         float X_SET = 5.6f;
@@ -71,8 +68,7 @@ public class MainTest {
         points[8] = new Point3d(.5f, 1, 0);
 
         CustomPartMouldGenerator p = new CustomPartMouldGenerator(points);
-        p.generateMould(CustomPartMouldGenerator.ProjectionFace.XY1);
-        System.out.println("\n\n-----\n\n");
+        p.generateMould(CustomPartMouldGenerator.ProjectionFace.XY1, new File("/tmp","outTest.obj"));
         p.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.XY1);
 
 

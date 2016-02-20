@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.Test;
 
+import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 
 /**
@@ -25,9 +26,9 @@ public class JSONTest {
 
     @Test
     public void testPart() {
-        Point3f[] points = new Point3f[2];
-        points[0] = new Point3f(3,3,3);
-        points[1] = new Point3f(3,3,4);
+        Point3d[] points = new Point3d[2];
+        points[0] = new Point3d(3,3,3);
+        points[1] = new Point3d(3,3,4);
         CustomPart p = new CustomPart(points);
         System.out.println(new Gson().toJson(p));
 

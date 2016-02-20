@@ -122,7 +122,7 @@ public class Block
         return isCustom;
     }
 
-    public int getSuggestedCustomPartIndex()
+    public int getCustomPartIndex()
     {
         return customPartIndex;
     }
