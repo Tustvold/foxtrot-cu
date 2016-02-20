@@ -71,9 +71,12 @@ html(lang='en')
                                 row
                                     br
                                 row
-                                    .col-md-12
+                                    .col-md-6
                                        button#request-mould(type="submit",class="btn btn-primary btn-file btn-collapse3")
                                          |Submit Custom Generated Design
+                                       button.btn.btn-primary.btn-file.mould-downloader(type='hidden')
+                                            | Download
+
 
             .panel-group
                 .col-md-12
@@ -96,6 +99,9 @@ html(lang='en')
             var height = width;
     
             $('document').ready(function () {
+                $('.mould-downloader').hide()
+
+
                 $(".btn-collapse1").click(function(){
                     $("#collapse1").collapse('show');
                 });
@@ -153,7 +159,12 @@ html(lang='en')
                         if (xhr.readyState == 4 && xhr.status == 200) {
                             var blob = new Blob([xhr.response], {type: "octet/stream"});
                             var fileName = "moulds.zip";
-                            saveAs(blob, fileName);
+                            $('.mould-downloader').click(function() {
+                                saveAs(blob, fileName);
+                                console.log('download')
+                            }).show();
+                            //saveAs(blob, fileName);
+
                         }
                     }
                     var blockList = BlockRenderer.getBlockList();
