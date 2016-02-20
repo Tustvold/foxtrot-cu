@@ -65,7 +65,7 @@ public class MeshIO
                         for (int curr = 0; curr < 3; curr++)
                         {
                             for (; fir < sa.length && (sa[fir].compareTo("\\s") == 0 || sa[fir].compareTo("") == 0); fir++)
-                                ;
+                                  ;
                             if (fir == sa.length)
                                 throw new IOException("Vertex has too many coordinates");
                             co[curr] = Double.parseDouble(sa[fir]);

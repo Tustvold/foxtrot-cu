@@ -328,7 +328,7 @@ public class MeshVoxeliser
 
     // intersects the line between fir and sec with the vertical line at line ignoring the ignoreth coordinate
     // and writes the return in res. Returns true if there is an intersection
-    private boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
+    public static boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
     {
         double x1, y1, x2, y2;
         int idx = (ignore + 1) % 3;
@@ -414,6 +414,8 @@ public class MeshVoxeliser
         res.set(coordNew);
         return true;
     }
+
+
 
     // returns the minimum coordinates in the x, y and z plane which intersect the polygon
     private int[] getMinBounds(ArrayList<Point3d> polygon)
