@@ -17,10 +17,8 @@ public class MeshVoxeliser
     public static final double double_tolerance = 0.000000000001;                  // global tolerance constant
     public static final double probability_tolerance = 0.000000001;                // global probability tolerance constant
     public static final int reverse_tolerance = (int) (1 / probability_tolerance); // used in the probability constants
-
-    private ArrayList<Point3d> initTrigs;
-
-    int telemetry;
+    private ArrayList<Point3d> initTrigs;                                          // a buffered list of initial triangles
+    int telemetry;                                                                 // counts the toatl number of retries
 
     public MeshVoxeliser(Mesh mesh)
     {
