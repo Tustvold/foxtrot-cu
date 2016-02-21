@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * Created by robbowman on 19/02/2016.
  */
-public class VoxeliserTests {
+public class IntersectionTests {
 
     Point3d F, S, T;
     Point3d R = new Point3d();

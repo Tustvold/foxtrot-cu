@@ -630,7 +630,7 @@ public class MeshVoxeliser
         return 0.71 + probability_tolerance * (r.nextInt(reverse_tolerance) - (double) reverse_tolerance / 2) / 10;
     }
 
-    int cutVertically(Point3d R0, ArrayList<Point3d> T)
+    public static int cutVertically(Point3d R0, ArrayList<Point3d> T)
     {
         if (areIdenticalInXY(R0, T.get(0))) return 2;
         if (areIdenticalInXY(R0, T.get(1))) return 3;
@@ -643,14 +643,14 @@ public class MeshVoxeliser
     }
 
     // returns true if B is between A and C (all xy projections)
-    boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
+    public static boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
     {
         double inter = Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y));
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < double_tolerance;
     }
 
     // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
-    boolean ptInTriangleXY(Point3d I, ArrayList<Point3d> T)
+    public static boolean ptInTriangleXY(Point3d I, ArrayList<Point3d> T)
     {
         double dX = I.x - T.get(2).x;
         double dY = I.y - T.get(2).y;
@@ -664,7 +664,7 @@ public class MeshVoxeliser
     }
 
     // returns true if the projections of the two points on the xy plane coincide
-    boolean areIdenticalInXY(Point3d ver1, Point3d ver2)
+    public static boolean areIdenticalInXY(Point3d ver1, Point3d ver2)
     {
         return Math.abs(ver1.x - ver2.x) < double_tolerance
                 && Math.abs(ver1.y - ver2.y) < double_tolerance;
