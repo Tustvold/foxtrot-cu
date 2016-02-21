@@ -14,7 +14,7 @@ public class IntersectionRemover {
     Point3d[][] polygonArray;
     Point3d[][] holeArray;
     Point3dPolygon[] combinedArray;
-    private static final double approximate_tolerance = 0.00001;
+    private static final double approximate_tolerance = 0.00000001;
     double z;
     CustomPartMouldGenerator.ProjectionFace projectionFace;
 
@@ -33,14 +33,29 @@ public class IntersectionRemover {
             z = originalCoordinates[0].z;
         }
         for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
-            Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
-            Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i+1]);
-            Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i+2]);
-            Coordinate[] coordinates = {coordinate1,coordinate2,coordinate3,coordinate1}; //coordinates of triangle
-            geometryList.add(factory.createPolygon(factory.createLinearRing(coordinates),null)); //add triangle to list of geometries
+            if(!approximatesToLine(originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2])) {
+                Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
+                Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i + 1]);
+                Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i + 2]);
+                Coordinate[] coordinates = {coordinate1, coordinate2, coordinate3, coordinate1}; //coordinates of triangle
+                geometryList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
+            }
         }
-        union = UnaryUnionOp.union(geometryList); //merge geometries, overlapping triangles merged
-        generateArrays();
+        for (Geometry g: geometryList){
+            if (union == null) {
+                union = g;
+            } else {
+                union.union(g);
+            }
+        }
+ //       union = UnaryUnionOp.union(geometryList); //merge geometries, overlapping triangles merged
+        if (union != null) {
+            generateArrays();
+        } else {
+            polygonArray = new Point3d[0][];
+            holeArray = new Point3d[0][];
+            combinedArray = new Point3dPolygon[0];
+        }
     }
 
     private void zy(Point3d[] coordinates) {
