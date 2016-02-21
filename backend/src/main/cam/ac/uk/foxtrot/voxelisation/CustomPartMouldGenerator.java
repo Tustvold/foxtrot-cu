@@ -307,6 +307,7 @@ public class CustomPartMouldGenerator
 
         // remove self-intersections in the projection
         IntersectionRemover ir = new IntersectionRemover(projectionCoords, face);
+        ir.drawPolygon("testing/output/poly.obj");
         Point3dPolygon[] combinedPolygons = ir.getCombinedArray();
         Point3d[][] projectionPolygons = ir.getPolygonArray();
         Point3d[][] projectionHoles = ir.getHoleArray();
