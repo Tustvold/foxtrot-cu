@@ -12,7 +12,7 @@ public class Mesh
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
     private double blockSize;
 
-    // really fine scaling factors (limits of system)á
+    // really fine scaling factors (limits of system)
     // 0.2 for Zucarello.obj
     // 0.004 for teapot.obj
     // 0.02 for human.obj

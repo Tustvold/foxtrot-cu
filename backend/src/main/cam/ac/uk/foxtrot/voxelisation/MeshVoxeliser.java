@@ -17,10 +17,8 @@ public class MeshVoxeliser
     public static final double double_tolerance = 0.000000000001;                  // global tolerance constant
     public static final double probability_tolerance = 0.000000001;                // global probability tolerance constant
     public static final int reverse_tolerance = (int) (1 / probability_tolerance); // used in the probability constants
-
-    private ArrayList<Point3d> initTrigs;
-
-    int telemetry;
+    private ArrayList<Point3d> initTrigs;                                          // a buffered list of initial triangles
+    int telemetry;                                                                 // counts the toatl number of retries
 
     public MeshVoxeliser(Mesh mesh)
     {
@@ -189,7 +187,7 @@ public class MeshVoxeliser
 
         // TESTING METHODS
         //drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
-        //drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
 
         System.out.println("All blocks filled...");
     }
@@ -328,7 +326,7 @@ public class MeshVoxeliser
 
     // intersects the line between fir and sec with the vertical line at line ignoring the ignoreth coordinate
     // and writes the return in res. Returns true if there is an intersection
-    private boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
+    public static boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
     {
         double x1, y1, x2, y2;
         int idx = (ignore + 1) % 3;
@@ -414,6 +412,8 @@ public class MeshVoxeliser
         res.set(coordNew);
         return true;
     }
+
+
 
     // returns the minimum coordinates in the x, y and z plane which intersect the polygon
     private int[] getMinBounds(ArrayList<Point3d> polygon)
@@ -628,7 +628,7 @@ public class MeshVoxeliser
         return 0.71 + probability_tolerance * (r.nextInt(reverse_tolerance) - (double) reverse_tolerance / 2) / 10;
     }
 
-    int cutVertically(Point3d R0, ArrayList<Point3d> T)
+    public static int cutVertically(Point3d R0, ArrayList<Point3d> T)
     {
         if (areIdenticalInXY(R0, T.get(0))) return 2;
         if (areIdenticalInXY(R0, T.get(1))) return 3;
@@ -641,13 +641,13 @@ public class MeshVoxeliser
     }
 
     // returns true if B is between A and C (all xy projections)
-    boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
+    public static boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
     {
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < double_tolerance;
     }
 
     // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
-    boolean ptInTriangleXY(Point3d I, ArrayList<Point3d> T)
+    public static boolean ptInTriangleXY(Point3d I, ArrayList<Point3d> T)
     {
         double dX = I.x - T.get(2).x;
         double dY = I.y - T.get(2).y;
@@ -661,7 +661,7 @@ public class MeshVoxeliser
     }
 
     // returns true if the projections of the two points on the xy plane coincide
-    boolean areIdenticalInXY(Point3d ver1, Point3d ver2)
+    public static boolean areIdenticalInXY(Point3d ver1, Point3d ver2)
     {
         return Math.abs(ver1.x - ver2.x) < double_tolerance
                 && Math.abs(ver1.y - ver2.y) < double_tolerance;

@@ -3,6 +3,7 @@ package cam.ac.uk.foxtrot.voxelisation;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +15,7 @@ public class IntersectionRemover {
     Point3d[][] polygonArray;
     Point3d[][] holeArray;
     Point3dPolygon[] combinedArray;
-    private static final double approximate_tolerance = 0.00001;
+    private static final double approximate_tolerance = 0.0000000001;
     double z;
     ProjectionUtils.ProjectionFace projectionFace;
 
@@ -33,14 +34,29 @@ public class IntersectionRemover {
             z = originalCoordinates[0].z;
         }
         for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
-            Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
-            Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i+1]);
-            Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i+2]);
-            Coordinate[] coordinates = {coordinate1,coordinate2,coordinate3,coordinate1}; //coordinates of triangle
-            geometryList.add(factory.createPolygon(factory.createLinearRing(coordinates),null)); //add triangle to list of geometries
+            if(!approximatesToLine(originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2])) {
+                Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
+                Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i + 1]);
+                Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i + 2]);
+                Coordinate[] coordinates = {coordinate1, coordinate2, coordinate3, coordinate1}; //coordinates of triangle
+                geometryList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
+            }
         }
-        union = UnaryUnionOp.union(geometryList); //merge geometries, overlapping triangles merged
-        generateArrays();
+        for (Geometry g: geometryList){
+            if (union == null) {
+                union = g;
+            } else {
+                union.union(g);
+            }
+        }
+ //       union = UnaryUnionOp.union(geometryList); //merge geometries, overlapping triangles merged
+        if (union != null) {
+            generateArrays();
+        } else {
+            polygonArray = new Point3d[0][];
+            holeArray = new Point3d[0][];
+            combinedArray = new Point3dPolygon[0];
+        }
     }
 
     private void zy(Point3d[] coordinates) {
@@ -114,6 +130,84 @@ public class IntersectionRemover {
         System.out.println(Arrays.deepToString(merged.getCombinedArray()[0].getHoles()));
         System.out.println(Arrays.deepToString(merged.getPolygonArray()));
         System.out.println(Arrays.toString(merged.getHoleArray()));
+    }
+
+    public void drawPolygon(String filename)
+    {
+        System.out.println("Drawing single face...");
+        Point3d[][] polys = new Point3d[polygonArray.length + holeArray.length][];
+        for(int i = 0; i < polygonArray.length; i++)
+        {
+            polys[i] = new Point3d[polygonArray[i].length];
+            for(int j = 0; j < polygonArray[i].length; j++)
+            {
+                polys[i][j] = new Point3d(polygonArray[i][j]);
+            }
+        }
+        for(int i = 0; i < holeArray.length; i++)
+        {
+            polys[polygonArray.length + i] = new Point3d[holeArray[i].length];
+            for(int j = 0; j < holeArray[i].length; j++)
+            {
+                polys[polygonArray.length + i][j] = new Point3d(holeArray[i][j]);
+            }
+        }
+        drawPolygonList(polys, filename);
+        System.out.println("Single face drawn...");
+    }
+
+    public void drawPolygonList(Point3d[][] polys, String filename)
+    {
+        Writer writer = null;
+        try
+        {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+        } catch (IOException ex)
+        {
+            //System.err.println(ex.getMessage());
+            return;
+        }
+
+        for (int i = 0; i < polys.length; i++)
+        {
+            for (int j = 0; j < polys[i].length; j++)
+            {
+                try
+                {
+                    writer.write("v " + (polys[i][j].x) + " "
+                            + (polys[i][j].y) + " "
+                            + (polys[i][j].z) + "\n");
+
+                } catch (IOException err)
+                {
+                    System.err.println("Could not write blocks: " + err.getMessage());
+                }
+            }
+        }
+        int curr = 1;
+        for (int poly = 0; poly < polys.length; poly++)
+        {
+            String out = "f";
+            for (int i = 0; i < polys[poly].length; i++)
+            {
+                out += " " + curr;
+                curr++;
+            }
+            try
+            {
+                writer.write(out + "\n");
+            } catch (IOException err)
+            {
+                System.err.println("Could not write blocks: " + err.getMessage());
+            }
+        }
+
+        try
+        {
+            writer.close();
+        } catch (Exception ex)
+
+        {/*ignore*/}
     }
 
 }
