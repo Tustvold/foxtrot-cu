@@ -73,21 +73,19 @@ public class Main
                     sortedBlocks.add(block);
                     ArrayList<Point3d> al = block.getTriangles();
 
-                    CustomPartMouldGenerator cp = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]));
-                    CustomPart p0 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.XY0));
+                    CustomPartGenerator cp = new CustomPartGenerator(al.toArray(new Point3d[al.size()]));
+                    CustomPart p0 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
                     block.setCustomPart(0, p0);
-                    CustomPart p1 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.XY1));
+                    CustomPart p1 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
                     block.setCustomPart(1, p1);
-                    CustomPart p2 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZX0));
+                    CustomPart p2 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
                     block.setCustomPart(2, p2);
-                    CustomPart p3 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZX1));
+                    CustomPart p3 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
                     block.setCustomPart(3, p3);
-                    CustomPart p4 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZY0));
+                    CustomPart p4 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
                     block.setCustomPart(4, p4);
-                    CustomPart p5 = new CustomPart(cp.generateCustomPart(CustomPartMouldGenerator.ProjectionFace.ZY1));
+                    CustomPart p5 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
                     block.setCustomPart(5, p5);
-
-                    //todo accept scale for custom parts
 
                     // set suggested custom part
                     // nullify the selection initially, so that we can later select the top n as custom
@@ -131,7 +129,7 @@ public class Main
         Gson gsonParser = builder.create();
 
         // write the gson to a file
-        Writer writer = null;
+        Writer writer;
         try
         {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(jsonOut), "utf-8"));
@@ -140,7 +138,6 @@ public class Main
         } catch (IOException ex)
         {
             System.err.println(ex.getMessage());
-            return;
         }
     }
 
@@ -154,7 +151,7 @@ public class Main
      */
     private static void mouldify(String jsonIn, String mouldDirectoryPath, float scale)
     {
-        Block[][][] blocks = null;
+        Block[][][] blocks;
 
         try {
 
@@ -182,20 +179,19 @@ public class Main
                             continue;
                         }
 
-                        CustomPartMouldGenerator.ProjectionFace face = null;
+                        ProjectionUtils.ProjectionFace face;
                         switch (block.getCustomPartIndex()) {
-                            case 0: face = CustomPartMouldGenerator.ProjectionFace.XY0;break;
-                            case 1: face = CustomPartMouldGenerator.ProjectionFace.XY1;break;
-                            case 2: face = CustomPartMouldGenerator.ProjectionFace.ZX0;break;
-                            case 3: face = CustomPartMouldGenerator.ProjectionFace.ZX1;break;
-                            case 4: face = CustomPartMouldGenerator.ProjectionFace.ZY0;break;
-                            case 5: face = CustomPartMouldGenerator.ProjectionFace.ZY1;break;
+                            case 0: face = ProjectionUtils.ProjectionFace.XY0;break;
+                            case 1: face = ProjectionUtils.ProjectionFace.XY1;break;
+                            case 2: face = ProjectionUtils.ProjectionFace.ZX0;break;
+                            case 3: face = ProjectionUtils.ProjectionFace.ZX1;break;
+                            case 4: face = ProjectionUtils.ProjectionFace.ZY0;break;
+                            case 5: face = ProjectionUtils.ProjectionFace.ZY1;break;
                             default: throw new IllegalArgumentException("mouldify: block's custom part index must be between 0 and 5.");
                         }
 
                         ArrayList<Point3d> al = block.getTriangles();
-                        //todo accept scale
-                        CustomPartMouldGenerator m = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]));
+                        CustomPartMouldGenerator m = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]), scale);
                         File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
                         m.generateMould(face, outFile);
                     }
@@ -249,10 +245,5 @@ public class Main
         {
             System.err.println("Error: invalid method name.");
         }
-
-
-        String filePath = args[0];
-
-
     }
 }

@@ -16,7 +16,7 @@ import javax.vecmath.Point3f;
 public class JSONTest {
     @Test
     public void testGSON() {
-        String jsonInput = "{ \"custom_part_array\": [{\"triangle_array\":[{\"x\":3.0,\"y\":3.0,\"z\":3.0},{\"x\":3.0,\"y\":3.0,\"z\":4.0}]}], \"use_custom_part\": false, \"suggested_custom_part\": 0 }";
+        String jsonInput = "{ \"custom_part_array\": [{\"triangle_array\":[{\"x\":3.0,\"y\":3.0,\"z\":3.0},{\"x\":3.0,\"y\":3.0,\"z\":4.0}]}], \"use_custom_part\": 0, \"custom_part_index\": 0 }";
         GsonBuilder gb = new GsonBuilder();
         gb.registerTypeAdapter(Block.class, new BlockJSONDeserializer());
         Gson g = gb.create();

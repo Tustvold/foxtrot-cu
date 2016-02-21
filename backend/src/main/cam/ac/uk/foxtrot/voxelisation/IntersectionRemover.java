@@ -16,7 +16,7 @@ public class IntersectionRemover {
     Point3dPolygon[] combinedArray;
     private static final double approximate_tolerance = 0.00001;
     double z;
-    CustomPartMouldGenerator.ProjectionFace projectionFace;
+    ProjectionUtils.ProjectionFace projectionFace;
 
     // checks if the three points can be approximated as on the same line
     public boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
@@ -24,7 +24,7 @@ public class IntersectionRemover {
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < approximate_tolerance;
     }
 
-    public IntersectionRemover(Point3d[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace face){ // in x-y plane
+    public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace face){ // in x-y plane
         projectionFace = face;
         convertBetweenPlanes(originalCoordinates);
         List<Geometry> geometryList = new ArrayList<>();
@@ -109,7 +109,7 @@ public class IntersectionRemover {
 
     public static void main(String[] args) {
         Point3d[] Point3ds = {new Point3d(0,0,0), new Point3d(2,0,0), new Point3d(1,0,2)};
-        IntersectionRemover merged = new IntersectionRemover(Point3ds, CustomPartMouldGenerator.ProjectionFace.ZX0);
+        IntersectionRemover merged = new IntersectionRemover(Point3ds, ProjectionUtils.ProjectionFace.ZX0);
         System.out.println(Arrays.toString(merged.getCombinedArray()[0].getExterior()));
         System.out.println(Arrays.deepToString(merged.getCombinedArray()[0].getHoles()));
         System.out.println(Arrays.deepToString(merged.getPolygonArray()));
