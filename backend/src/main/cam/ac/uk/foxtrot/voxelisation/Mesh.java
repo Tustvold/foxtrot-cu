@@ -8,58 +8,57 @@ import java.util.ArrayList;
 public class Mesh
 {
     // Anti-Clockwise winding order
-    private Point3d offset;          // position of the mesh in the grid
+    private Point3d offset;               // position of the mesh relative to the grid origin
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
-    private double blockSize;
+    private double blockSize;             // the size of a single block in mesh units
 
-    // really fine scaling factors (limits of system)
-    // 0.2 for Zucarello.obj
-    // 0.004 for teapot.obj
-    // 0.02 for human.obj
-    // 0.015 for sphere.obj
-    // 0.15 for teddy.obj
-    // 0.3 for pumpkin.obj
-    // 0.7 for bunny.obj
-    // 0.5 for lenin_test.obj
-    // 0.009 for Jesus_statue.obj
-    //
-    // the system is capable of producing up to about a 300x300x300 grid of voxels
-    // in reasonable timeS
-
+    /**
+     * Gwtter for the offset of the mesh from the origin.
+     */
     public Point3d getOffset()
     {
         return offset;
     }
 
+    /**
+     * Setter for the offset of the mesh from the origin.
+     */
     public void setOffset(Point3d offset)
     {
         this.offset = offset;
     }
 
+    /**
+     * Getter for the meshes triangle list.
+     */
     public ArrayList<Point3d> getTriangles()
     {
         return triangles;
     }
 
+    /**
+     * Overrides the meshes triangle representation.
+     */
     public void setTriangles(ArrayList<Point3d> trigs)
     {
         triangles = new ArrayList<>(trigs);
     }
 
-    // creates, rescales and centers the mesh
+    /**
+     * Initialises, rescales and centers the Mesh.
+     */
     public Mesh(ArrayList<Point3d> tri, double scale)
     {
         triangles = new ArrayList<>(tri);
         blockSize = scale;
-
-        // and finally rescale and center the mesh
         rescaleAndCenterMesh();
 
         System.out.println("Loaded: " + triangles.size() / 3 + " triangles");
-        System.out.println("Mesh loaded...");
     }
 
-    // returns the meshes centre of mass
+    /**
+     * Returns the centre of mass of the entire mesh.
+     */
     private Point3d getCentreOfMass()
     {
         Point3d mc = new Point3d(0, 0, 0);
@@ -78,7 +77,9 @@ public class Mesh
         return mc;
     }
 
-    // scales the mesh in such a way so that a block is of unit size and centers it
+    /**
+     * Scales the mesh so that a block is of unit size and then centers the mesh.
+     */
     private void rescaleAndCenterMesh()
     {
         Point3d cm = getCentreOfMass();
@@ -93,7 +94,12 @@ public class Mesh
         }
     }
 
-    // TESTING METHOD!!
+    /**
+     * DEBUGGING and TESTING method!
+     * Outputs a .obj file representing the input mesh.
+     *
+     * @param filename name of file to which to write output
+     */
     public void drawTriangles(String filename)
     {
         System.out.println("Preparing mesh representation...");
