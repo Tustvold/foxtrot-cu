@@ -26,11 +26,16 @@ public class JSONTest {
 
     @Test
     public void testPart() {
+        Block[][][] blocks = new Block[1][1][1];
+
         Point3d[] points = new Point3d[2];
         points[0] = new Point3d(3,3,3);
         points[1] = new Point3d(3,3,4);
-        CustomPart p = new CustomPart(points);
-        System.out.println(new Gson().toJson(p));
+        CustomPart[] p = new CustomPart[1];
+        p[0] = new CustomPart(points);
+
+        blocks[0][0][0] = new Block(p,true,2);
+        System.out.println(new Gson().toJson(blocks));
 
     }
 }
