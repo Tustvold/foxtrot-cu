@@ -1,11 +1,8 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.vecmath.Point3d;
 
@@ -27,7 +24,8 @@ public class IntersectionRemover {
     public IntersectionRemover(Point3d[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace face){ // in x-y plane
         projectionFace = face;
         convertBetweenPlanes(originalCoordinates);
-        List<Geometry> geometryList = new ArrayList<>();
+        ArrayList<Polygon> triangleList= new ArrayList<>();
+        ArrayList<Polygon> polygonList = new ArrayList<>();
         GeometryFactory factory = new GeometryFactory();
         if(originalCoordinates.length>1) {
             z = originalCoordinates[0].z;
@@ -38,17 +36,17 @@ public class IntersectionRemover {
                 Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i + 1]);
                 Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i + 2]);
                 Coordinate[] coordinates = {coordinate1, coordinate2, coordinate3, coordinate1}; //coordinates of triangle
-                geometryList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
+                triangleList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
             }
-        }
-        for (Geometry g: geometryList){
-            if (union == null) {
-                union = g;
+        } for (Polygon triangle: triangleList){
+            if (polygonList.size() == 0) {
+                polygonList.add(triangle);
             } else {
-                union.union(g);
+                mergeIntersecting(polygonList,triangle);
             }
         }
- //       union = UnaryUnionOp.union(geometryList); //merge geometries, overlapping triangles merged
+        union = mergeNonIntersecting(polygonList);
+
         if (union != null) {
             generateArrays();
         } else {
@@ -56,6 +54,46 @@ public class IntersectionRemover {
             holeArray = new Point3d[0][];
             combinedArray = new Point3dPolygon[0];
         }
+    }
+
+    private boolean mergeIntersecting(ArrayList<Polygon> list, Polygon polygon) {
+        boolean success;
+        int length = list.size();
+        if (length == 0) {
+            list.add(polygon);
+            return true;
+        } else {
+            Polygon element = list.get(0);
+            list.remove(0);
+
+            try {
+                Geometry temp = polygon.union(element); // merge element & polygon
+                if (temp instanceof Polygon) { // forms one polygon
+                    element = (Polygon)temp;
+                    success = mergeIntersecting(list,element); // does recursively merging succeed
+                } else { // forms multiple polygon
+                    success = mergeIntersecting(list,polygon);
+                    if(success) {
+                        list.add(element);
+                    }
+                }
+            } catch (TopologyException e) { // ignore this polygon
+                return false;
+            }
+
+        }
+        return success;
+    }
+
+    private Geometry mergeNonIntersecting(ArrayList<Polygon> list) {
+        Geometry result = null;
+        for (Polygon polygon : list) {
+            if (result == null) {
+                result = polygon;
+            } else {
+                result = result.union(polygon);
+            }
+        } return result;
     }
 
     private void zy(Point3d[] coordinates) {
@@ -120,15 +158,6 @@ public class IntersectionRemover {
 
     public Point3dPolygon[] getCombinedArray() {
         return combinedArray;
-    }
-
-    public static void main(String[] args) {
-        Point3d[] Point3ds = {new Point3d(0,0,0), new Point3d(2,0,0), new Point3d(1,0,2)};
-        IntersectionRemover merged = new IntersectionRemover(Point3ds, CustomPartMouldGenerator.ProjectionFace.ZX0);
-        System.out.println(Arrays.toString(merged.getCombinedArray()[0].getExterior()));
-        System.out.println(Arrays.deepToString(merged.getCombinedArray()[0].getHoles()));
-        System.out.println(Arrays.deepToString(merged.getPolygonArray()));
-        System.out.println(Arrays.toString(merged.getHoleArray()));
     }
 
 }
