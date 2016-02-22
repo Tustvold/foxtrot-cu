@@ -130,6 +130,27 @@ html(lang='en')
                 objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
                 BlockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
                 
+                BlockRenderer.onBlockSelected = function(x, y, z, block) {
+                    if (block.custom_part_array == null)
+                        return
+                    if (!block.use_custom_part) {
+                        block.use_custom_part = true;
+                        block.custom_part_index = 0;
+                    } else if (block.custom_part_index == 5) {
+                        block.use_custom_part = false;
+                    } else {
+                        block.custom_part_index++;
+                    }
+                    while (block.custom_part_array[block.custom_part_index] == null) {
+                        if (block.custom_part_index == 5) {
+                            block.use_custom_part = false;
+                            break;
+                        }
+                        block.custom_part_index++;
+                    }
+                    
+                    BlockRenderer.refresh();
+                }
                 
                 var options = {
                     beforeSubmit: showRequest,  // pre-submit callback

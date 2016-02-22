@@ -13,7 +13,7 @@ public class BlockJSONSerializer implements JsonSerializer<Block> {
     @Override
     public JsonElement serialize(Block block, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject object = new JsonObject();
-        object.addProperty("custom_part_array", new Gson().toJson(block.getCustomPart()));
+        object.add("custom_part_array", new Gson().toJsonTree(block.getCustomPart()));
         object.addProperty("use_custom_part", block.isCustom());
         object.addProperty("custom_part_index", block.getCustomPartIndex());
 
