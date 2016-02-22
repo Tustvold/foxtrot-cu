@@ -76,20 +76,28 @@ public class CustomPartGenerator {
         ProjectionUtils.addSideRectangles(coordinates, stripCounts, contourCounts, face, projectionPolygons, PART_DEPTH);
         ProjectionUtils.addSideRectangles(coordinates, stripCounts, contourCounts, face, projectionHoles, PART_DEPTH);
 
+        Point3d[] pts;
         // triangulate the result
-        GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
-        gi.setCoordinates(coordinates.toArray(new Point3d[coordinates.size()]));
-        gi.setStripCounts(stripCounts.stream().mapToInt(i -> i).toArray());
-        gi.setContourCounts(contourCounts.stream().mapToInt(i -> i).toArray());
-        GeometryArray ga = gi.getGeometryArray();
-        Point3d[] pts = new Point3d[ga.getVertexCount()];
-        for (int i = 0; i < pts.length; i++)
-        {
-            pts[i] = new Point3d();
-        }
-        ga.getCoordinates(0, pts);
+        if (coordinates.size() > 0) {
+            GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
+            gi.setCoordinates(coordinates.toArray(new Point3d[coordinates.size()]));
+            gi.setStripCounts(stripCounts.stream().mapToInt(i -> i).toArray());
+            gi.setContourCounts(contourCounts.stream().mapToInt(i -> i).toArray());
+            GeometryArray ga = gi.getGeometryArray();
+            pts = new Point3d[ga.getVertexCount()];
+            for (int i = 0; i < pts.length; i++)
+            {
+                pts[i] = new Point3d();
+            }
+            ga.getCoordinates(0, pts);
 
-        return new CustomPart(pts);
+            return new CustomPart(pts);
+        } else {
+            // if the projectino is empty, return an empty custom part
+            pts = new Point3d[0];
+            return new CustomPart(pts);
+        }
+
     }
 
     /**

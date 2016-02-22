@@ -68,4 +68,16 @@ public class CustomPartTest {
         CustomPartMouldGenerator m = new CustomPartMouldGenerator(points, 35);
         m.generateMould(face, new File("/tmp","randMould.obj"));
     }
+
+    @Test
+    public void testEmpty() {
+        Point3d[] points = new Point3d[0];
+
+        ProjectionUtils.ProjectionFace face = ProjectionUtils.ProjectionFace.values()[new Random().nextInt(ProjectionUtils.ProjectionFace.values().length)];
+        CustomPartGenerator pg = new CustomPartGenerator(points);
+        CustomPart p = pg.generateCustomPart(face);
+        ProjectionUtils.generateObjFile(p.getTriangles(), new File("/tmp", "emptyPart.obj"), 1);
+        CustomPartMouldGenerator m = new CustomPartMouldGenerator(points, 35);
+        m.generateMould(face, new File("/tmp","emptyMould.obj"));
+    }
 }

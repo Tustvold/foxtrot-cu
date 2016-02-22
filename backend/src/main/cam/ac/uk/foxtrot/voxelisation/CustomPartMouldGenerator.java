@@ -4,10 +4,7 @@ import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.GeometryArray;
 import javax.vecmath.Point3d;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
