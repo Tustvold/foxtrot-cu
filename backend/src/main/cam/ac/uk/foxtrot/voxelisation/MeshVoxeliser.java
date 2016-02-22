@@ -187,7 +187,7 @@ public class MeshVoxeliser
 
         // TESTING METHODS
         //drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
-        //drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
 
         System.out.println("All blocks filled...");
     }

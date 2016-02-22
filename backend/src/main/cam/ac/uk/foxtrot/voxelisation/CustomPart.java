@@ -9,8 +9,12 @@ public class CustomPart {
     @SerializedName("triangle_array")
     private Point3d[] triangles;
 
+    public Point3d[] getTriangles() {
+        return triangles;
+    }
+
     public CustomPart(Point3d[] inTriangles) {
         triangles = new Point3d[inTriangles.length];
-        System.arraycopy(triangles, 0, inTriangles, 0, triangles.length);
+        System.arraycopy(inTriangles, 0, triangles, 0, triangles.length);
     }
 }

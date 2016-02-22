@@ -2,6 +2,7 @@ package cam.ac.uk.foxtrot.voxelisation;
 
 import com.vividsolutions.jts.geom.*;
 
+import java.io.*;
 import java.util.ArrayList;
 
 import javax.vecmath.Point3d;
@@ -11,9 +12,9 @@ public class IntersectionRemover {
     Point3d[][] polygonArray;
     Point3d[][] holeArray;
     Point3dPolygon[] combinedArray;
-    private static final double approximate_tolerance = 0.00000001;
+    private static final double approximate_tolerance = 0.0000000001;
     double z;
-    CustomPartMouldGenerator.ProjectionFace projectionFace;
+    ProjectionUtils.ProjectionFace projectionFace;
 
     // checks if the three points can be approximated as on the same line
     public boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
@@ -21,7 +22,7 @@ public class IntersectionRemover {
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < approximate_tolerance;
     }
 
-    public IntersectionRemover(Point3d[] originalCoordinates, CustomPartMouldGenerator.ProjectionFace face){ // in x-y plane
+    public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace face){ // in x-y plane
         projectionFace = face;
         convertBetweenPlanes(originalCoordinates);
         ArrayList<Polygon> triangleList= new ArrayList<>();
@@ -158,6 +159,84 @@ public class IntersectionRemover {
 
     public Point3dPolygon[] getCombinedArray() {
         return combinedArray;
+    }
+
+    public void drawPolygon(String filename)
+    {
+        System.out.println("Drawing single face...");
+        Point3d[][] polys = new Point3d[polygonArray.length + holeArray.length][];
+        for(int i = 0; i < polygonArray.length; i++)
+        {
+            polys[i] = new Point3d[polygonArray[i].length];
+            for(int j = 0; j < polygonArray[i].length; j++)
+            {
+                polys[i][j] = new Point3d(polygonArray[i][j]);
+            }
+        }
+        for(int i = 0; i < holeArray.length; i++)
+        {
+            polys[polygonArray.length + i] = new Point3d[holeArray[i].length];
+            for(int j = 0; j < holeArray[i].length; j++)
+            {
+                polys[polygonArray.length + i][j] = new Point3d(holeArray[i][j]);
+            }
+        }
+        drawPolygonList(polys, filename);
+        System.out.println("Single face drawn...");
+    }
+
+    public void drawPolygonList(Point3d[][] polys, String filename)
+    {
+        Writer writer = null;
+        try
+        {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+        } catch (IOException ex)
+        {
+            //System.err.println(ex.getMessage());
+            return;
+        }
+
+        for (int i = 0; i < polys.length; i++)
+        {
+            for (int j = 0; j < polys[i].length; j++)
+            {
+                try
+                {
+                    writer.write("v " + (polys[i][j].x) + " "
+                            + (polys[i][j].y) + " "
+                            + (polys[i][j].z) + "\n");
+
+                } catch (IOException err)
+                {
+                    System.err.println("Could not write blocks: " + err.getMessage());
+                }
+            }
+        }
+        int curr = 1;
+        for (int poly = 0; poly < polys.length; poly++)
+        {
+            String out = "f";
+            for (int i = 0; i < polys[poly].length; i++)
+            {
+                out += " " + curr;
+                curr++;
+            }
+            try
+            {
+                writer.write(out + "\n");
+            } catch (IOException err)
+            {
+                System.err.println("Could not write blocks: " + err.getMessage());
+            }
+        }
+
+        try
+        {
+            writer.close();
+        } catch (Exception ex)
+
+        {/*ignore*/}
     }
 
 }
