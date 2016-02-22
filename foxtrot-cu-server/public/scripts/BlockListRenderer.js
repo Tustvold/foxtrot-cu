@@ -2,7 +2,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     // Will create a canvas of the specified dimensions added as a child of domElement
 
     var blockList;
-    var vertices, indices, colors, normals;
+    var vertices, indices, colors;
     var maxX, maxY = 0,
         maxZ = 0, yCap = 0;
     var camera, scene, renderer, stats, controls;
@@ -14,11 +14,13 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     var pickingScene, pickingTexture;
 
     var picking_material = new THREE.MeshBasicMaterial({
-        vertexColors: THREE.VertexColors
+        vertexColors: THREE.VertexColors,
+        side: THREE.DoubleSide
     });
 
     var render_material = new THREE.MeshLambertMaterial({
         color: 0xff0000,
+        side: THREE.DoubleSide
     });
 
     var render_material_wireframe = new THREE.MeshBasicMaterial({
@@ -86,7 +88,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     function generateMesh() {
         //console.log("Started Mesh Generation");
-        vertices = [], indices = [], colors = [], normals = [];
+        vertices = [], indices = [], colors = [];
 
         var cur_index = 0;
         var block_id = -1;
@@ -105,6 +107,21 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         continue;
                     color.setHex(block_id);
 
+                    if (block.use_custom_part) {
+                        var custom_part = block.custom_part_array[block.custom_part_index];
+                        var triangle_array = custom_part.triangle_array;
+
+                        for (var i = 0; i < triangle_array.length; i++) {
+                            var vertex = triangle_array[i];
+                            vertices.push(vertex.x+x, vertex.y+y, vertex.z+z);
+                            indices.push(cur_index);
+                            colors.push(color.r, color.g, color.b);
+                            cur_index++;
+                        }
+
+                        continue;
+                    }
+
                     if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part) {
                         // Add positive x face
                         vertices.push(x + 1, y, z);
@@ -119,11 +136,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
-
-                        normals.push(1, 0, 0);
-                        normals.push(1, 0, 0);
-                        normals.push(1, 0, 0);
-                        normals.push(1, 0, 0);
 
                         cur_index += 4;
 
@@ -144,11 +156,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(-1, 0, 0);
-                        normals.push(-1, 0, 0);
-                        normals.push(-1, 0, 0);
-                        normals.push(-1, 0, 0);
-
                         cur_index += 4;
                     }
 
@@ -166,11 +173,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
-
-                        normals.push(0, 1, 0);
-                        normals.push(0, 1, 0);
-                        normals.push(0, 1, 0);
-                        normals.push(0, 1, 0);
 
                         cur_index += 4;
                     }
@@ -190,11 +192,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(0, -1, 0);
-                        normals.push(0, -1, 0);
-                        normals.push(0, -1, 0);
-                        normals.push(0, -1, 0);
-
                         cur_index += 4;
                     }
 
@@ -212,11 +209,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
-
-                        normals.push(0, 0, 1);
-                        normals.push(0, 0, 1);
-                        normals.push(0, 0, 1);
-                        normals.push(0, 0, 1);
 
                         cur_index += 4;
                     }
@@ -236,11 +228,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         colors.push(color.r, color.g, color.b);
                         colors.push(color.r, color.g, color.b);
 
-                        normals.push(0, 0, -1);
-                        normals.push(0, 0, -1);
-                        normals.push(0, 0, -1);
-                        normals.push(0, 0, -1);
-
                         cur_index += 4;
                     }
                 }
@@ -257,13 +244,12 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         var floatVertices = new Float32Array(vertices);
         var intIndices = new Uint16Array(indices);
         var floatColors = new Float32Array(colors);
-        var floatNormals = new Float32Array(normals);
 
         var geom = new THREE.BufferGeometry();
         geom.addAttribute('position', new THREE.BufferAttribute(floatVertices, 3));
-        geom.addAttribute('normal', new THREE.BufferAttribute(floatNormals, 3));
         geom.addAttribute('color', new THREE.BufferAttribute(floatColors, 3));
         geom.setIndex(new THREE.BufferAttribute(intIndices, 1));
+        geom.computeVertexNormals();
 
         model_renderer = new THREE.Mesh(geom, render_material);
 
@@ -308,7 +294,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         generateMesh();
         generateBuffer();
-
 
 
         model_renderer.position.set(-maxX / 2, 0, -maxZ / 2);
