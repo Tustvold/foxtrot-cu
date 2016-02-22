@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import javax.vecmath.Point3d;
 
 public class IntersectionRemover {
-    Geometry union;
+    ArrayList<Polygon> union;
     Point3d[][] polygonArray;
     Point3d[][] holeArray;
     Point3dPolygon[] combinedArray;
@@ -26,7 +26,7 @@ public class IntersectionRemover {
         projectionFace = face;
         convertBetweenPlanes(originalCoordinates);
         ArrayList<Polygon> triangleList= new ArrayList<>();
-        ArrayList<Polygon> polygonList = new ArrayList<>();
+        union = new ArrayList<>();
         GeometryFactory factory = new GeometryFactory();
         if(originalCoordinates.length>1) {
             z = originalCoordinates[0].z;
@@ -40,13 +40,12 @@ public class IntersectionRemover {
                 triangleList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
             }
         } for (Polygon triangle: triangleList){
-            if (polygonList.size() == 0) {
-                polygonList.add(triangle);
+            if (union.size() == 0) {
+                union.add(triangle);
             } else {
-                mergeIntersecting(polygonList,triangle);
+                mergeIntersecting(union,triangle);
             }
         }
-        union = mergeNonIntersecting(polygonList);
 
         if (union != null) {
             generateArrays();
@@ -86,17 +85,6 @@ public class IntersectionRemover {
         return success;
     }
 
-    private Geometry mergeNonIntersecting(ArrayList<Polygon> list) {
-        Geometry result = null;
-        for (Polygon polygon : list) {
-            if (result == null) {
-                result = polygon;
-            } else {
-                result = result.union(polygon);
-            }
-        } return result;
-    }
-
     private void zy(Point3d[] coordinates) {
         int length = coordinates.length;
         for (int i = 0; i < length; i++) {
@@ -130,12 +118,12 @@ public class IntersectionRemover {
 
     // convert Geometry to array of arrays of Point3ds for original plane
     private void generateArrays() {
-        int length = union.getNumGeometries();
+        int length = union.size();
         polygonArray = new Point3d[length][];
         combinedArray = new Point3dPolygon[length];
         ArrayList<Point3d[]> holeList = new ArrayList<>();
         for(int i = 0; i < length; i++) {
-            Point3dPolygon polygon = new Point3dPolygon(((Polygon)union.getGeometryN(i)),z);
+            Point3dPolygon polygon = new Point3dPolygon(union.get(i),z);
             convertBetweenPlanes(polygon.getExterior());
             Point3d[][] holes = polygon.getHoles();
             polygonArray[i] = polygon.getExterior();
