@@ -184,7 +184,7 @@ html(lang='en')
 
                 var request_moulds = function() {
                     var xhr = new XMLHttpRequest();
-                    xhr.open("POST", '/tests/zipper', true);
+                    xhr.open("POST", '/request-moulds', true);
                     xhr.setRequestHeader("Content-type", "application/json");
                     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
                     xhr.onreadystatechange = function () {

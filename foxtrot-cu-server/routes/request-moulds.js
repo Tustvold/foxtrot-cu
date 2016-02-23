@@ -3,6 +3,7 @@ var archiver = require('archiver');
 var exec = require('child_process').exec;
 var router = express.Router();
 var temp = require('temp');
+var fs = require('fs');
 
 
 
@@ -32,36 +33,42 @@ router.post('/', function(req,res,next){
         //var body =
         console.log(req.body)
         console.log(req.body.block_list)
-        child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" mouldify' + JSON.stringify(req.body.block_list) + " " + dirPath);
-
-
-        archive.pipe(res);
-        archive.bulk([
-            { expand: true, cwd: dirPath, src: ['*.stl'], dest: 'parts'}
-        ]);
-
-        hasError = false;
-        errorBuffer = "";
-
-        // Any error will return those errors
-        child.stderr.on('data', function(data) {
-            errorBuffer += data;
-            console.log(data)
-        });
-
-        // If the jar finished successfully
-        child.on('exit', function (code) {
-            if (hasError) {
-                res.header("Content-Type", "application/json");
-                console.log(errorBuffer);
-                res.status(200).json({error: errorBuffer});
-                res.end();
+        var filePath = dirPath + '/in.json'
+        fs.writeFile(filePath, function(err) {
+            if (err) {
+                return console.log(err)
             }
-            else if(!res.finished) {
-                res.header("Content-Type", "application/octet-stream");
-                archive.finalize();
-            }
-        });
+            child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" mouldify' + filePath + " " + dirPath);
+
+
+            archive.pipe(res);
+            archive.bulk([
+                { expand: true, cwd: dirPath, src: ['*.stl'], dest: 'parts'}
+            ]);
+
+            hasError = false;
+            errorBuffer = "";
+
+            // Any error will return those errors
+            child.stderr.on('data', function(data) {
+                errorBuffer += data;
+                console.log(data)
+            });
+
+            // If the jar finished successfully
+            child.on('exit', function (code) {
+                if (hasError) {
+                    res.header("Content-Type", "application/json");
+                    console.log(errorBuffer);
+                    res.status(200).json({error: errorBuffer});
+                    res.end();
+                }
+                else if(!res.finished) {
+                    res.header("Content-Type", "application/octet-stream");
+                    archive.finalize();
+                }
+            });
+        })
     });
 });
 
