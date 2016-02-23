@@ -308,4 +308,25 @@ public class ProjectionUtils {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Given an array of Point3dPolygons, return a new array with the winding orders of the polygons reversed.
+     *
+     * @param combinedPolygons - an array of Point3dPolygons
+     * @return an array of Point3dPolygons with the winding orders of the polygons reversed
+     */
+    public static Point3dPolygon[] reverseWindingOrder(Point3dPolygon[] combinedPolygons) {
+        Point3dPolygon[] ret = new Point3dPolygon[combinedPolygons.length];
+        for (int i = 0; i < combinedPolygons.length; i++) {
+            Point3dPolygon combinedPolygon = combinedPolygons[i];
+            Point3d[] polygon = combinedPolygon.getExterior();
+            Point3d[] reverseWind = new Point3d[polygon.length];
+            for (int j = 0; j < polygon.length; j++) {
+                reverseWind[j] = polygon[polygon.length - (j + 1)];
+            }
+            ret[i] = new Point3dPolygon(reverseWind, combinedPolygon.getHoles());
+        }
+
+        return ret;
+    }
 }

@@ -21,6 +21,11 @@ public class Point3dPolygon {
         }
     }
 
+    public Point3dPolygon(Point3d[] ext, Point3d[][] hls) {
+        exterior = ext;
+        holes = hls;
+    }
+
     //convert LineString to array of Point3ds
     private Point3d[] toPointArray(LineString lineString) {
         Coordinate[] coordinates = lineString.getCoordinates();

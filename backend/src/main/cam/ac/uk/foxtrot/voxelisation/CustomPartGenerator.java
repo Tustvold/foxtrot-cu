@@ -70,7 +70,7 @@ public class CustomPartGenerator {
 
         // add the polygons (with holes omitted) on the face and at depth
         ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, 0);
-        ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, PART_DEPTH);
+        ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, ProjectionUtils.reverseWindingOrder(combinedPolygons), PART_DEPTH);
 
         // prepare and add side rectangles for each hole and non-hole
         ProjectionUtils.addSideRectangles(coordinates, stripCounts, contourCounts, face, projectionPolygons, PART_DEPTH);
