@@ -16,10 +16,16 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
         if (err)
             throw err;
         //console.log(req.file)
-        console.log(req.body.block_size)
-        console.log(req.body.block_number)
-       // console.log(tempfile.path);
-        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + req.body.block_number + " " + req.body.block_size
+        var block_size = 10;
+        var block_number = 10;
+        if (typeof req.body.block_size !== 'undefined') {
+            block_size = req.body.block_size
+        }
+        if (typeof req.body.block_number !== 'undefined') {
+            block_number = req.body.block_size
+        }
+
+        var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + block_number + " " + block_size
         console.log(args);
         child = exec(args);
 

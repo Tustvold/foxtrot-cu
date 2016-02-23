@@ -9,16 +9,16 @@ import java.util.Random;
 public class MeshVoxeliser
 {
     private Mesh mesh;                                                             // the mesh which is voxelised
-    private Point3i matrixDimensions;                                              // dimesions of the block matrix
+    private Point3i matrixDimensions;                                              // dimensions of the block matrix
     private int[] dim;                                                             // buffered version of dimensions in integers
     private Point3d meshOffset;                                                    // the offset of the mesh from the original origin
     private Block[][][] blocks;                                                    // list of the meshes blocks
-    private Random r = new Random();                                               // used in the propability functions
+    private Random r = new Random();                                               // used in the probability functions
     public static final double double_tolerance = 0.000000000001;                  // global tolerance constant
     public static final double probability_tolerance = 0.000000001;                // global probability tolerance constant
     public static final int reverse_tolerance = (int) (1 / probability_tolerance); // used in the probability constants
     private ArrayList<Point3d> initTrigs;                                          // a buffered list of initial triangles
-    int telemetry;                                                                 // counts the toatl number of retries
+    int telemetry;                                                                 // counts the total number of retries
 
     public MeshVoxeliser(Mesh mesh)
     {
@@ -39,22 +39,26 @@ public class MeshVoxeliser
         return blocks;
     }
 
-    // main voxelisation funcion (called at voxeliser creation)
+    /**
+     * main voxelisation function (called at voxeliser creation)
+     */
     private void voxeliseMesh()
     {
         System.out.println("Beginning voxelisation...");
         matrixDimensions = new Point3i(0, 0, 0);
-
         setMeshOffsetAndDetermineDimensions();
         shiftMeshByOffset();
-        //mesh.drawTriangles("testing/output/mesh_positioned.obj");
+
         telemetry = 0;
-        generateBlocks(mesh);
+        generateBlocks();
         System.out.println("Number of retries: " + telemetry);
     }
 
-    // calculates the vector which needs to be added to all the points
-    // so that the mesh becomes centered in the block matrix
+    /**
+     * Calculates the vector which needs to be added to all the points
+     * of the mesh, so that it becomes centered in the first octant of
+     * the block matrix.
+     */
     private void setMeshOffsetAndDetermineDimensions()
     {
         System.out.println("Setting mesh offset and determining dimensions...");
@@ -69,7 +73,9 @@ public class MeshVoxeliser
         System.out.println("Mesh offset set and dimensions determined...");
     }
 
-    // determines the aximum values of the x,y, and z dimensions of the mesh separately
+    /**
+     * Separately determines the maximum values of the x,y and z dimensions of the mesh.
+     */
     private Point3d getMinimumInitialCoordinateBounds()
     {
         Point3d min = null;
@@ -96,7 +102,9 @@ public class MeshVoxeliser
         return min;
     }
 
-    // determines the minimum values of the x,y, and z dimensions of the mesh separately
+    /**
+     * Separately determines the minimum values of the x,y and z dimensions of the mesh.
+     */
     private Point3d getMaximumInitialCoordinateBounds()
     {
         Point3d max = null;
@@ -123,7 +131,9 @@ public class MeshVoxeliser
         return max;
     }
 
-    // determines the offset of one coordinate and sets the dimensions value
+    /**
+     * Determines the offset of one coordinate and sets the dimensions value.
+     */
     private double calculateSingleOffset(int type, double minBound, double maxBound)
     {
         int dimension = (int) Math.ceil(maxBound - minBound);
@@ -144,7 +154,9 @@ public class MeshVoxeliser
         return ret;
     }
 
-    // moves mesh to the new position
+    /**
+     * Translates the mesh to the new position.
+     */
     private void shiftMeshByOffset()
     {
         System.out.println("Shifting mesh by offset...");
@@ -162,37 +174,55 @@ public class MeshVoxeliser
         System.out.println("Mesh shifted...");
     }
 
-    // generates blocks for the given mesh
-    // elements in the grid with no mesh will be null
-    private void generateBlocks(Mesh mesh)
+    /**
+     * Generates the Block matrix for the mesh present in the voxeliser.
+     *
+     * The Blocks which contain fragments of the mesh will be labeled as custom parts,
+     * the blocks which are completely outside the mesh will be null, while the blocks
+     * which are completely encompassed by the mesh will be created and labeled as not
+     * custom.
+    */
+    private void generateBlocks()
     {
         System.out.println("Filling blocks...");
         blocks = new Block[matrixDimensions.x][matrixDimensions.y][matrixDimensions.z];
         dim = new int[3];
         matrixDimensions.get(dim);
 
-        // iterate over all the triangles in the mesh
+        // iterate over all the triangles in the original mesh
         int cnt = initTrigs.size();
         for (int i = 0; i < cnt; i += 3)
         {
-            ArrayList<Point3d> tmp = new ArrayList<Point3d>();
-            tmp.add(new Point3d(initTrigs.get(i)));
-            tmp.add(new Point3d(initTrigs.get(i + 1)));
-            tmp.add(new Point3d(initTrigs.get(i + 2)));
+            ArrayList<Point3d> curr = new ArrayList<Point3d>();
+            curr.add(new Point3d(initTrigs.get(i)));
+            curr.add(new Point3d(initTrigs.get(i + 1)));
+            curr.add(new Point3d(initTrigs.get(i + 2)));
 
-            classifyPolygons(subdivideTriangle(tmp));
+            // subdivide each triangle and classify the
+            // pieces into their respective new custom blocks
+            classifyPolygons(subdivideTriangle(curr));
         }
 
+        // fill the remaining internal blocks
         fillAllChunks();
-
-        // TESTING METHODS
-        //drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", true);
-        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
 
         System.out.println("All blocks filled...");
     }
 
-    // cuts the triangle given by 3 vertices into pieces and puts the pieces into appropriate bins
+    /**
+     * Subdivides the provided triangle defined by its list of vertices.
+     *
+     * This is done by projecting the current subdivision onto a projection plane
+     * (e.g. xy plane) and then iteratively slicing all the polygons in it with the
+     * vertical grid lines of the current projection plane (e.g. lines parallel to
+     * y axis). The obtained subdivision is the returned to 3d space, and reprojected
+     * in one of the remaining projection planes (e.g. yz, zx), and the subdivision
+     * process is continued until all three projection planes have been exhausted.
+     *
+     * @param triangle list of points representing the triangle
+     * @return the array of distinct convex polygons, each of which is only
+     *         contained in a single Block
+     */
     private ArrayList<ArrayList<Point3d>> subdivideTriangle(ArrayList<Point3d> triangle)
     {
         // array which contains the intermediate results of triangle subdivision
@@ -324,8 +354,25 @@ public class MeshVoxeliser
         return polygonList;
     }
 
-    // intersects the line between fir and sec with the vertical line at line ignoring the ignoreth coordinate
-    // and writes the return in res. Returns true if there is an intersection
+    /**
+     * Intersects the line between fir and sec with the vertical line, while
+     * ignoring the ignore-th coordinate.
+     *
+     * @param fir first point of the line
+     * @param sec second point of the line
+     * @param line grid-line 'x' coordinate
+     * @param ignore coordinate to be ignored (the other two are then treated as 'x' and 'y')
+     * @param res the point in which the result will be returned
+     * @return The following return values are possible:
+     *         1. true  - the intersection was strictly between fir and sec
+     *                    and the point of intersection is returned in res
+     *         2. false - there was either no intersection or an
+     *                    case was observed, res will contain:
+     *                    2.1. res is unchanged  - no intersection with the line
+     *                    2.2. res = (-1,  1, 0) - fir and sec are on the line
+     *                    2.3. res = ( 1, -1, 0) - fir is on the line (but sec is not)
+     *                    2.4. res = ( 1,  1, 0) - sec is on the line (but fir is not)
+     */
     public static boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
     {
         double x1, y1, x2, y2;
@@ -413,9 +460,9 @@ public class MeshVoxeliser
         return true;
     }
 
-
-
-    // returns the minimum coordinates in the x, y and z plane which intersect the polygon
+    /**
+     * Returns the minimum coordinate of the x, y and z planes which intersect the polygon.
+     */
     private int[] getMinBounds(ArrayList<Point3d> polygon)
     {
         double[] min = null;
@@ -443,7 +490,9 @@ public class MeshVoxeliser
         return res;
     }
 
-    // returns the maximum coordinates in the x, y and z plane which intersect the polygon
+    /**
+     * Returns the maximum coordinate of the x, y and z planes which intersect the polygon.
+     */
     private int[] getMaxBounds(ArrayList<Point3d> polygon)
     {
         double[] max = null;
@@ -471,7 +520,12 @@ public class MeshVoxeliser
         return res;
     }
 
-    // classifies the polygons obtained in the polygon list by adding them to their respective bins
+    /**
+     * Triangulates the polygons provided and classifies the fragments obtained
+     * by adding them to their respective Blocks in the Blocks matrix.
+     *
+     * @param polygonList list of polygons to classify
+     * */
     private void classifyPolygons(ArrayList<ArrayList<Point3d>> polygonList)
     {
         int cnt = polygonList.size();
@@ -511,7 +565,9 @@ public class MeshVoxeliser
         }
     }
 
-    // returns the center of mass of the given polygon
+    /**
+     * Returns the center of mass of the given polygon.
+     */
     private Point3d getCenterOfMass(ArrayList<Point3d> poly)
     {
         Point3d cm = new Point3d(0, 0, 0);
@@ -528,7 +584,12 @@ public class MeshVoxeliser
         return cm;
     }
 
-    // fills the entire block matrix with appropriate full/empty blocks
+    /**
+     * Fills the entire block matrix with appropriate full/empty blocks.
+     *
+     * (The block matrix must be initialized with mesh pieces before
+     * calling fillAllChunks!)
+    */
     private void fillAllChunks()
     {
         System.out.println("Filling chunks...");
@@ -543,7 +604,21 @@ public class MeshVoxeliser
         System.out.println("Chunks filled...");
     }
 
-    // fills a single xy chunk of blocks
+    /**
+     * Fills a single xy chunk of blocks.
+     *
+     * This is done by iterating through the blocks in the chunk in a top-down manner and
+     * shooting the same vertical ray through each of them and adding the number of
+     * intersection the ray has with the current block to a global total. When an empty
+     * block is encountered it is either filled or left empty depending on the current
+     * total number of intersections the ray has with the mesh. If an edge case intersection
+     * of the ray with any of the triangles is encountered the filling of the chunk is halted,
+     * and restarted with a fresh ray randomly offset from the previous position. This procedure
+     * is performed until the entire chunk is successfully processed.
+     *
+     * @param x x coordinate of the chunk in the matrix
+     * @param y y coordinate of the chunk in the matrix
+     */
     private void fillChunk(int x, int y)
     {
         // prepare the initial ray
@@ -616,18 +691,39 @@ public class MeshVoxeliser
         } while (restart);
     }
 
-    // probability function for x
+    /**
+     * Probability distribution function for x.
+     */
     private double punchX()
     {
         return 0.34 + probability_tolerance * (r.nextInt(reverse_tolerance) - (double) reverse_tolerance / 2) / 10;
     }
 
-    // probability function for y
+    /**
+     * Probability distribution function for y.
+     */
     private double punchY()
     {
         return 0.71 + probability_tolerance * (r.nextInt(reverse_tolerance) - (double) reverse_tolerance / 2) / 10;
     }
 
+    /**
+     * Shoots a vertical ray from R0 in the positive z direction, and returns a code for the type
+     * of intersection the ray has with the Triangle T. It is assumed that T is in another Block
+     * from R0!
+     *
+     * @param R0 ray origin
+     * @param T triangle to test intersection with
+     * @return Returns one of the following codes depending on type of intersection:
+     *         0 - no intersection
+     *         1 - ray intersects triangles strict inside
+     *         2 - ray passes through vertex T[0]
+     *         3 - ray passes through vertex T[1]
+     *         4 - ray passes through vertex T[2]
+     *         5 - ray intersects edge T[0]->T[1]
+     *         6 - ray intersects edge T[1]->T[2]
+     *         7 - ray intersects edge T[2]->T[0]
+     */
     public static int cutVertically(Point3d R0, ArrayList<Point3d> T)
     {
         if (areIdenticalInXY(R0, T.get(0))) return 2;
@@ -640,13 +736,17 @@ public class MeshVoxeliser
         return 0;
     }
 
-    // returns true if B is between A and C (all xy projections)
+    /**
+     * Returns true if B is between A and C (all xy projections).
+     */
     public static boolean isOnLineXY(Point3d A, Point3d B, Point3d C)
     {
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < double_tolerance;
     }
 
-    // checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
+    /**
+     * Checks if a given three dimensional point is inside the given triangle (checking xy coordinates)
+     */
     public static boolean ptInTriangleXY(Point3d I, ArrayList<Point3d> T)
     {
         double dX = I.x - T.get(2).x;
@@ -660,15 +760,19 @@ public class MeshVoxeliser
         return s >= 0 && t >= 0 && s + t <= D;
     }
 
-    // returns true if the projections of the two points on the xy plane coincide
+    /**
+     * Returns true if the projections of the two points in the xy plane coincide.
+     */
     public static boolean areIdenticalInXY(Point3d ver1, Point3d ver2)
     {
         return Math.abs(ver1.x - ver2.x) < double_tolerance
                 && Math.abs(ver1.y - ver2.y) < double_tolerance;
     }
 
-    // checks if two 3d points are identical
-    private boolean areIdentical(Point3d ver1, Point3d ver2)
+    /**
+     * Checks if two 3d points are identical within the global tolerance.
+     */
+    public static boolean areIdentical(Point3d ver1, Point3d ver2)
     {
         return Math.abs(ver1.x - ver2.x) < double_tolerance
                 && Math.abs(ver1.y - ver2.y) < double_tolerance
@@ -676,7 +780,11 @@ public class MeshVoxeliser
     }
 
     /**
-     * TESTING method
+     * DEBUGGING and TESTING method!
+     * Outputs a .obj file representing the current mesh subdivision within the block matrix.
+     *
+     * @param filename name of file to which to write output
+     * @param includeGrid if the x0z grid should be included
      */
     public void drawTrianglesFromBlocks(String filename, boolean includeGrid)
     {
@@ -758,6 +866,15 @@ public class MeshVoxeliser
         System.out.println("Sliced output created...");
     }
 
+    /**
+     * DEBUGGING and TESTING method!
+     * Creates a unit cube at (x,y,z) only creating visible sides.
+     *
+     * @param x coordinate
+     * @param y coordinate
+     * @param z coordinate
+     * @return list of appropriate triangles
+     */
     private ArrayList<Point3d> makeUnitCube(int x, int y, int z)
     {
         ArrayList<Point3d> cube = new ArrayList<>();
@@ -841,6 +958,11 @@ public class MeshVoxeliser
         return cube;
     }
 
+    /**
+     * Creates a horizontal unit square in the xz plane.
+     *
+     * @return list of appropriate triangles
+     */
     private ArrayList<Point3d> makeHorizontalSquare()
     {
         ArrayList<Point3d> square = new ArrayList<>();
@@ -858,7 +980,11 @@ public class MeshVoxeliser
     }
 
     /**
-     * TESTING method
+     * DEBUGGING and TESTING method!
+     * Outputs a .obj file representing the current full Blocks in the block matrix.
+     *
+     * @param filename name of file to which to write output
+     * @param includeGrid if the x0z grid should be included
      */
     public void drawVoxelsOnly(String filename, boolean includeGrid)
     {
@@ -938,86 +1064,5 @@ public class MeshVoxeliser
         } catch (Exception ex)
         {/*ignore*/}
         System.out.println("Voxel output created...");
-    }
-
-    /**
-     * TESTING method
-     */
-    private void drawPolygonList(ArrayList<ArrayList<Point3d>> polys, String filename)
-    {
-        Writer writer = null;
-        try
-        {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
-        } catch (IOException ex)
-        {
-            //System.err.println(ex.getMessage());
-            return;
-        }
-
-        for (int i = 0; i < polys.size(); i++)
-        {
-            for (int j = 0; j < polys.get(i).size(); j++)
-            {
-                try
-                {
-                    writer.write("v " + (polys.get(i).get(j).x) + " "
-                            + (polys.get(i).get(j).y) + " "
-                            + (polys.get(i).get(j).z) + "\n");
-
-                } catch (IOException err)
-                {
-                    System.err.println("Could not write blocks: " + err.getMessage());
-                }
-            }
-        }
-        int curr = 1;
-        for (int poly = 0; poly < polys.size(); poly++)
-        {
-            String out = "f";
-            for (int i = 0; i < polys.get(poly).size(); i++)
-            {
-                out += " " + curr;
-                curr++;
-            }
-            try
-            {
-                writer.write(out + "\n");
-            } catch (IOException err)
-            {
-                System.err.println("Could not write blocks: " + err.getMessage());
-            }
-        }
-
-        try
-        {
-            writer.close();
-        } catch (Exception ex)
-
-        {/*ignore*/}
-    }
-
-    /**
-     * TESTING method
-     */
-    private void drawRayTest(ArrayList<Point3d> T, Point3d I)
-    {
-        ArrayList<ArrayList<Point3d>> poligoni = new ArrayList<>();
-        ArrayList<Point3d> fir = new ArrayList<>();
-        fir.add(new Point3d(T.get(0)));
-        fir.add(new Point3d(T.get(1)));
-        fir.add(new Point3d(I));
-        ArrayList<Point3d> sec = new ArrayList<>();
-        sec.add(new Point3d(T.get(1)));
-        sec.add(new Point3d(T.get(2)));
-        sec.add(new Point3d(I));
-        ArrayList<Point3d> trd = new ArrayList<>();
-        trd.add(new Point3d(T.get(2)));
-        trd.add(new Point3d(T.get(0)));
-        trd.add(new Point3d(I));
-        poligoni.add(fir);
-        poligoni.add(sec);
-        poligoni.add(trd);
-        drawPolygonList(poligoni, "testing/output/poly.obj");
     }
 }
