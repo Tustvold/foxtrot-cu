@@ -8,13 +8,46 @@ import java.util.ArrayList;
 import javax.vecmath.Point3d;
 
 public class IntersectionRemover {
-    ArrayList<Polygon> union;
-    Point3d[][] polygonArray;
-    Point3d[][] holeArray;
-    Point3dPolygon[] combinedArray;
-    private static final double approximate_tolerance = 0.0000000001;
-    double z;
-    ProjectionUtils.ProjectionFace projectionFace;
+    ArrayList<Polygon> union = new ArrayList<>();                       // list of non-intersecting polygons
+    Point3d[][] polygonArray = new Point3d[0][];                        // array of all polygons in non-intersecting representation
+    Point3d[][] holeArray = new Point3d[0][];                           // array of all holes in non-intersecting representation
+    Point3dPolygon[] combinedArray = new Point3dPolygon[0];             // array of polygons with their holes
+    private static final double approximate_tolerance = 0.0000000001;   // tolerance for deciding whether triangle approximates to line
+    double z;                                                           // value of z if projected to x-y plane, y if x-z plane, x if y-z plane
+    ProjectionUtils.ProjectionFace projectionFace;                      // which face mesh was project onto
+
+    public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace projectionFace){
+        // rotate to x-y plane (JTS only operates in x-y plane)
+        this.projectionFace = projectionFace;
+        convertBetweenPlanes(originalCoordinates);
+        // store z value (in rotated plane) as JTS generated coordinates will use NaN by default
+        if(originalCoordinates.length > 1) {
+            z = originalCoordinates[0].z;
+        }
+        GeometryFactory factory = new GeometryFactory();
+        // convert points to list of triangles
+        ArrayList<Polygon> triangleList= new ArrayList<>();
+        for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
+            if(!approximatesToLine(originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2])) {
+                Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
+                Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i + 1]);
+                Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i + 2]);
+                Coordinate[] coordinates = {coordinate1, coordinate2, coordinate3, coordinate1}; //coordinates of triangle looped round
+                triangleList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
+            }
+        }
+        // iteratively merge triangles
+        for (Polygon triangle: triangleList){
+            if (union.size() == 0) {
+                union.add(triangle);
+            } else {
+                mergeIntersecting(union,triangle);
+            }
+        }
+        if (union != null) {
+            generateArrays();
+        }
+    }
 
     // checks if the three points can be approximated as on the same line
     public boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
@@ -22,40 +55,7 @@ public class IntersectionRemover {
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < approximate_tolerance;
     }
 
-    public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace face){ // in x-y plane
-        projectionFace = face;
-        convertBetweenPlanes(originalCoordinates);
-        ArrayList<Polygon> triangleList= new ArrayList<>();
-        union = new ArrayList<>();
-        GeometryFactory factory = new GeometryFactory();
-        if(originalCoordinates.length>1) {
-            z = originalCoordinates[0].z;
-        }
-        for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
-            if(!approximatesToLine(originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2])) {
-                Coordinate coordinate1 = toJTSCoordinate(originalCoordinates[i]);
-                Coordinate coordinate2 = toJTSCoordinate(originalCoordinates[i + 1]);
-                Coordinate coordinate3 = toJTSCoordinate(originalCoordinates[i + 2]);
-                Coordinate[] coordinates = {coordinate1, coordinate2, coordinate3, coordinate1}; //coordinates of triangle
-                triangleList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
-            }
-        } for (Polygon triangle: triangleList){
-            if (union.size() == 0) {
-                union.add(triangle);
-            } else {
-                mergeIntersecting(union,triangle);
-            }
-        }
-
-        if (union != null) {
-            generateArrays();
-        } else {
-            polygonArray = new Point3d[0][];
-            holeArray = new Point3d[0][];
-            combinedArray = new Point3dPolygon[0];
-        }
-    }
-
+    // recursively merges polygon into list until it is non-intersecting, returns if it succeeded at merging polygon in
     private boolean mergeIntersecting(ArrayList<Polygon> list, Polygon polygon) {
         boolean success;
         int length = list.size();
@@ -65,27 +65,27 @@ public class IntersectionRemover {
         } else {
             Polygon element = list.get(0);
             list.remove(0);
-
             try {
                 Geometry temp = polygon.union(element); // merge element & polygon
                 if (temp instanceof Polygon) { // forms one polygon
                     element = (Polygon)temp;
-                    success = mergeIntersecting(list,element); // does recursively merging succeed
+                    success = mergeIntersecting(list,element); // does recursively merging this succeed
                 } else { // forms multiple polygon
-                    success = mergeIntersecting(list,polygon);
+                    success = mergeIntersecting(list,polygon); // recursively merge polygon with rest of list
                     if(success) {
-                        list.add(element);
+                        list.add(element); // add non-intersecting element back into list
                     }
                 }
             } catch (TopologyException e) { // ignore this polygon
-                return false;
+                return false; // failed to fully merge polygon into list
             }
 
         }
         return success;
     }
 
-    private void zy(Point3d[] coordinates) {
+    // rotate between x-y and y-z plane for all coordinates
+    private void yz(Point3d[] coordinates) {
         int length = coordinates.length;
         for (int i = 0; i < length; i++) {
             Point3d point = coordinates[i];
@@ -93,6 +93,7 @@ public class IntersectionRemover {
         }
     }
 
+    // rotate between x-y and x-z plane for all coordinates
     private void zx(Point3d[] coordinates) {
         int length = coordinates.length;
         for (int i = 0; i < length; i++) {
@@ -101,12 +102,13 @@ public class IntersectionRemover {
         }
     }
 
+    // converts coordinates depending on which face it was projected onto
     private void convertBetweenPlanes(Point3d[] coordinates) {
         switch (projectionFace) {
             case ZX0: zx(coordinates); break;
             case ZX1: zx(coordinates); break;
-            case ZY0: zy(coordinates); break;
-            case ZY1: zy(coordinates); break;
+            case ZY0: yz(coordinates); break;
+            case ZY1: yz(coordinates); break;
             default: break;
         }
     }
@@ -116,12 +118,13 @@ public class IntersectionRemover {
         return new Coordinate(point.x, point.y, point.z);
     }
 
-    // convert Geometry to array of arrays of Point3ds for original plane
+    // create arrays of polygons, holes & their combinations from union
     private void generateArrays() {
         int length = union.size();
         polygonArray = new Point3d[length][];
         combinedArray = new Point3dPolygon[length];
         ArrayList<Point3d[]> holeList = new ArrayList<>();
+        // take each element of union and use it to generate the equivalents for each array/list
         for(int i = 0; i < length; i++) {
             Point3dPolygon polygon = new Point3dPolygon(union.get(i),z);
             convertBetweenPlanes(polygon.getExterior());
@@ -137,14 +140,17 @@ public class IntersectionRemover {
         holeArray = holeList.toArray(new Point3d[0][]);
     }
 
+    // getter for polygon array
     public Point3d[][] getPolygonArray() {
         return polygonArray;
     }
 
+    // getter for hole array
     public Point3d[][] getHoleArray() {
         return holeArray;
     }
 
+    // getter for combined array
     public Point3dPolygon[] getCombinedArray() {
         return combinedArray;
     }
