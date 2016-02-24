@@ -29,6 +29,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     var scope = this;
 
+    var maxBlockID = 0;
+    var yLimitEnabled = false;
+    var idLimitEnabled = false;
+
+
     init();
     animate();
 
@@ -60,11 +65,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         domElement.appendChild(renderer.domElement);
 
-        stats = new Stats();
+        //stats = new Stats();
         //stats.domElement.style.position = 'absolute';
         //stats.domElement.style.top = '0px';
 
-        domElement.appendChild(stats.domElement);
+        //domElement.appendChild(stats.domElement);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.mouseButtons = {
@@ -91,20 +96,25 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         vertices = [], indices = [], colors = [];
 
         var cur_index = 0;
-        var block_id = -1;
         var color = new THREE.Color();
 
         // The color ID space isn't sufficient for more blocks than this number
         if (maxX * maxY * maxZ > 16777214)
             throw new FatalError("Generated model has too many blocks");
 
-        for (var y = 0; y < Math.min(yCap, maxY); y++) {
+        var yLimit = maxY;
+        if (yLimitEnabled)
+            yLimit = Math.min(yLimit, yCap);
+
+        for (var y = 0; y < yLimit; y++) {
             for (var x = 0; x < maxX; x++) {
                 for (var z = 0; z < maxZ; z++) {
-                    block_id++;
                     var block = blockList[x][y][z];
                     if (block == null)
                         continue;
+                    var block_id = getBlockID(x,y,z);
+                    if (idLimitEnabled && block_id > maxBlockID)
+                        return;
                     color.setHex(block_id);
 
                     if (block.use_custom_part) {
@@ -122,7 +132,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         continue;
                     }
 
-                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part) {
+                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || getBlockID(x+1,y,z) > maxBlockID) {
                         // Add positive x face
                         vertices.push(x + 1, y, z);
                         vertices.push(x + 1, y, z + 1);
@@ -141,7 +151,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
                     }
 
-                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part) {
+                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || getBlockID(x-1,y,z) > maxBlockID) {
                         // Add negative x face
                         vertices.push(x, y, z);
                         vertices.push(x, y + 1, z);
@@ -159,7 +169,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part) {
+                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || getBlockID(x,y+1,z) > maxBlockID) {
                         // Add top face
                         vertices.push(x, y + 1, z);
                         vertices.push(x + 1, y + 1, z);
@@ -177,7 +187,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part) {
+                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || getBlockID(x,y-1,z) > maxBlockID) {
                         // Add bottom face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -195,7 +205,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part) {
+                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || getBlockID(x,y,z+1) > maxBlockID) {
                         // Add positive z face
                         vertices.push(x, y, z + 1);
                         vertices.push(x, y + 1, z + 1);
@@ -213,7 +223,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part) {
+                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || getBlockID(x,y,z-1) > maxBlockID) {
                         // Add negative z face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -264,6 +274,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         model_picker = new THREE.Mesh(geom, picking_material);
         pickingScene.add(model_picker);
+    }
+
+    this.enableYLimit = function() {
+        yLimitEnabled = true;
+    }
+
+    this.enableIDLimit = function() {
+        idLimitEnabled = true;
     }
 
     this.setBlockList = function(blockList_) {
@@ -324,6 +342,70 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         return blockList;
     }
 
+    this.incrementMaxBlockID = function() {
+        if (typeof blockList == "undefined") {
+            return;
+        }
+        var coords = getCoords(maxBlockID);
+        var x = coords.x;
+        var y = coords.y;
+        var z = coords.z+1;
+        for (; y < maxY; y++) {
+            for (; x < maxX; x++) {
+                for (; z < maxZ; z++) {
+                    if (typeof blockList[x][y][z] !== "undefined" && blockList[x][y][z] != null) {
+                        maxBlockID = getBlockID(x,y,z);
+                        this.refresh();
+                        return;
+                    }
+                }
+                z = 0;
+            }
+            x = 0;
+        }
+    }
+
+    this.decrementMaxBlockID = function() {
+        if (typeof blockList == "undefined") {
+            return;
+        }
+        var coords = getCoords(maxBlockID);
+        var x = coords.x;
+        var y = coords.y;
+        var z = coords.z-1;
+        for (; y >= 0; y--) {
+            for (; x >= 0; x--) {
+                for (; z >= 0; z--) {
+                    if (typeof blockList[x][y][z] !== "undefined" && blockList[x][y][z] != null) {
+                        maxBlockID = getBlockID(x,y,z);
+                        this.refresh();
+                        return;
+                    }
+                }
+                z = maxZ-1;
+            }
+            x = maxX-1;
+        }
+    }
+
+    this.resetMaxBlockID = function() {
+        maxBlockID = -1;
+        this.incrementMaxBlockID();
+        this.refresh();
+    }
+
+    function getBlockID(x,y,z) {
+        return ((y & 0xFF) << 16) | ((x & 0xFF) << 8) | (z & 0xFF);
+    }
+
+    function getCoords(id) {
+        return {
+            y : id >> 16,
+            x : (id >> 8) & 0xFF,
+            z : (id & 0xFF)
+        }
+    }
+
     function pick() {
 
         //render the picking scene off-screen
@@ -343,14 +425,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         // This will need to be changed if the clear color is changed
         if (id != 0xFFFFFF) {
-            var y = Math.floor((id % (maxX *maxZ * maxY)) / maxZ / maxX);
-            var x = Math.floor(id % (maxX * maxZ) / maxZ);
-            var z = id % maxZ;
-
+            var coords = getCoords(id);
+            var x = coords.x;
+            var y = coords.y;
+            var z = coords.z;
 
 
             if (x >= 0 && x < maxX && y >= 0 && y < maxY && z >= 0 && z < maxZ) {
-                if (typeof blockList[x][y][z] === "undefined")
+                if (typeof blockList[x][y][z] === "undefined" || blockList[x][y][z] == null)
                     console.log("Error: Picking selected non-existent block");
                 else
                     scope.onBlockSelected(x, y, z, blockList[x][y][z]);
@@ -369,7 +451,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         controls.update();
 
-        stats.update();
+        //stats.update();
 
     }
 
@@ -384,17 +466,19 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     }
 
     function onKeyDown(e) {
-        if (e.keyCode == 37) {
+        if (idLimitEnabled && e.keyCode == 37) {
             // Left Arrow
+            scope.decrementMaxBlockID();
             e.preventDefault();
-        } else if (e.keyCode == 38) {
+        } else if (yLimitEnabled && e.keyCode == 38) {
             // Up Arrow
             scope.setYRenderCap(scope.getYRenderCap() + 1);
             e.preventDefault();
-        } else if (e.keyCode == 39) {
+        } else if (idLimitEnabled && e.keyCode == 39) {
             // Right Arrow
+            scope.incrementMaxBlockID();
             e.preventDefault();
-        } else if (e.keyCode == 40) {
+        } else if (yLimitEnabled && e.keyCode == 40) {
             // Down Arrow
             scope.setYRenderCap(scope.getYRenderCap() - 1);
             e.preventDefault();

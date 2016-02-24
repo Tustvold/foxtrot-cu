@@ -22,7 +22,7 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
             block_size = req.body.block_size
         }
         if (typeof req.body.block_number !== 'undefined') {
-            block_number = req.body.block_size
+            block_number = req.body.block_number
         }
 
         var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + block_number + " " + block_size

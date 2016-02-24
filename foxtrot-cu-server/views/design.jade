@@ -12,6 +12,7 @@ html(lang='en')
         script(src='/scripts/ObjFileRenderer.js')
         script(src='/scripts/BlockListRenderer.js')
         script(src='/scripts/FileSaver.js')
+        script(src='/scripts/InstructionRenderer.js')
 
         .container
             row
@@ -57,22 +58,20 @@ html(lang='en')
                                 a(data-toggle='collapse', href='#collapse2') Mesh Viewer
                         div#collapse2.panel-collapse.collapse
                             .panel-body
-                                .col-md-6
-                                    row
+                                row
+                                    .col-md-6
                                         div
                                             h3(class="text-center") Uploaded Mesh
-                                    row
                                         div(style="margin-left:auto; margin-right:auto" align="center")
                                             .panel.panel-default
                                                 .panel-body
                                                     div#input-container.model-viewer
 
 
-                                .col-md-6
-                                    row
+                                row
+                                    .col-md-6
                                         div
                                             h3(class="text-center") Generated Design
-                                    row
                                         div(style="margin-left:auto; margin-right:auto" align="center")
                                             .panel.panel-default
                                                 .panel-body
@@ -83,8 +82,7 @@ html(lang='en')
                                     .col-md-6
                                        button#request-mould(type="submit",class="btn btn-primary btn-file btn-collapse3")
                                          |Submit Custom Generated Design
-                                       button.btn.btn-primary.btn-file.mould-downloader(type='hidden')
-                                            | Download
+                                       
                              .panel-footer Viewer Instructions
 
 
@@ -95,15 +93,29 @@ html(lang='en')
                             h3.panel-title
                                 a(data-toggle='collapse', href='#collapse3') Instruction Viewer
                         div#collapse3.panel-collapse.collapse
-                            .panel-body Insert Instruction Viewer
+                            .panel-body
+                                row
+                                    button.btn.btn-primary.btn-file.mould-downloader(type='hidden')
+                                         | Download Moulds
+                                row
+                                    .col-md-3
+                                    .col-md-6
+                                        div
+                                            h3(class="text-center") Instructions
+                                        div(style="margin-left:auto; margin-right:auto" align="center")
+                                            .panel.panel-default
+                                                .panel-body
+                                                    div#instruction-container.model-viewer
+                                    .col-md-3
+                                
                             .panel-footer Instruction Viewer Instructions
 
         
         script(type='text/javascript').
-            var objRenderer, BlockRenderer;
+            var objRenderer, blockRenderer, instructionRenderer;
             var objRendererContainer = document.getElementById("input-container")
             var blockRendererContainer = document.getElementById("output-container")
-            
+            var instructionContainer = document.getElementById("instruction-container")
             
             
             var width = 507-30;
@@ -128,9 +140,12 @@ html(lang='en')
                 $('.model-viewer').css('width', width).css('height', height);
         
                 objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
-                BlockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
+                blockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
+                blockRenderer.enableYLimit();
                 
-                BlockRenderer.onBlockSelected = function(x, y, z, block) {
+                instructionRenderer = new InstructionRenderer(width, height, instructionContainer);
+                
+                blockRenderer.onBlockSelected = function(x, y, z, block) {
                     if (block.custom_part_array == null)
                         return
                     if (!block.use_custom_part) {
@@ -149,7 +164,7 @@ html(lang='en')
                         block.custom_part_index++;
                     }
                     
-                    BlockRenderer.refresh();
+                    blockRenderer.refresh();
                 }
                 
                 var options = {
@@ -182,7 +197,7 @@ html(lang='en')
                     if ('error' in response) {
                         console.log('Error: ' + response.error)
                     } else {
-                        BlockRenderer.setBlockList(response)
+                        blockRenderer.setBlockList(response)
                     }
                 }
 
@@ -200,9 +215,10 @@ html(lang='en')
                             }).show();
                         }
                     }
-                    var blockList = BlockRenderer.getBlockList();
+                    var blockList = blockRenderer.getBlockList();
                     xhr.responseType = "arraybuffer";
                     xhr.send(JSON.stringify({block_list: blockList, custom_part_size: customPartSize}));
+                    instructionRenderer.setBlockList(blockList);
                 }
 
                 $('#request-mould').click(function(event) {

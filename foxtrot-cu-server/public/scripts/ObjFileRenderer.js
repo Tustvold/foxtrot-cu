@@ -35,11 +35,11 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
         domElement.appendChild(renderer.domElement);
 
-        stats = new Stats();
+        //stats = new Stats();
         //stats.domElement.style.position = 'absolute';
         //stats.domElement.style.top = '0px';
 
-        domElement.appendChild(stats.domElement);
+        //domElement.appendChild(stats.domElement);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: -1, PAN: -1 };
@@ -60,7 +60,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
         controls.update();
 
-        stats.update();
+        //stats.update();
 
     }
 
