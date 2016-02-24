@@ -29,22 +29,21 @@ router.post('/', function(req,res,next){
     temp.mkdir('outputDir', function(err, dirPath) {
         if (err)
             throw err;
-        console.log(req)
-        //var body =
-        console.log(req.body)
-        console.log(req.body.block_list)
+
         var filePath = dirPath + '/in.json'
-        fs.writeFile(filePath, function(err) {
+        fs.writeFile(filePath, JSON.stringify(req.body.block_list), function(err) {
             if (err) {
                 return console.log(err)
             }
-            child = exec('java -jar "jars/EdibleLego-fat-1.0.jar" mouldify' + filePath + " " + dirPath);
 
+            var custom_part_size = 10;
+            if (typeof req.body.custom_part_size !== 'undefined') {
+                custom_part_size = req.body.custom_part_size
+            }
 
-            archive.pipe(res);
-            archive.bulk([
-                { expand: true, cwd: dirPath, src: ['*.stl'], dest: 'parts'}
-            ]);
+            var exec_str = 'java -jar "jars/EdibleLego-fat-1.0.jar" mouldify ' + filePath + " " + dirPath + " " + custom_part_size;
+            console.log(exec_str)
+            child = exec(exec_str);
 
             hasError = false;
             errorBuffer = "";
@@ -53,6 +52,7 @@ router.post('/', function(req,res,next){
             child.stderr.on('data', function(data) {
                 errorBuffer += data;
                 console.log(data)
+                hasError = true;
             });
 
             // If the jar finished successfully
@@ -64,6 +64,11 @@ router.post('/', function(req,res,next){
                     res.end();
                 }
                 else if(!res.finished) {
+                    archive.pipe(res);
+                    archive.bulk([
+                        { expand: true, cwd: dirPath, src: ['*.obj'], dest: 'parts'}
+                    ]);
+
                     res.header("Content-Type", "application/octet-stream");
                     archive.finalize();
                 }

@@ -13,6 +13,10 @@ public class CustomPart {
         return triangles;
     }
 
+    public CustomPart() {
+        triangles = null;
+    }
+
     public CustomPart(Point3d[] inTriangles) {
         triangles = new Point3d[inTriangles.length];
         System.arraycopy(inTriangles, 0, triangles, 0, triangles.length);

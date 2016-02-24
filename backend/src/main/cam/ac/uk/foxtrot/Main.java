@@ -190,10 +190,13 @@ public class Main
                             default: throw new IllegalArgumentException("mouldify: block's custom part index must be between 0 and 5.");
                         }
 
-                        ArrayList<Point3d> al = block.getTriangles();
-                        CustomPartMouldGenerator m = new CustomPartMouldGenerator(al.toArray(new Point3d[al.size()]), scale);
-                        File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
-                        m.generateMould(face, outFile);
+                        Point3d[] al = block.getCustomPart()[block.getCustomPartIndex()].getTriangles();
+
+                        if (al != null) {
+                            CustomPartMouldGenerator m = new CustomPartMouldGenerator(al, scale);
+                            File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
+                            m.generateMould(face, outFile);
+                        }
                     }
                 }
             }

@@ -157,11 +157,15 @@ html(lang='en')
                     success: showResponse  // post-submit callback
                 };
                 
+                var customPartSize = 10;
+                
                 $('form').ajaxForm(options)
                 function showRequest(formData, jqForm, options) {
         
                     console.log('start')
                     console.log(formData)
+                    
+                    customPartSize = formData[2].value;
                   
                     var reader = new FileReader();
                     reader.onload = function (e) {
@@ -198,7 +202,7 @@ html(lang='en')
                     }
                     var blockList = BlockRenderer.getBlockList();
                     xhr.responseType = "arraybuffer";
-                    xhr.send(JSON.stringify({block_list: blockList}));
+                    xhr.send(JSON.stringify({block_list: blockList, custom_part_size: customPartSize}));
                 }
 
                 $('#request-mould').click(function(event) {
