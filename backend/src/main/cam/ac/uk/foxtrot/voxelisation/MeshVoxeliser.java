@@ -51,6 +51,10 @@ public class MeshVoxeliser
 
         telemetry = 0;
         generateBlocks();
+
+        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", false);
+
         System.out.println("Number of retries: " + telemetry);
     }
 
@@ -176,12 +180,12 @@ public class MeshVoxeliser
 
     /**
      * Generates the Block matrix for the mesh present in the voxeliser.
-     *
+     * <p>
      * The Blocks which contain fragments of the mesh will be labeled as custom parts,
      * the blocks which are completely outside the mesh will be null, while the blocks
      * which are completely encompassed by the mesh will be created and labeled as not
      * custom.
-    */
+     */
     private void generateBlocks()
     {
         System.out.println("Filling blocks...");
@@ -211,7 +215,7 @@ public class MeshVoxeliser
 
     /**
      * Subdivides the provided triangle defined by its list of vertices.
-     *
+     * <p>
      * This is done by projecting the current subdivision onto a projection plane
      * (e.g. xy plane) and then iteratively slicing all the polygons in it with the
      * vertical grid lines of the current projection plane (e.g. lines parallel to
@@ -221,7 +225,7 @@ public class MeshVoxeliser
      *
      * @param triangle list of points representing the triangle
      * @return the array of distinct convex polygons, each of which is only
-     *         contained in a single Block
+     * contained in a single Block
      */
     private ArrayList<ArrayList<Point3d>> subdivideTriangle(ArrayList<Point3d> triangle)
     {
@@ -358,20 +362,20 @@ public class MeshVoxeliser
      * Intersects the line between fir and sec with the vertical line, while
      * ignoring the ignore-th coordinate.
      *
-     * @param fir first point of the line
-     * @param sec second point of the line
-     * @param line grid-line 'x' coordinate
+     * @param fir    first point of the line
+     * @param sec    second point of the line
+     * @param line   grid-line 'x' coordinate
      * @param ignore coordinate to be ignored (the other two are then treated as 'x' and 'y')
-     * @param res the point in which the result will be returned
+     * @param res    the point in which the result will be returned
      * @return The following return values are possible:
-     *         1. true  - the intersection was strictly between fir and sec
-     *                    and the point of intersection is returned in res
-     *         2. false - there was either no intersection or an
-     *                    case was observed, res will contain:
-     *                    2.1. res is unchanged  - no intersection with the line
-     *                    2.2. res = (-1,  1, 0) - fir and sec are on the line
-     *                    2.3. res = ( 1, -1, 0) - fir is on the line (but sec is not)
-     *                    2.4. res = ( 1,  1, 0) - sec is on the line (but fir is not)
+     * 1. true  - the intersection was strictly between fir and sec
+     * and the point of intersection is returned in res
+     * 2. false - there was either no intersection or an
+     * case was observed, res will contain:
+     * 2.1. res is unchanged  - no intersection with the line
+     * 2.2. res = (-1,  1, 0) - fir and sec are on the line
+     * 2.3. res = ( 1, -1, 0) - fir is on the line (but sec is not)
+     * 2.4. res = ( 1,  1, 0) - sec is on the line (but fir is not)
      */
     public static boolean intersect(Point3d fir, Point3d sec, double line, int ignore, Point3d res)
     {
@@ -525,7 +529,7 @@ public class MeshVoxeliser
      * by adding them to their respective Blocks in the Blocks matrix.
      *
      * @param polygonList list of polygons to classify
-     * */
+     */
     private void classifyPolygons(ArrayList<ArrayList<Point3d>> polygonList)
     {
         int cnt = polygonList.size();
@@ -533,12 +537,19 @@ public class MeshVoxeliser
         {
             ArrayList<Point3d> poly = polygonList.get(curr);
 
-            // determine the block coordinates by rounding center of mass coordinates
-            Point3d cm = getCenterOfMass(poly);
+            // determine the block coordinates
+            Point3i blockCoords = determineBlockCoordinates(poly);
             int x, y, z;
-            x = (int) cm.x;
-            y = (int) cm.y;
-            z = (int) cm.z;
+            x = blockCoords.x;
+            y = blockCoords.y;
+            z = blockCoords.z;
+
+            if (x > dim[0] - 1)
+                x = dim[0] - 1;
+            if (y > dim[1] - 1)
+                y = dim[1] - 1;
+            if (z > dim[2] - 1)
+                z = dim[2] - 1;
 
             // create a new block if it does not exist already
             if (blocks[x][y][z] == null)
@@ -584,12 +595,73 @@ public class MeshVoxeliser
         return cm;
     }
 
+
+    /**
+     * Determines the coordinates of the block to sort the polygon in, depending on the
+     * location of its centre of mass and its surface normal.
+     */
+    private Point3i determineBlockCoordinates(ArrayList<Point3d> poly)
+    {
+        Point3i res = new Point3i(0, 0, 0);
+
+        Point3d cm = getCenterOfMass(poly);
+        res.x = (int) cm.x;
+        res.y = (int) cm.y;
+        res.z = (int) cm.z;
+
+        Point3d A = poly.get(0);
+        Point3d B = poly.get(1);
+        Point3d C = poly.get(2);
+
+        // IMPORTANT NOTE:
+        // All surface normals point outside of the mesh!
+        // Assuming the points of a polygon are given in a CCW order in a plane,
+        // the surface normal will point towards the observer (vertically upward
+        // from the paper, following the right hand rule).
+
+        Point3d n = vectorProd(A, B, C);
+        if (n.x > 0 && areIdentical(res.x, A.x) && areIdentical(res.x, B.x) && areIdentical(res.x, C.x))
+        {
+            // the polygon is in the 0yz plane in the selected blocks coordinate system
+            // and the surface normal is pointing to the inside of the currently selected
+            // block, so we relocate the polygon to the cube 'below' in x
+            res.x--;
+        }
+        else if (n.y > 0 && areIdentical(res.y, A.y) && areIdentical(res.y, B.y) && areIdentical(res.y, C.y))
+        {
+            // the polygon is in the x0z plane in the selected blocks coordinate system
+            // and the surface normal is pointing to the inside of the currently selected
+            // block, so we relocate the polygon to the cube 'below' in y
+            res.y--;
+        }
+        else if (n.z > 0 && areIdentical(res.z, A.z) && areIdentical(res.z, B.z) && areIdentical(res.z, C.z))
+        {
+            // the polygon is in the xy0 plane in the selected blocks coordinate system
+            // and the surface normal is pointing to the inside of the currently selected
+            // block, so we relocate the polygon to the cube 'below' in z
+            res.z--;
+        }
+        return res;
+    }
+
+    /**
+     * Returns the vector product ABxAC.
+     */
+    private Point3d vectorProd(Point3d A, Point3d B, Point3d C)
+    {
+        Point3d result = new Point3d(0, 0, 0);
+        result.x = (B.y - A.y) * (C.z - A.z) - (B.z - A.z) * (C.y - A.y);
+        result.y = (B.z - A.z) * (C.x - A.x) - (B.x - A.x) * (C.z - A.z);
+        result.z = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+        return result;
+    }
+
     /**
      * Fills the entire block matrix with appropriate full/empty blocks.
-     *
+     * <p>
      * (The block matrix must be initialized with mesh pieces before
      * calling fillAllChunks!)
-    */
+     */
     private void fillAllChunks()
     {
         System.out.println("Filling chunks...");
@@ -606,7 +678,7 @@ public class MeshVoxeliser
 
     /**
      * Fills a single xy chunk of blocks.
-     *
+     * <p>
      * This is done by iterating through the blocks in the chunk in a top-down manner and
      * shooting the same vertical ray through each of them and adding the number of
      * intersection the ray has with the current block to a global total. When an empty
@@ -713,16 +785,16 @@ public class MeshVoxeliser
      * from R0!
      *
      * @param R0 ray origin
-     * @param T triangle to test intersection with
+     * @param T  triangle to test intersection with
      * @return Returns one of the following codes depending on type of intersection:
-     *         0 - no intersection
-     *         1 - ray intersects triangles strict inside
-     *         2 - ray passes through vertex T[0]
-     *         3 - ray passes through vertex T[1]
-     *         4 - ray passes through vertex T[2]
-     *         5 - ray intersects edge T[0]->T[1]
-     *         6 - ray intersects edge T[1]->T[2]
-     *         7 - ray intersects edge T[2]->T[0]
+     * 0 - no intersection
+     * 1 - ray intersects triangles strict inside
+     * 2 - ray passes through vertex T[0]
+     * 3 - ray passes through vertex T[1]
+     * 4 - ray passes through vertex T[2]
+     * 5 - ray intersects edge T[0]->T[1]
+     * 6 - ray intersects edge T[1]->T[2]
+     * 7 - ray intersects edge T[2]->T[0]
      */
     public static int cutVertically(Point3d R0, ArrayList<Point3d> T)
     {
@@ -774,16 +846,24 @@ public class MeshVoxeliser
      */
     public static boolean areIdentical(Point3d ver1, Point3d ver2)
     {
-        return Math.abs(ver1.x - ver2.x) < double_tolerance
-                && Math.abs(ver1.y - ver2.y) < double_tolerance
-                && Math.abs(ver1.z - ver2.z) < double_tolerance;
+        return areIdentical(ver1.x, ver2.x)
+                && areIdentical(ver1.y, ver2.y)
+                && areIdentical(ver1.z, ver2.z);
+    }
+
+    /**
+     * Checks if two double precision floating point values are identical within the global tolerance.
+     */
+    public static boolean areIdentical(double d1, double d2)
+    {
+        return Math.abs(d2 - d1) < double_tolerance;
     }
 
     /**
      * DEBUGGING and TESTING method!
      * Outputs a .obj file representing the current mesh subdivision within the block matrix.
      *
-     * @param filename name of file to which to write output
+     * @param filename    name of file to which to write output
      * @param includeGrid if the x0z grid should be included
      */
     public void drawTrianglesFromBlocks(String filename, boolean includeGrid)
@@ -826,9 +906,10 @@ public class MeshVoxeliser
                 }
                 for (int y = 0; y < matrixDimensions.y; y++)
                 {
-                    if (blocks[x][y][z] == null)
+                    if (blocks[x][y][z] == null || !blocks[x][y][z].isCustom())
                         continue;
                     ArrayList<Point3d> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
+                    blocks[x][y][z].drawBlock("testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
                     for (int i = 0; i < blocks[x][y][z].getTriangleCount() * 3; i++)
@@ -983,7 +1064,7 @@ public class MeshVoxeliser
      * DEBUGGING and TESTING method!
      * Outputs a .obj file representing the current full Blocks in the block matrix.
      *
-     * @param filename name of file to which to write output
+     * @param filename    name of file to which to write output
      * @param includeGrid if the x0z grid should be included
      */
     public void drawVoxelsOnly(String filename, boolean includeGrid)

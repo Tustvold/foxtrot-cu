@@ -52,48 +52,6 @@ public class ProjectionUtils {
         return newCoordinates;
     }
 
-    /**
-     * Corrects for various rounding errors and returns true if correcting was needed (using the voxeliser tolerance)
-     *
-     * @param pt the point to check
-     * @return correctionNeeded is a correction needed?
-     */
-    public static boolean correctPoint(Point3d pt)
-    {
-        boolean correctionNeeded = false;
-        double tolerance = MeshVoxeliser.double_tolerance;
-        if (0 > pt.x && pt.x > -tolerance)
-        {
-            pt.x = 0;
-            correctionNeeded = true;
-        }
-        else if (1 < pt.x && pt.x < 1 + tolerance)
-        {
-            pt.x = 1.0;
-            correctionNeeded = true;
-        }
-        if (0 > pt.y && pt.y > -tolerance)
-        {
-            pt.y = 0;
-            correctionNeeded = true;
-        }
-        else if (1 < pt.y && pt.y < 1 + tolerance)
-        {
-            pt.y = 1.0;
-            correctionNeeded = true;
-        }
-        if (0 > pt.z && pt.z > -tolerance)
-        {
-            pt.z = 0;
-            correctionNeeded = true;
-        }
-        else if (1 < pt.z && pt.z < 1 + tolerance)
-        {
-            pt.z = 1.0;
-            correctionNeeded = true;
-        }
-        return correctionNeeded;
-    }
 
     /**
      * Add polygons obtained from the projection at the appropriate depth

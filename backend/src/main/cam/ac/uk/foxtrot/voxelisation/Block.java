@@ -32,10 +32,33 @@ public class Block
 
     public void addTriangle(Point3d fir, Point3d sec, Point3d trd)
     {
-        triangles.add(new Point3d(fir.x - mPosition.x, fir.y - mPosition.y, fir.z - mPosition.z));
-        triangles.add(new Point3d(sec.x - mPosition.x, sec.y - mPosition.y, sec.z - mPosition.z));
-        triangles.add(new Point3d(trd.x - mPosition.x, trd.y - mPosition.y, trd.z - mPosition.z));
+        triangles.add(adjustPoint(fir));
+        triangles.add(adjustPoint(sec));
+        triangles.add(adjustPoint(trd));
         triangleCnt++;
+    }
+
+    /**
+     * Grid aligns the coordinates of point A which are
+     * within the tolerance from the nearest grid plane.
+     *
+     * @param A point to be adjusted
+     */
+    private Point3d adjustPoint(Point3d A)
+    {
+        double x = A.x - mPosition.x;
+        double y = A.y - mPosition.y;
+        double z = A.z - mPosition.z;
+
+        // correct the new coordinates
+        if (x < MeshVoxeliser.double_tolerance) x = 0;
+        else if (x > 1 - MeshVoxeliser.double_tolerance) x = 1;
+        if (y < MeshVoxeliser.double_tolerance) y = 0;
+        else if (y > 1 - MeshVoxeliser.double_tolerance) y = 1;
+        if (z < MeshVoxeliser.double_tolerance) z = 0;
+        else if (z > 1 - MeshVoxeliser.double_tolerance) z = 1;
+
+        return new Point3d(x, y, z);
     }
 
     public void setIsCustom(boolean custom)
@@ -89,7 +112,8 @@ public class Block
         customPartIndex = suggestedCustomPartIndex;
     }
 
-    public Block(CustomPart[] parts, boolean usingCustomPart, int partNumber) {
+    public Block(CustomPart[] parts, boolean usingCustomPart, int partNumber)
+    {
         customParts = parts;
         isCustom = usingCustomPart;
         customPartIndex = partNumber;

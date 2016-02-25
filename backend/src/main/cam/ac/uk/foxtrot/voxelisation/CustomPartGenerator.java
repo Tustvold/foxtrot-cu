@@ -30,11 +30,8 @@ public class CustomPartGenerator {
         {
             if (pt.x < 0 || pt.x > 1 || pt.y < 0 || pt.y > 1 || pt.z < 0 || pt.z > 1)
             {
-                if (!ProjectionUtils.correctPoint(pt))
-                {
-                    throw new IllegalArgumentException("CustomPartGenerator: coordinates for all points in the mesh" +
+                throw new IllegalArgumentException("CustomPartGenerator: coordinates for all points in the mesh" +
                             "must be between 0 and 1");
-                }
             }
         }
 

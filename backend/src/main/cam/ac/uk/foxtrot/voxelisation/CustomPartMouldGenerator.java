@@ -71,7 +71,7 @@ public class CustomPartMouldGenerator
     /**
      * Construct a new CustomPartMouldGenerator
      *
-     * @param inMesh array of points representing triangles as the faces of a mesh to operate on
+     * @param inMesh  array of points representing triangles as the faces of a mesh to operate on
      * @param inScale mould scale in mm
      */
     public CustomPartMouldGenerator(Point3d[] inMesh, double inScale)
@@ -86,11 +86,8 @@ public class CustomPartMouldGenerator
         {
             if (pt.x < 0 || pt.x > 1 || pt.y < 0 || pt.y > 1 || pt.z < 0 || pt.z > 1)
             {
-                if (!ProjectionUtils.correctPoint(pt))
-                {
-                    throw new IllegalArgumentException("CustomPartMouldGenerator: coordinates for all points in the mesh" +
-                            "must be between 0 and 1");
-                }
+                throw new IllegalArgumentException("CustomPartMouldGenerator: coordinates for all points in the mesh" +
+                        "must be between 0 and 1");
             }
         }
 
@@ -147,9 +144,9 @@ public class CustomPartMouldGenerator
     /**
      * Add the top mould face with holes where intrusions should be added
      *
-     * @param coordinates list of coordinates of the mould to add to
-     * @param stripCounts list of strips of the mould to add to
-     * @param contourCounts list of contours of the mould to add to
+     * @param coordinates        list of coordinates of the mould to add to
+     * @param stripCounts        list of strips of the mould to add to
+     * @param contourCounts      list of contours of the mould to add to
      * @param projectionPolygons polygons that should be represented as holes on the top mould face
      */
     private void addIntrudedMouldFace(ArrayList<Point3d> coordinates, ArrayList<Integer> stripCounts,
@@ -174,8 +171,8 @@ public class CustomPartMouldGenerator
     /**
      * Add the flat faces of the mould
      *
-     * @param coordinates list of coordinates of the mould to add to
-     * @param stripCounts list of strips of the mould to add to
+     * @param coordinates   list of coordinates of the mould to add to
+     * @param stripCounts   list of strips of the mould to add to
      * @param contourCounts list of contours of the mould to add to
      */
     private void addFlatMouldFaces(ArrayList<Point3d> coordinates, ArrayList<Integer> stripCounts,
@@ -263,8 +260,6 @@ public class CustomPartMouldGenerator
 
         ProjectionUtils.generateObjFile(pts, file, scale);
     }
-
-
 
 
 }
