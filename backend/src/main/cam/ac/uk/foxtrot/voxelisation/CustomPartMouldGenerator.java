@@ -11,7 +11,7 @@ import java.util.Collections;
 public class CustomPartMouldGenerator
 {
 
-    private final double MOULD_DEPTH = .25; // distance from top mould face projection will go as a fraction of scale
+    private final double MOULD_DEPTH = 1; // distance from top mould face projection will go as a fraction of scale
     private final double MOULD_PADDING = .1; // extra space for depth of the mould as a fraction of scale
     private final double EXTRA_WH = .1; // extra space for width and height of the mould as a fraction of scale
 

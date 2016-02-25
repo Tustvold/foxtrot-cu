@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class CustomPartGenerator {
 
-    private final double PART_DEPTH = .25; // distance from top mould face projection will go as a fraction of unit cube
+    private final double PART_DEPTH = 1; // distance from top mould face projection will go as a fraction of unit cube
 
     private Point3d[] mesh; // array of points (each three is a triangle) representing the mesh to make a part for
 

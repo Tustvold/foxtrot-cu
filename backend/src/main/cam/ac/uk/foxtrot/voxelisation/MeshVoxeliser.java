@@ -909,7 +909,7 @@ public class MeshVoxeliser
                     if (blocks[x][y][z] == null || !blocks[x][y][z].isCustom())
                         continue;
                     ArrayList<Point3d> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
-                    blocks[x][y][z].drawBlock("testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
+                    //blocks[x][y][z].drawBlock("testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
 
                     totalTriangles += blocks[x][y][z].getTriangleCount();
                     for (int i = 0; i < blocks[x][y][z].getTriangleCount() * 3; i++)
