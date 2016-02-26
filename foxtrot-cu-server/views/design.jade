@@ -111,6 +111,13 @@ html(lang='en')
                                                 .panel-body
                                                     div#instruction-container.model-viewer
                                     .col-md-3
+                                row
+                                    .col-md-3
+                                        .test
+                                    .col-md-6
+                                        button.btn.btn-primary.btn-file#button-left Previous step
+                                        button.btn.btn-primary.btn-file#button-right Next step
+                                    .col-md-3
                                 
                             .panel-footer Instruction Viewer Instructions
 
@@ -120,6 +127,8 @@ html(lang='en')
             var objRendererContainer = document.getElementById("input-container")
             var blockRendererContainer = document.getElementById("output-container")
             var instructionContainer = document.getElementById("instruction-container")
+
+
             
             
             var width = 507-30;
@@ -146,8 +155,22 @@ html(lang='en')
                 objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
                 blockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
                 blockRenderer.enableYLimit();
+
+
                 
                 instructionRenderer = new InstructionRenderer(width, height, instructionContainer);
+
+                window.instr = instructionRenderer
+
+                        $("#button-left").click(function(){
+                    instructionRenderer.renderer.decrementMaxBlockID();
+                    console.log("???")
+                });
+
+                $("#button-right").click(function(){
+                    instructionRenderer.renderer.incrementMaxBlockID();
+                    console.log("???")
+                });
                 
                 blockRenderer.onBlockSelected = function(x, y, z, block) {
                     if (block.custom_part_array == null)

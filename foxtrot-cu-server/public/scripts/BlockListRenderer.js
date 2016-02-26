@@ -19,7 +19,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     });
 
     var render_material = new THREE.MeshLambertMaterial({
-        color: 0xff0000,
+        color: 0xFF0000,
         side: THREE.DoubleSide
     });
 
@@ -248,11 +248,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     function generateBuffer() {
         // This limit can be increased by using a Uint32Array instead
-        if (indices.length >= 65536)
+        if (indices.length >= 4294967296)
             throw new FatalError("Generated Mesh has too many indices");
 
         var floatVertices = new Float32Array(vertices);
-        var intIndices = new Uint16Array(indices);
+        var intIndices = new Uint32Array(indices);
         var floatColors = new Float32Array(colors);
 
         var geom = new THREE.BufferGeometry();
@@ -261,12 +261,12 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         geom.setIndex(new THREE.BufferAttribute(intIndices, 1));
         geom.computeVertexNormals();
 
-        model_renderer = new THREE.Mesh(geom, render_material);
+        //model_renderer = new THREE.Mesh(geom, render_material);
 
-        //model_renderer = THREE.SceneUtils.createMultiMaterialObject(geom, [
-        //    render_material,
-        //    render_material_wireframe
-        //]);
+        model_renderer = THREE.SceneUtils.createMultiMaterialObject(geom, [
+            render_material,
+            render_material_wireframe
+        ]);
 
         new THREE.Mesh(geom, picking_material);
 
