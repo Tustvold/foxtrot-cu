@@ -33,8 +33,6 @@ public class SideFiller
         dim[0] = blocks.length;
         dim[1] = blocks[0].length;
         dim[2] = blocks[0][0].length;
-
-        fillAllSides();
     }
 
     public void fillAllSides()

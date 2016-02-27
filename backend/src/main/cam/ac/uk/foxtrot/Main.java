@@ -63,6 +63,7 @@ public class Main
 
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
+        filler.fillAllSides();
         blocks = filler.getBlocks();
 
         // add custom parts
