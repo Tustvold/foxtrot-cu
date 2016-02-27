@@ -344,7 +344,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         model_renderer.position.set(- Math.floor(maxX / 2), 0, -Math.floor(maxZ / 2));
         model_picker.position.set(- Math.floor(maxX / 2), 0, -Math.floor(maxZ / 2));
 
-        var gridSize = Math.floor(Math.max(maxX, maxZ) / 2) + 1;
+        var gridSize = Math.ceil(Math.max(maxX, maxZ) / 2);
 
         gridXZ = new THREE.GridHelper(gridSize, 1);
         scene.add(gridXZ);
