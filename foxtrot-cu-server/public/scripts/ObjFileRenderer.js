@@ -58,7 +58,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
         var selectBoxGeom = new THREE.BoxGeometry(selectBoxDim, selectBoxDim, selectBoxDim);
 
-        selectBox = new THREE.Mesh( selectBoxGeom, select_box_material );
+        selectBox = new THREE.BoxHelper(new THREE.Mesh( selectBoxGeom, select_box_material));
         selectBox.visible = false;
         scene.add(selectBox);
 
@@ -131,18 +131,26 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         selectBox.scale.set(scale, scale, scale);
     }
 
-    this.setGrid = function(centerOfMass, offset) {
+    this.setGrid = function(centerOfMass, offset, blockListDimensions) {
         if (gridXZ != null)
             scene.remove(gridXZ);
 
-        var convertedX = centerOfMass.x + (-offset.x)*scale;
+        var maxX = blockListDimensions.x;
+        var maxZ = blockListDimensions.z;
+
+        var centerX = Math.floor(maxX/2);
+        var centerZ = Math.floor(maxZ/2);
+
+        var convertedX = centerOfMass.x + (centerX-offset.x)*scale;
         var convertedY = centerOfMass.y + (-offset.y)*scale;
-        var convertedZ = centerOfMass.z + (-offset.z)*scale;
+        var convertedZ = centerOfMass.z + (centerZ-offset.z)*scale;
 
-        var gridsize = Math.ceil(Math.max(half_extents.x, half_extents.z)/scale) * scale;
+        var gridScale = Math.ceil(scale);
+        var gridsize = Math.floor(Math.max(maxX, maxZ) / 2) + 1;
 
-        gridXZ = new THREE.GridHelper(gridsize, Math.ceil(scale));
-        gridXZ.position.set(convertedX+gridsize-center.x, convertedY-center.y, convertedZ+gridsize-center.z);
+        gridXZ = new THREE.GridHelper(gridsize,1);
+        gridXZ.scale.set(gridScale, gridScale, gridScale);
+        gridXZ.position.set(convertedX-center.x, convertedY-center.y, convertedZ-center.z);
         scene.add(gridXZ);
     }
 

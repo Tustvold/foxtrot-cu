@@ -272,7 +272,7 @@ html(lang='en')
                         centerOfMass = response.center_of_mass;
                         offset = response.offset;
                         blockRenderer.setBlockList(response.block_list);
-                        objRenderer.setGrid(centerOfMass, offset);
+                        objRenderer.setGrid(centerOfMass, offset, blockRenderer.getBlockListDimensions());
                         
                         $('#output-container-spinner').hide();
                         $('#output-container-canvas').show();
