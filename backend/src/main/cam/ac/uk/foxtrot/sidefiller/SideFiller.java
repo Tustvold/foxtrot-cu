@@ -53,21 +53,25 @@ public class SideFiller
                         continue;
                     }
                     ArrayList<Point3d> newTriangles = new ArrayList<>();
-                    if(x == 0 && y == 3 && z == 2)
-                    {
-                        drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/block.obj");
-                    }
+
                     for (int ignore = 0; ignore < 3; ignore++)
                     {
+                        /*
+                        if (x == 0 && y == 2 && z == 2 && ignore == 2)
+                        {
+                            drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
+                        }
+                        */
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, false));
                     }
                     blocks[x][y][z].addTriangles(newTriangles); // add all the newly created triangles
                     blocks[x][y][z].setInternalDim(); // determine the internal dimensions of the block
+                    //drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
                 }
             }
         }
-        drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
+        //drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
     }
 
     public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)
@@ -382,7 +386,22 @@ public class SideFiller
 
         // extract polygons from finalPoints
         // -------------------------------------------------------------------------------------------------------------
+        // first remove the point itself from the adjacency lists, if it happens // TODO temporary
         pointCnt = finalPoints.size();
+        for(int i = 0; i < pointCnt; i++)
+        {
+            Point curr = finalPoints.get(i);
+            if(curr.getFirstParent() == curr)
+            {
+                curr.removeParent(curr);
+            }
+            if(curr.getFirstNeighbour() == curr)
+            {
+                curr.removeNeighbour(curr);
+            }
+        }
+
+        // continue to the actual polygon extraction
         if (pointCnt < 3)
         {
             return new ArrayList<>();
