@@ -11,7 +11,7 @@ import java.util.Collections;
 public class CustomPartMouldGenerator
 {
 
-    private double MOULD_DEPTH = 1; // distance from top mould face projection will go as a fraction of scale
+    private double MOULD_DEPTH; // distance from top mould face projection will go as a fraction of scale
     private final double MOULD_PADDING = .1; // extra space for depth of the mould as a fraction of scale
     private final double EXTRA_WH = .1; // extra space for width and height of the mould as a fraction of scale
 
@@ -67,6 +67,7 @@ public class CustomPartMouldGenerator
 
     private Point3d[] mesh; // array of points (each three is a triangle) representing the mesh to make a mould for
     private double scale; // mould scale in mm
+    private double[] mesh_dimension; // the internal dimensions of the mesh
 
     /**
      * Construct a new CustomPartMouldGenerator
@@ -74,7 +75,7 @@ public class CustomPartMouldGenerator
      * @param inMesh  array of points representing triangles as the faces of a mesh to operate on
      * @param inScale mould scale in mm
      */
-    public CustomPartMouldGenerator(Point3d[] inMesh, double inScale)
+    public CustomPartMouldGenerator(Point3d[] inMesh, double inScale, double[] dimensions)
     {
         if (inMesh.length % 3 != 0)
         {
@@ -91,6 +92,7 @@ public class CustomPartMouldGenerator
             }
         }
 
+        mesh_dimension = dimensions;
         mesh = inMesh;
         scale = inScale;
     }
@@ -200,13 +202,47 @@ public class CustomPartMouldGenerator
     }
 
     /**
+     * Determines the projection face depending on its index.
+     *
+     * @param projectTo face index on which to project the custom part
+     *                  cases: 0 -> ZY0
+     *                  1 -> ZX0
+     *                  2 -> XY0
+     */
+    private ProjectionUtils.ProjectionFace getProjectionFace(int projectTo)
+    {
+        switch (projectTo)
+        {
+            case 0:
+                return ProjectionUtils.ProjectionFace.ZY0;
+            case 1:
+                return ProjectionUtils.ProjectionFace.ZX0;
+            case 2:
+                return ProjectionUtils.ProjectionFace.XY0;
+        }
+        return null;
+    }
+
+    /**
+     * Determines the parts depth depending on the index of the projection face
+     */
+    private double determinePartDepth(int projectTo)
+    {
+        return mesh_dimension[3 + projectTo] - mesh_dimension[projectTo];
+    }
+
+    /**
      * Generate a mould for mesh projection onto the given face, and write it as an .obj file to file
      *
-     * @param face the face on which mesh should be projected
+     * @param projectTo the face  label on which mesh should be projected
      * @param file the file to which the output .obj file should be written
      */
-    public void generateMould(ProjectionUtils.ProjectionFace face, File file)
+    public void generateMould(int projectTo, File file)
     {
+        ProjectionUtils.ProjectionFace face;
+        face = getProjectionFace(projectTo);
+        MOULD_DEPTH = determinePartDepth(projectTo);
+
         if (face == null)
         {
             throw new IllegalArgumentException("generateMould: face cannot be null");

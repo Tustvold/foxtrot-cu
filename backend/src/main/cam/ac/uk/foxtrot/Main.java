@@ -166,22 +166,11 @@ public class Main
                             continue;
                         }
 
-                        // TODO HACK HERE
-                        ProjectionUtils.ProjectionFace face;
-                        switch (block.getCustomPartIndex()) {
-                            case 0: face = ProjectionUtils.ProjectionFace.XY0;break;
-                            case 1: face = ProjectionUtils.ProjectionFace.XY1;break;
-                            case 2: face = ProjectionUtils.ProjectionFace.ZX0;break;
-                            case 3: face = ProjectionUtils.ProjectionFace.ZX1;break;
-                            case 4: face = ProjectionUtils.ProjectionFace.ZY0;break;
-                            case 5: face = ProjectionUtils.ProjectionFace.ZY1;break;
-                            default: throw new IllegalArgumentException("mouldify: block's custom part index must be between 0 and 5.");
-                        }
-
+                        int face = block.getCustomPartIndex();
                         Point3d[] al = block.getCustomPart()[block.getCustomPartIndex()].getTriangles();
 
                         if (al != null) {
-                            CustomPartMouldGenerator m = new CustomPartMouldGenerator(al, scale);
+                            CustomPartMouldGenerator m = new CustomPartMouldGenerator(al, scale, block.getInternalDim());
                             File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
                             m.generateMould(face, outFile);
                         }
