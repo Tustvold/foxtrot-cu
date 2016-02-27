@@ -30,6 +30,12 @@ public class Block
         return triangles;
     }
 
+    public void addTriangles(ArrayList<Point3d> points)
+    {
+        triangles.addAll(points);
+        triangleCnt += points.size()/3;
+    }
+
     public void addTriangle(Point3d fir, Point3d sec, Point3d trd)
     {
         triangles.add(adjustPoint(fir));

@@ -53,7 +53,7 @@ public class MeshVoxeliser
         generateBlocks();
 
         drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
-        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", false);
+        //drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", false);
 
         System.out.println("Number of retries: " + telemetry);
     }
@@ -609,6 +609,7 @@ public class MeshVoxeliser
         res.y = (int) cm.y;
         res.z = (int) cm.z;
 
+        // works because polygons are convex
         Point3d A = poly.get(0);
         Point3d B = poly.get(1);
         Point3d C = poly.get(2);

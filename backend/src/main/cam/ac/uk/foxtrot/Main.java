@@ -2,10 +2,12 @@ package cam.ac.uk.foxtrot;
 
 import cam.ac.uk.foxtrot.deserializer.BlockJSONDeserializer;
 import cam.ac.uk.foxtrot.serializer.BlockJSONSerializer;
+import cam.ac.uk.foxtrot.sidefiller.SideFiller;
 import cam.ac.uk.foxtrot.voxelisation.*;
 import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import javafx.geometry.Side;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -52,6 +54,11 @@ public class Main
         // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
+
+        // fill in the missing sides
+        SideFiller filler = new SideFiller(blocks);
+        blocks = filler.getBlocks();
+
 
 
         // add custom parts

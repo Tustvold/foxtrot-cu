@@ -1,6 +1,7 @@
 package cam.ac.uk.foxtrot.sidefiller;
 
 import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
+import com.sun.prism.Mesh;
 import javafx.util.Pair;
 
 import javax.vecmath.Point3d;
@@ -9,32 +10,24 @@ import java.util.Comparator;
 /**
  * Created by Milos on 11/02/2016.
  */
-public class PointComparator implements Comparator<Pair<Point3d, Integer>>
+public class PointComparator implements Comparator<Point>
 {
-    public int compare(Pair<Point3d, Integer> c1, Pair<Point3d, Integer> c2)
+    public int compare(Point c1, Point c2)
     {
-        if(Math.abs(c1.getKey().x - c2.getKey().x) < MeshVoxeliser.double_tolerance)
+        if(MeshVoxeliser.areIdentical(c1.getX(), c2.getX()))
         {
             // x's are the same
-            if(Math.abs(c1.getKey().y - c2.getKey().y) < MeshVoxeliser.double_tolerance)
+            if(MeshVoxeliser.areIdentical(c1.getY(), c2.getY()))
             {
                 // y's are the same
-                if(Math.abs(c1.getKey().z - c2.getKey().z) < MeshVoxeliser.double_tolerance)
-                {
-                    // z's are the same
-                    return 0;
-                }
-                else if(c1.getKey().z < c2.getKey().z)
-                {
-                    return -1;
-                }
+                return 0;
             }
-            else if(c1.getKey().y < c2.getKey().y)
+            else if(c1.getY() < c2.getY())
             {
                 return -1;
             }
         }
-        else if(c1.getKey().x < c2.getKey().x)
+        else if(c1.getX() < c2.getX())
         {
             return -1;
         }
