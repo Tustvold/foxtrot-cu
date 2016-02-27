@@ -26,30 +26,26 @@ html(lang='en')
                         div#collapse1.panel-collapse.collapse.in
                             .panel-body
                                 form.form-group(method="post",enctype="multipart/form-data",action="/upload")
-                                      p
+                                    p
                                           label(for="upload-bar") Upload .obj file
                                           div(class="input-group",id="upload-bar")
-
                                               span(class="input-group-btn")
                                                   span(class="btn btn-primary btn-file")
                                                       |Browse&hellip;
-                                                      input(type="file",name="uploaded-mesh")
-                                              input(type="text",class="form-control",readonly)
+                                                      input(type="file",name="uploaded-mesh",style="box-sizing: border-box; width: 100%;height: 100%;", required)
+                                              input(type="text",class="form-control",readonly,id='uploaded-mesh-field')
+                                    p
                                           div.input-group
-                                            label(for="block_number") Suggested number of custom parts
-                                            input.form-control(type="number",name="block_number",id='block_number', value=10)
+                                            label(for="block_number") Maximum number of custom parts
+                                            input.form-control(type="text",pattern="[0-9]*",name="block_number",id='block_number', value=10, required).numbersOnly
+                                    p
                                           div.input-group
                                               label(for="block_size") Block Size (mm)
-                                              input.form-control(type="number",name="block_size", id='block_size', value=10)
-                                      p
+                                              input.form-control(type="text",pattern="[0-9]*",name="block_size", id='block_size', value=10, required).numbersOnly
+                                    p
                                           span(class="input-group-btn")
-                                            button(type="submit",class="btn btn-primary btn-file collapse2-button")
+                                            button(type="submit",class="btn btn-primary btn-file")
                                               |View Generated Design
-                            .panel-footer
-                                p.
-                                    Please upload an .obj file then specify the the block size and number of customparts that the generated design should use.
-                                    A very small block size will slow down the generation of the voxelized ouput
-                                p Then click View Generated Design
 
                                     
             row
@@ -142,8 +138,34 @@ html(lang='en')
             var width = 507-30;
             var height = width;
             
+            function showCollapse1() {
+                $("#collapse1").collapse('show');
+                $("#collapse2").collapse('hide');
+                $("#collapse3").collapse('hide');
+            }
+            
+            function showCollapse2() {
+                $("#collapse2").collapse('show');
+                $("#collapse1").collapse('hide');
+                $("#collapse3").collapse('hide');
+            }
+            
+            function showCollapse3() {
+                $("#collapse3").collapse('show');
+                $("#collapse1").collapse('hide');
+                $("#collapse2").collapse('hide');
+            }
+            
             
             $('document').ready(function () {
+                
+                $('.numbersOnly').on('keypress', function(e){
+                  return e.metaKey || // cmd/ctrl
+                    e.which <= 0 || // arrow keys
+                    e.which == 8 || // delete key
+                    /[0-9]/.test(String.fromCharCode(e.which)); // numbers
+                })
+                
                 $('.mould-downloader').hide()
                 $('#output-container-spinner').hide();
                 $('#input-container-spinner').hide();
@@ -151,23 +173,9 @@ html(lang='en')
                 $('#request-mould').hide()
 
 
-                $(".collapse1-button").click(function(){
-                    $("#collapse1").collapse('show');
-                    $("#collapse2").collapse('hide');
-                    $("#collapse3").collapse('hide');
-                });
-                
-                $(".collapse2-button").click(function(){
-                    $("#collapse2").collapse('show');
-                    $("#collapse1").collapse('hide');
-                    $("#collapse3").collapse('hide');
-                });
-                
-                $(".collapse3-button").click(function(){
-                    $("#collapse3").collapse('show');
-                    $("#collapse1").collapse('hide');
-                    $("#collapse2").collapse('hide');
-                });
+                $(".collapse1-button").click(showCollapse1);    
+                $(".collapse2-button").click(showCollapse2);
+                $(".collapse3-button").click(showCollapse3);
                 
                 $('.model-viewer').css('width', width).css('height', height);
         
@@ -191,8 +199,6 @@ html(lang='en')
                     setHighlightBlockPositionSuper.call(blockRenderer, x, y, z);
                 }
 
-
-                
                 instructionRenderer = new InstructionRenderer(width, height, instructionContainer);
 
 
@@ -233,10 +239,11 @@ html(lang='en')
                 
                 
                 $('form').ajaxForm(options)
-                function showRequest(formData, jqForm, options) {
-        
+                function showRequest(formData, jqForm, options) {    
                     console.log('start')
                     console.log(formData)
+                    
+                    showCollapse2();
 
                     $('#output-container-spinner').show();
                     $('#output-container-canvas').hide();
