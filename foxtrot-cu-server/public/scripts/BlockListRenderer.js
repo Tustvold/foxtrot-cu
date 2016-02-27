@@ -82,7 +82,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         var selectBoxGeom = new THREE.BoxGeometry(selectBoxDim, selectBoxDim, selectBoxDim);
 
-		selectBox = new THREE.Mesh( selectBoxGeom, select_box_material );
+		selectBox = new THREE.BoxHelper(new THREE.Mesh( selectBoxGeom, select_box_material ));
         selectBox.visible = false;
         scene.add(selectBox);
 
@@ -341,12 +341,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         generateMesh();
         generateBuffer();
 
-        var xDelta = maxX % 2;
-        var zDelta = maxY % 2;
-        model_renderer.position.set(-maxX / 2-xDelta/2, 0, -maxZ / 2-zDelta/2);
-        model_picker.position.set(-maxX / 2-xDelta/2, 0, -maxZ / 2-zDelta/2);
+        model_renderer.position.set(- Math.floor(maxX / 2), 0, -Math.floor(maxZ / 2));
+        model_picker.position.set(- Math.floor(maxX / 2), 0, -Math.floor(maxZ / 2));
 
-        var gridSize = Math.floor(Math.max(maxX, maxZ) / 2) + 2
+        var gridSize = Math.floor(Math.max(maxX, maxZ) / 2) + 1;
 
         gridXZ = new THREE.GridHelper(gridSize, 1);
         scene.add(gridXZ);
@@ -378,6 +376,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     this.getBlockList = function() {
         return blockList;
+    }
+
+    this.getBlockListDimensions = function() {
+        return {x: maxX, y: maxY, z: maxZ};
     }
 
     this.incrementMaxBlockID = function() {
