@@ -28,15 +28,14 @@ public class CustomPartMouldGenerator
     private double[] mesh_dimension; // the internal dimensions of the mesh
 
     /**
-     * Set the parameters for all the cubes faces;
      */
     private void determine_faces()
     {
         FACE_XY0 = new Point3d[4];
         FACE_XY0[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0);
-        FACE_XY0[1] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_XY0[1] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
         FACE_XY0[2] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0);
-        FACE_XY0[3] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
+        FACE_XY0[3] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
 
         FACE_XY1 = new Point3d[4];
         FACE_XY1[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
@@ -46,9 +45,9 @@ public class CustomPartMouldGenerator
 
         FACE_ZY0 = new Point3d[4];
         FACE_ZY0[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0);
-        FACE_ZY0[1] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
+        FACE_ZY0[1] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
         FACE_ZY0[2] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
-        FACE_ZY0[3] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZY0[3] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
 
         FACE_ZY1 = new Point3d[4];
         FACE_ZY1[0] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
@@ -58,9 +57,9 @@ public class CustomPartMouldGenerator
 
         FACE_ZX0 = new Point3d[4];
         FACE_ZX0[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0);
-        FACE_ZX0[1] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZX0[1] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
         FACE_ZX0[2] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
-        FACE_ZX0[3] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_ZX0[3] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
 
         FACE_ZX1 = new Point3d[4];
         FACE_ZX1[0] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
