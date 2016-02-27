@@ -142,7 +142,7 @@ public class Main
     }
 
     /**
-     * checks if a given block is only surrounded by full blocks.
+     * checks if a given custom part is only surrounded by full blocks.
      */
     private static boolean surroundedByBlocks(Block block, Block[][][] blocks, int[] dim)
     {
