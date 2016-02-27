@@ -91,14 +91,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.mouseButtons = {
-            ORBIT: THREE.MOUSE.RIGHT,
+            ORBIT: THREE.MOUSE.MIDDLE,
             ZOOM: -1,
-            PAN: -1
+            PAN: THREE.MOUSE.RIGHT
         };
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
         controls.enableZoom = true;
-        controls.enablePan = false;
+        controls.enablePan = true;
         controls.enableKeys = false;
         controls.zoomSpeed = 3.0;
 
