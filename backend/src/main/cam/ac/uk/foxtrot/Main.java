@@ -60,7 +60,6 @@ public class Main
         // P = InitialCenterOfMass + (P' - MeshOffset)*blockSize
         Point3d InitialCenterOfMass = m.getInitialCM();
         Point3d MeshOffset = m.getOffset();
-        FunctionParameters parameters = new FunctionParameters(InitialCenterOfMass, MeshOffset, blocks);
 
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
@@ -119,6 +118,7 @@ public class Main
         Gson gsonParser = builder.create();
 
         // write the gson to a file
+        FunctionParameters parameters = new FunctionParameters(InitialCenterOfMass, MeshOffset, blocks);
         Writer writer;
         try
         {
