@@ -60,7 +60,7 @@ public class Main
         // P = InitialCenterOfMass + (P' - MeshOffset)*blockSize
         Point3d InitialCenterOfMass = m.getInitialCM();
         Point3d MeshOffset = m.getOffset();
-        FunctionParameters parameters = new FunctionParameters(InitialCenterOfMass, MeshOffset);
+        FunctionParameters parameters = new FunctionParameters(InitialCenterOfMass, MeshOffset, blocks);
 
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
@@ -123,7 +123,7 @@ public class Main
         try
         {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(jsonOut), "utf-8"));
-            writer.write(gsonParser.toJson(blocks));
+            writer.write(gsonParser.toJson(parameters));
             writer.close();
         } catch (IOException ex)
         {
