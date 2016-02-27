@@ -17,6 +17,7 @@ public class BlockJSONSerializer implements JsonSerializer<Block> {
         object.add("custom_part_array", new Gson().toJsonTree(block.getCustomPart()));
         object.addProperty("use_custom_part", block.isCustom());
         object.addProperty("custom_part_index", block.getCustomPartIndex());
+        object.add("internal_dimension", new Gson().toJsonTree(block.getInternalDim()));
 
         return object;
     }
