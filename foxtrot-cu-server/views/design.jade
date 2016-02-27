@@ -172,7 +172,6 @@ html(lang='en')
                     var convertedY = centerOfMass.y + (y - offset.y)*customPartSize;
                     var convertedZ = centerOfMass.z + (z - offset.z)*customPartSize;
                     
-                    objRenderer.setSelectBoxScale(customPartSize);
                     objRenderer.setHighlightBlockPosition(convertedX, convertedY, convertedZ);
                     
                     
@@ -230,6 +229,7 @@ html(lang='en')
                     $('#output-container-canvas').hide();
                     
                     customPartSize = formData[2].value;
+                    objRenderer.setScale(customPartSize);
                   
                     var reader = new FileReader();
                     reader.onload = function (e) {
@@ -248,7 +248,8 @@ html(lang='en')
                     } else {
                         centerOfMass = response.center_of_mass;
                         offset = response.offset;
-                        blockRenderer.setBlockList(response.block_list)
+                        blockRenderer.setBlockList(response.block_list);
+                        objRenderer.setGrid(centerOfMass, offset);
                     }
                     $('#output-container-spinner').hide();
                     $('#output-container-canvas').show();

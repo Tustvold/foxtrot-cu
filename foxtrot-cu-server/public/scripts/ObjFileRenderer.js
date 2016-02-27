@@ -6,7 +6,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     var loader = new THREE.OBJLoader();
     var selectBox;
 
-    var center;
+    var center, half_extents;
 
     var select_box_material = new THREE.MeshBasicMaterial({
         color: 0xFFE135,
@@ -16,6 +16,10 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     var selectBoxDim = 1.02;
     var selectBoxHalfDim = selectBoxDim / 2.0;
     var scale = 0.5;
+
+    var gridXZ = null;
+
+
 
     init();
     animate();
@@ -95,7 +99,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         model_renderer = loader.parse(objData, bounds);
 
         center = new THREE.Vector3((bounds.min.x + bounds.max.x) / 2.0, (bounds.min.y + bounds.max.y) / 2.0, (bounds.min.z + bounds.max.z) / 2.0);
-        var half_extents = new THREE.Vector3((bounds.max.x - bounds.min.x) / 2.0, (bounds.max.y - bounds.min.y) / 2.0, (bounds.max.z - bounds.min.z) / 2.0);
+        half_extents = new THREE.Vector3((bounds.max.x - bounds.min.x) / 2.0, (bounds.max.y - bounds.min.y) / 2.0, (bounds.max.z - bounds.min.z) / 2.0);
 
         var radius = half_extents.length() + 10.0;
 
@@ -109,15 +113,30 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     }
 
 
-    this.setSelectBoxScale = function(scale_) {
+    this.setScale = function(scale_) {
         scale = scale_;
     }
 
-    
+
     this.setHighlightBlockPosition = function(x,y,z) {
         selectBox.visible = true;
         selectBox.position.set(x+selectBoxHalfDim*scale-center.x,y+selectBoxHalfDim*scale -center.y,z+selectBoxHalfDim*scale-center.z);
         selectBox.scale.set(scale, scale, scale);
+    }
+
+    this.setGrid = function(centerOfMass, offset) {
+        if (gridXZ != null)
+            scene.remove(gridXZ);
+
+        var convertedX = centerOfMass.x + (-offset.x)*scale;
+        var convertedY = centerOfMass.y + (-offset.y)*scale;
+        var convertedZ = centerOfMass.z + (-offset.z)*scale;
+
+        var gridsize = Math.ceil(Math.max(half_extents.x, half_extents.z)/scale) * scale;
+
+        gridXZ = new THREE.GridHelper(gridsize, Math.ceil(scale));
+        gridXZ.position.set(convertedX+gridsize, convertedY, convertedZ+gridsize);
+        scene.add(gridXZ);
     }
 
 
