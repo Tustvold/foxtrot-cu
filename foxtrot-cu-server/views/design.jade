@@ -157,9 +157,19 @@ html(lang='en')
                 blockRenderer.enableYLimit();
                 blockRenderer.enableHoverDetection();
                 
+                var customPartSize, centerOfMass, offset;
+                
+                
                 var setHighlightBlockPositionSuper = blockRenderer.setHighlightBlockPosition;
                 blockRenderer.setHighlightBlockPosition = function(x,y,z) {
-                    objRenderer.setHighlightBlockPosition(x,y,z);
+                    var convertedX = centerOfMass.x + (x - offset.x)*customPartSize;
+                    var convertedY = centerOfMass.y + (y - offset.y)*customPartSize;
+                    var convertedZ = centerOfMass.z + (z - offset.z)*customPartSize;
+                    
+                    objRenderer.setSelectBoxScale(customPartSize);
+                    objRenderer.setHighlightBlockPosition(convertedX, convertedY, convertedZ);
+                    
+                    
                     setHighlightBlockPositionSuper.call(blockRenderer, x, y, z);
                 }
 
@@ -206,7 +216,6 @@ html(lang='en')
                     success: showResponse  // post-submit callback
                 };
                 
-                var customPartSize = 10;
                 
                 $('form').ajaxForm(options)
                 function showRequest(formData, jqForm, options) {
@@ -231,7 +240,9 @@ html(lang='en')
                     if ('error' in response) {
                         console.log('Error: ' + response.error)
                     } else {
-                        blockRenderer.setBlockList(response)
+                        centerOfMass = response.center_of_mass;
+                        offset = response.offset;
+                        blockRenderer.setBlockList(response.block_list)
                     }
                 }
 

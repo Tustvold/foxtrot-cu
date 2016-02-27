@@ -150,7 +150,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         continue;
                     }
 
-                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || getBlockID(x + 1, y, z) > maxBlockID) {
+                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || (idLimitEnabled && getBlockID(x + 1, y, z) > maxBlockID)) {
                         // Add positive x face
                         vertices.push(x + 1, y, z);
                         vertices.push(x + 1, y, z + 1);
@@ -169,7 +169,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
                     }
 
-                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || getBlockID(x - 1, y, z) > maxBlockID) {
+                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || (idLimitEnabled && getBlockID(x - 1, y, z) > maxBlockID)) {
                         // Add negative x face
                         vertices.push(x, y, z);
                         vertices.push(x, y + 1, z);
@@ -187,7 +187,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || getBlockID(x, y + 1, z) > maxBlockID) {
+                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || (idLimitEnabled && getBlockID(x, y + 1, z) > maxBlockID)) {
                         // Add top face
                         vertices.push(x, y + 1, z);
                         vertices.push(x + 1, y + 1, z);
@@ -205,7 +205,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || getBlockID(x, y - 1, z) > maxBlockID) {
+                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || (idLimitEnabled && getBlockID(x, y - 1, z) > maxBlockID)) {
                         // Add bottom face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -223,7 +223,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || getBlockID(x, y, z + 1) > maxBlockID) {
+                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || (idLimitEnabled && getBlockID(x, y, z + 1) > maxBlockID)) {
                         // Add positive z face
                         vertices.push(x, y, z + 1);
                         vertices.push(x, y + 1, z + 1);
@@ -241,7 +241,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || getBlockID(x, y, z - 1) > maxBlockID) {
+                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || (idLimitEnabled && getBlockID(x, y, z - 1) > maxBlockID)) {
                         // Add negative z face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
