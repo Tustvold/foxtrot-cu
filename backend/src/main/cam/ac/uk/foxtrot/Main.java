@@ -81,18 +81,12 @@ public class Main
                     ArrayList<Point3d> al = block.getTriangles();
 
                     CustomPartGenerator cp = new CustomPartGenerator(al.toArray(new Point3d[al.size()]));
-                    CustomPart p0 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
+                    CustomPart p0 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZY0);
                     block.setCustomPart(0, p0);
-                    CustomPart p1 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY1);
-                    block.setCustomPart(1, p1);
                     CustomPart p2 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZX0);
-                    block.setCustomPart(2, p2);
-                    CustomPart p3 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZX1);
-                    block.setCustomPart(3, p3);
-                    CustomPart p4 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZY0);
-                    block.setCustomPart(4, p4);
-                    CustomPart p5 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZY1);
-                    block.setCustomPart(5, p5);
+                    block.setCustomPart(1, p2);
+                    CustomPart p4 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
+                    block.setCustomPart(2, p4);
 
                     // set suggested custom part
                     // nullify the selection initially, so that we can later select the top n as custom
@@ -186,6 +180,7 @@ public class Main
                             continue;
                         }
 
+                        // TODO HACK HERE
                         ProjectionUtils.ProjectionFace face;
                         switch (block.getCustomPartIndex()) {
                             case 0: face = ProjectionUtils.ProjectionFace.XY0;break;

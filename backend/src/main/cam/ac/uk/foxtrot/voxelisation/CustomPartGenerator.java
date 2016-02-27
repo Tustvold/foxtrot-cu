@@ -7,9 +7,10 @@ import javax.media.j3d.GeometryArray;
 import javax.vecmath.Point3d;
 import java.util.ArrayList;
 
-public class CustomPartGenerator {
+public class CustomPartGenerator
+{
 
-    private final double PART_DEPTH = 1; // distance from top mould face projection will go as a fraction of unit cube
+    private double PART_DEPTH = 1; // distance from top mould face projection will go as a fraction of unit cube
 
     private Point3d[] mesh; // array of points (each three is a triangle) representing the mesh to make a part for
 
@@ -31,11 +32,22 @@ public class CustomPartGenerator {
             if (pt.x < 0 || pt.x > 1 || pt.y < 0 || pt.y > 1 || pt.z < 0 || pt.z > 1)
             {
                 throw new IllegalArgumentException("CustomPartGenerator: coordinates for all points in the mesh" +
-                            "must be between 0 and 1");
+                        "must be between 0 and 1");
             }
         }
 
         mesh = inMesh;
+    }
+
+    /**
+     * Offsets the entire mesh appropriately and returns it as a custom part
+     *
+     * @return
+     */
+    private CustomPart offsetAndReturn(Point3d[] pts, int offsettingDimension)
+    {
+        //TODO shift the custom part to its place
+        return new CustomPart(pts);
     }
 
     /**
@@ -50,6 +62,9 @@ public class CustomPartGenerator {
         {
             throw new IllegalArgumentException("generateCustomPart: face cannot be null");
         }
+        // TODO HACK PART DEPTH HERE DEPENDING ON FACE
+        int offsettingDimension = 0; // determines which dimension of the custom parts offset to use
+        // TODO BIG SWITCH HERE
 
         // data about the polygons that will make up the part
         ArrayList<Point3d> coordinates = new ArrayList<>();
@@ -88,13 +103,12 @@ public class CustomPartGenerator {
             }
             ga.getCoordinates(0, pts);
 
-            return new CustomPart(pts);
         } else {
             // if the projectino is empty, return an empty custom part
             pts = new Point3d[0];
-            return new CustomPart(pts);
         }
 
+        return offsetAndReturn(pts);
     }
 
     /**
