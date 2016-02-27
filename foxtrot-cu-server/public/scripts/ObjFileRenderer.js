@@ -120,7 +120,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
     this.setHighlightBlockPosition = function(x,y,z) {
         selectBox.visible = true;
-        selectBox.position.set(x+selectBoxHalfDim*scale-center.x,y+selectBoxHalfDim*scale -center.y,z+selectBoxHalfDim*scale-center.z);
+        selectBox.position.set(x+selectBoxHalfDim*scale-center.x,y+selectBoxHalfDim*scale,z+selectBoxHalfDim*scale-center.z);
         selectBox.scale.set(scale, scale, scale);
     }
 
