@@ -336,9 +336,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         generateMesh();
         generateBuffer();
 
-
-        model_renderer.position.set(-maxX / 2, 0, -maxZ / 2);
-        model_picker.position.set(-maxX / 2, 0, -maxZ / 2);
+        var xDelta = maxX % 2;
+        var zDelta = maxY % 2;
+        model_renderer.position.set(-maxX / 2-xDelta/2, 0, -maxZ / 2-zDelta/2);
+        model_picker.position.set(-maxX / 2-xDelta/2, 0, -maxZ / 2-zDelta/2);
 
         var gridSize = Math.floor(Math.max(maxX, maxZ) / 2) + 2
 
@@ -352,7 +353,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     this.setHighlightBlockPosition = function(x,y,z) {
         selectBox.visible = true;
-        selectBox.position.set(x+selectBoxHalfDim-maxX / 2,y+selectBoxHalfDim,z+selectBoxHalfDim-maxZ / 2);
+        selectBox.position.set(x+selectBoxHalfDim+model_renderer.position.x,y+selectBoxHalfDim+model_renderer.position.y,z+selectBoxHalfDim+model_renderer.position.z);
     }
 
     this.onBlockHover = function(x, y, z, block) {
