@@ -40,6 +40,11 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         light.target.position.set(0,0,0);
         scene.add(light);
 
+        var light2 = new THREE.DirectionalLight( 0xffffff, 0.2 );
+        light2.position.set(-1500,-2000,-1500);
+        light2.target.position.set(0,0,0);
+        scene.add(light2);
+
 
         renderer = new THREE.WebGLRenderer({
             antialias: true
@@ -95,6 +100,8 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     this.setObjData = function(objData) {
         if (typeof model_renderer !== 'undefined')
             scene.remove(model_renderer)
+
+        selectBox.visible = false;
         var bounds = {min: new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE), max: new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE)};
         model_renderer = loader.parse(objData, bounds);
 
@@ -120,7 +127,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
     this.setHighlightBlockPosition = function(x,y,z) {
         selectBox.visible = true;
-        selectBox.position.set(x+selectBoxHalfDim*scale-center.x,y+selectBoxHalfDim*scale,z+selectBoxHalfDim*scale-center.z);
+        selectBox.position.set(x+selectBoxHalfDim*scale-center.x,y+selectBoxHalfDim*scale-center.y,z+selectBoxHalfDim*scale-center.z);
         selectBox.scale.set(scale, scale, scale);
     }
 
@@ -135,7 +142,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         var gridsize = Math.ceil(Math.max(half_extents.x, half_extents.z)/scale) * scale;
 
         gridXZ = new THREE.GridHelper(gridsize, Math.ceil(scale));
-        gridXZ.position.set(convertedX+gridsize, convertedY, convertedZ+gridsize);
+        gridXZ.position.set(convertedX+gridsize-center.x, convertedY-center.y, convertedZ+gridsize-center.z);
         scene.add(gridXZ);
     }
 
