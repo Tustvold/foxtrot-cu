@@ -7,9 +7,6 @@ import javafx.util.Pair;
 import javax.vecmath.Point3d;
 import java.util.Comparator;
 
-/**
- * Created by Milos on 11/02/2016.
- */
 public class PointComparator implements Comparator<Point>
 {
     public int compare(Point c1, Point c2)

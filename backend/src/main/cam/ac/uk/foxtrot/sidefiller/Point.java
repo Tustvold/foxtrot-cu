@@ -7,9 +7,6 @@ import javax.vecmath.Point3d;
 import java.util.HashSet;
 import java.util.Iterator;
 
-/**
- * Created by Milos on 25/02/2016.
- */
 public class Point
 {
     private Point2d A;                 // the 2d points coordinates

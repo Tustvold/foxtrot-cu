@@ -5,9 +5,6 @@ import javax.vecmath.Point3d;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-/**
- * Created by Milos on 25/02/2016.
- */
 public class Polygon
 {
     private ArrayList<Point2d> points;  // the array of internal points

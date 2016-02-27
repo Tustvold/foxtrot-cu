@@ -13,9 +13,6 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
-/**
- * Created by Milos on 25/02/2016.
- */
 public class SideFiller
 {
     private Block[][][] blocks; // the block matrix whose blocks need side filling
@@ -56,12 +53,6 @@ public class SideFiller
 
                     for (int ignore = 0; ignore < 3; ignore++)
                     {
-                        /*
-                        if (x == 0 && y == 2 && z == 2 && ignore == 2)
-                        {
-                            drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
-                        }
-                        */
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, false));
                     }
@@ -118,7 +109,7 @@ public class SideFiller
         ArrayList<Polygon> polygons = new ArrayList<>();              // the list of all extracted polygons
         int triangleCnt = triangles.size() / 3;                       // number of triangles in the current array
         double already_covered = 0;                                   // the area of the face initially covered by triangles
-        boolean clockwisePolygon = top;                              // the orientation of initial holes on this face
+        boolean clockwisePolygon = top;                               // the orientation of initial holes on this face
 
         // initialisation step - loading the initPoints and sorting them
         // -------------------------------------------------------------------------------------------------------------
@@ -210,6 +201,9 @@ public class SideFiller
                 Point currTo = it.next();
                 Point realFrom = interPoints.get(currFrom.getInSet());
                 Point realTo = interPoints.get(currTo.getInSet());
+
+                if(realFrom == realTo)
+                    continue;
 
                 if (realTo.hasNeighbour(realFrom))
                 {
@@ -386,7 +380,7 @@ public class SideFiller
 
         // extract polygons from finalPoints
         // -------------------------------------------------------------------------------------------------------------
-        // first remove the point itself from the adjacency lists, if it happens // TODO temporary
+        // first remove the point itself from the adjacency lists, if it happens
         pointCnt = finalPoints.size();
         for(int i = 0; i < pointCnt; i++)
         {
