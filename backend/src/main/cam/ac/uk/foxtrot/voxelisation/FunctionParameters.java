@@ -15,9 +15,13 @@ public class FunctionParameters
     @SerializedName("offset")
     private Point3d MeshOffset;
 
-    public FunctionParameters(Point3d CM, Point3d off)
+    @SerializedName("block_list")
+    Block[][][] Blocks;
+
+    public FunctionParameters(Point3d CM, Point3d off, Block[][][] blocks)
     {
         InitialCenterOfMass = CM;
         MeshOffset = off;
+        Blocks = blocks;
     }
 }
