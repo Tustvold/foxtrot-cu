@@ -70,6 +70,8 @@ html(lang='en')
                                             .panel.panel-default
                                                 .panel-body
                                                     div#input-container.model-viewer
+                                                        div#input-container-spinner(style='position:relative;top: 50%;') Loading...
+                                                        div#input-container-canvas
 
 
                                 row
@@ -128,7 +130,7 @@ html(lang='en')
         
         script(type='text/javascript').
             var objRenderer, blockRenderer, instructionRenderer;
-            var objRendererContainer = document.getElementById("input-container")
+            var objRendererContainer = document.getElementById("input-container-canvas")
             var blockRendererContainer = document.getElementById("output-container-canvas")
             var instructionContainer = document.getElementById("instruction-container")
 
@@ -141,6 +143,7 @@ html(lang='en')
             $('document').ready(function () {
                 $('.mould-downloader').hide()
                 $('#output-container-spinner').hide();
+                $('#input-container-spinner').hide();
                 $('#request-mould').hide()
 
 
@@ -228,6 +231,9 @@ html(lang='en')
                     $('#output-container-spinner').show();
                     $('#output-container-canvas').hide();
                     
+                    $('#input-container-spinner').show();
+                    $('#input-container-canvas').hide();
+                    
                     customPartSize = formData[2].value;
                     objRenderer.setScale(customPartSize);
                   
@@ -250,10 +256,13 @@ html(lang='en')
                         offset = response.offset;
                         blockRenderer.setBlockList(response.block_list);
                         objRenderer.setGrid(centerOfMass, offset);
+                        
+                        $('#output-container-spinner').hide();
+                        $('#output-container-canvas').show();
+                        $('#input-container-canvas').show();
+                        $('#input-container-spinner').hide();
+                        $('#request-mould').show();
                     }
-                    $('#output-container-spinner').hide();
-                    $('#output-container-canvas').show();
-                    $('#request-mould').show()
                 }
 
                 var request_moulds = function() {
