@@ -148,13 +148,10 @@ public class Main
             GsonBuilder b = new GsonBuilder();
             b.registerTypeAdapter(Block.class, new BlockJSONDeserializer());
 
-
             Gson gson = b.create();
             JsonReader reader = new JsonReader(new FileReader(jsonIn));
             blocks = gson.fromJson(reader, Block[][][].class);
-
-
-
+            
             int[] dim = {blocks.length, blocks[0].length, blocks[0][0].length};
             for (int x = 0; x < dim[0]; x++)
             {
