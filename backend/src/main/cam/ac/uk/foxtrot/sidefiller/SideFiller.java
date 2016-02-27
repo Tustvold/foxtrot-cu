@@ -53,6 +53,10 @@ public class SideFiller
                         continue;
                     }
                     ArrayList<Point3d> newTriangles = new ArrayList<>();
+                    if(x == 0 && y == 3 && z == 2)
+                    {
+                        drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/block.obj");
+                    }
                     for (int ignore = 0; ignore < 3; ignore++)
                     {
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
@@ -63,7 +67,7 @@ public class SideFiller
                 }
             }
         }
-        //drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
+        drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
     }
 
     public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)
@@ -399,7 +403,7 @@ public class SideFiller
                     curr.label();
                     curr = curr.getFirstParent();
                 }
-                if (poly.getSize() > 3 && curr == first)
+                if (poly.getSize() >= 3 && curr == first)
                 {
                     // if the polygon actually exists we add it
                     polygons.add(poly);
