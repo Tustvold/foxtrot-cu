@@ -63,7 +63,7 @@ public class SideFiller
                 }
             }
         }
-        drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
+        //drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
     }
 
     public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)

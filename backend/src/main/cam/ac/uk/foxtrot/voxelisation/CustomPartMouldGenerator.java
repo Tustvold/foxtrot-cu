@@ -16,58 +16,58 @@ public class CustomPartMouldGenerator
     private final double EXTRA_WH = .1; // extra space for width and height of the mould as a fraction of scale
 
     // polygons representing faces of the mould
-    private final Point3d[] FACE_XY0 =
-            {
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0)
-            };
-
-    private final Point3d[] FACE_XY1 =
-            {
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
-
-            };
-
-    private final Point3d[] FACE_ZY0 =
-            {
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
-            };
-
-    private final Point3d[] FACE_ZY1 =
-            {
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING)
-            };
-
-    private final Point3d[] FACE_ZX0 =
-            {
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0),
-                    new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0)
-            };
-
-    private final Point3d[] FACE_ZX1 =
-            {
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0),
-                    new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING),
-                    new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0)
-            };
+    private Point3d[] FACE_XY0;
+    private Point3d[] FACE_XY1;
+    private Point3d[] FACE_ZY0;
+    private Point3d[] FACE_ZY1;
+    private Point3d[] FACE_ZX0;
+    private Point3d[] FACE_ZX1;
 
     private Point3d[] mesh; // array of points (each three is a triangle) representing the mesh to make a mould for
     private double scale; // mould scale in mm
     private double[] mesh_dimension; // the internal dimensions of the mesh
+
+    /**
+     * Set the parameters for all the cubes faces;
+     */
+    private void determine_faces()
+    {
+        FACE_XY0 = new Point3d[4];
+        FACE_XY0[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_XY0[1] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_XY0[2] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0);
+        FACE_XY0[3] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
+
+        FACE_XY1 = new Point3d[4];
+        FACE_XY1[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[1] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[2] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[3] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+
+        FACE_ZY0 = new Point3d[4];
+        FACE_ZY0[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_ZY0[1] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
+        FACE_ZY0[2] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZY0[3] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+
+        FACE_ZY1 = new Point3d[4];
+        FACE_ZY1[0] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_ZY1[1] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0);
+        FACE_ZY1[2] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZY1[3] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+
+        FACE_ZX0 = new Point3d[4];
+        FACE_ZX0[0] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, 0);
+        FACE_ZX0[1] = new Point3d(0 - EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZX0[2] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZX0[3] = new Point3d(1 + EXTRA_WH, 0 - EXTRA_WH, 0);
+
+        FACE_ZX1 = new Point3d[4];
+        FACE_ZX1[0] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, 0);
+        FACE_ZX1[1] = new Point3d(0 - EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZX1[2] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_ZX1[3] = new Point3d(1 + EXTRA_WH, 1 + EXTRA_WH, 0);
+    }
 
     /**
      * Construct a new CustomPartMouldGenerator
@@ -235,13 +235,14 @@ public class CustomPartMouldGenerator
      * Generate a mould for mesh projection onto the given face, and write it as an .obj file to file
      *
      * @param projectTo the face  label on which mesh should be projected
-     * @param file the file to which the output .obj file should be written
+     * @param file      the file to which the output .obj file should be written
      */
     public void generateMould(int projectTo, File file)
     {
         ProjectionUtils.ProjectionFace face;
         face = getProjectionFace(projectTo);
         MOULD_DEPTH = determinePartDepth(projectTo);
+        determine_faces();
 
         if (face == null)
         {

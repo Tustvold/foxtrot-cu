@@ -47,7 +47,7 @@ public class CustomPartGenerator
      */
     public void generateAllCustomParts()
     {
-        for(int i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
         {
             block.setCustomPart(i, generateCustomPart(i));
         }
@@ -63,11 +63,20 @@ public class CustomPartGenerator
         {
             switch (projectTo)
             {
-                case 0: pts[i].x += offset;
+                case 0:
+                    pts[i].x += offset;
+                    if (pts[i].x > 1) pts[i].x = 1;
+                    else if (pts[i].x < 0) pts[i].x = 0;
                     break;
-                case 1: pts[i].y += offset;
+                case 1:
+                    pts[i].y += offset;
+                    if (pts[i].y > 1) pts[i].y = 1;
+                    else if (pts[i].y < 0) pts[i].y = 0;
                     break;
-                case 2: pts[i].z += offset;
+                case 2:
+                    pts[i].z += offset;
+                    if (pts[i].z > 1) pts[i].z = 1;
+                    else if (pts[i].z < 0) pts[i].z = 0;
                     break;
             }
         }
