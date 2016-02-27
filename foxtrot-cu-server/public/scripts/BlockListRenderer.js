@@ -4,8 +4,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     var blockList;
     var vertices, indices, colors;
     var maxX, maxY = 0,
-        maxZ = 0, yCap = 0;
+        maxZ = 0,
+        yCap = 0;
     var camera, scene, renderer, stats, controls;
+    var selectBox;
     var model_renderer = null;
     var model_picker = null;
     var gridXZ = null;
@@ -24,15 +26,25 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     });
 
     var render_material_wireframe = new THREE.MeshBasicMaterial({
-        color: 0x222222, wireframe: true
+        color: 0x222222,
+        wireframe: true
     });
+
+
+    var select_box_material = new THREE.MeshBasicMaterial({
+        color: 0xFFE135,
+        wireframe: true
+    });
+
+    var selectBoxDim = 1.02;
+    var selectBoxHalfDim = selectBoxDim / 2.0;
 
     var scope = this;
 
     var maxBlockID = 0;
     var yLimitEnabled = false;
     var idLimitEnabled = false;
-
+    var hoverDetectionEnabled = false;
 
     init();
     animate();
@@ -62,6 +74,12 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(screen_width, screen_height);
         renderer.sortObjects = false;
+
+        var selectBoxGeom = new THREE.BoxGeometry(selectBoxDim, selectBoxDim, selectBoxDim);
+
+		selectBox = new THREE.Mesh( selectBoxGeom, select_box_material );
+        selectBox.visible = false;
+        scene.add(selectBox);
 
         domElement.appendChild(renderer.domElement);
 
@@ -112,7 +130,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                     var block = blockList[x][y][z];
                     if (block == null)
                         continue;
-                    var block_id = getBlockID(x,y,z);
+                    var block_id = getBlockID(x, y, z);
                     if (idLimitEnabled && block_id > maxBlockID)
                         return;
                     color.setHex(block_id);
@@ -123,7 +141,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
                         for (var i = 0; i < triangle_array.length; i++) {
                             var vertex = triangle_array[i];
-                            vertices.push(vertex.x+x, vertex.y+y, vertex.z+z);
+                            vertices.push(vertex.x + x, vertex.y + y, vertex.z + z);
                             indices.push(cur_index);
                             colors.push(color.r, color.g, color.b);
                             cur_index++;
@@ -132,7 +150,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         continue;
                     }
 
-                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || getBlockID(x+1,y,z) > maxBlockID) {
+                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || getBlockID(x + 1, y, z) > maxBlockID) {
                         // Add positive x face
                         vertices.push(x + 1, y, z);
                         vertices.push(x + 1, y, z + 1);
@@ -151,7 +169,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
                     }
 
-                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || getBlockID(x-1,y,z) > maxBlockID) {
+                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || getBlockID(x - 1, y, z) > maxBlockID) {
                         // Add negative x face
                         vertices.push(x, y, z);
                         vertices.push(x, y + 1, z);
@@ -169,7 +187,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || getBlockID(x,y+1,z) > maxBlockID) {
+                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || getBlockID(x, y + 1, z) > maxBlockID) {
                         // Add top face
                         vertices.push(x, y + 1, z);
                         vertices.push(x + 1, y + 1, z);
@@ -187,7 +205,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || getBlockID(x,y-1,z) > maxBlockID) {
+                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || getBlockID(x, y - 1, z) > maxBlockID) {
                         // Add bottom face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -205,7 +223,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || getBlockID(x,y,z+1) > maxBlockID) {
+                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || getBlockID(x, y, z + 1) > maxBlockID) {
                         // Add positive z face
                         vertices.push(x, y, z + 1);
                         vertices.push(x, y + 1, z + 1);
@@ -223,7 +241,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || getBlockID(x,y,z-1) > maxBlockID) {
+                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || getBlockID(x, y, z - 1) > maxBlockID) {
                         // Add negative z face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -284,8 +302,13 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         idLimitEnabled = true;
     }
 
+    this.enableHoverDetection = function() {
+        hoverDetectionEnabled = true;
+    }
+
     this.setBlockList = function(blockList_) {
         blockList = blockList_;
+        selectBox.visible = false;
 
         maxX = blockList.length;
         if (maxX > 0)
@@ -317,7 +340,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         model_renderer.position.set(-maxX / 2, 0, -maxZ / 2);
         model_picker.position.set(-maxX / 2, 0, -maxZ / 2);
 
-        var gridSize = Math.floor(Math.max(maxX,maxZ)/2) + 2
+        var gridSize = Math.floor(Math.max(maxX, maxZ) / 2) + 2
 
         gridXZ = new THREE.GridHelper(gridSize, 1);
         scene.add(gridXZ);
@@ -325,6 +348,15 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     this.onBlockSelected = function(x, y, z, block) {
         console.log("Selected Block at X: " + x + " Y: " + y + " Z: " + z);
+    }
+
+    this.setHighlightBlockPosition = function(x,y,z) {
+        selectBox.visible = true;
+        selectBox.position.set(x+selectBoxHalfDim-maxX / 2,y+selectBoxHalfDim,z+selectBoxHalfDim-maxZ / 2);
+    }
+
+    this.onBlockHover = function(x, y, z, block) {
+        this.setHighlightBlockPosition(x,y,z);
     }
 
     this.setYRenderCap = function(newYCap) {
@@ -349,12 +381,12 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         var coords = getCoords(maxBlockID);
         var x = coords.x;
         var y = coords.y;
-        var z = coords.z+1;
+        var z = coords.z + 1;
         for (; y < maxY; y++) {
             for (; x < maxX; x++) {
                 for (; z < maxZ; z++) {
                     if (typeof blockList[x][y][z] !== "undefined" && blockList[x][y][z] != null) {
-                        maxBlockID = getBlockID(x,y,z);
+                        maxBlockID = getBlockID(x, y, z);
                         this.refresh();
                         return;
                     }
@@ -372,19 +404,19 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         var coords = getCoords(maxBlockID);
         var x = coords.x;
         var y = coords.y;
-        var z = coords.z-1;
+        var z = coords.z - 1;
         for (; y >= 0; y--) {
             for (; x >= 0; x--) {
                 for (; z >= 0; z--) {
                     if (typeof blockList[x][y][z] !== "undefined" && blockList[x][y][z] != null) {
-                        maxBlockID = getBlockID(x,y,z);
+                        maxBlockID = getBlockID(x, y, z);
                         this.refresh();
                         return;
                     }
                 }
-                z = maxZ-1;
+                z = maxZ - 1;
             }
-            x = maxX-1;
+            x = maxX - 1;
         }
     }
 
@@ -394,19 +426,19 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         this.refresh();
     }
 
-    function getBlockID(x,y,z) {
+    function getBlockID(x, y, z) {
         return ((y & 0xFF) << 16) | ((x & 0xFF) << 8) | (z & 0xFF);
     }
 
     function getCoords(id) {
         return {
-            y : id >> 16,
-            x : (id >> 8) & 0xFF,
-            z : (id & 0xFF)
+            y: id >> 16,
+            x: (id >> 8) & 0xFF,
+            z: (id & 0xFF)
         }
     }
 
-    function pick() {
+    function pick(mouseDown) {
 
         //render the picking scene off-screen
 
@@ -417,8 +449,14 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         var rect = renderer.domElement.getBoundingClientRect();
 
+        var texCoordX = mouse.x - rect.left;
+        var texCoordY = pickingTexture.height - (mouse.y - rect.top);
+
+        if (texCoordX < 0 || texCoordY < 0 || texCoordX > pickingTexture.width || texCoordY > pickingTexture.height)
+            return;
+
         //read the pixel under the mouse from the texture
-        renderer.readRenderTargetPixels(pickingTexture, mouse.x - rect.left, pickingTexture.height - (mouse.y - rect.top), 1, 1, pixelBuffer);
+        renderer.readRenderTargetPixels(pickingTexture, texCoordX, texCoordY, 1, 1, pixelBuffer);
 
         //interpret the pixel as an ID
         var id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2]);
@@ -434,8 +472,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
             if (x >= 0 && x < maxX && y >= 0 && y < maxY && z >= 0 && z < maxZ) {
                 if (typeof blockList[x][y][z] === "undefined" || blockList[x][y][z] == null)
                     console.log("Error: Picking selected non-existent block");
-                else
+                else if (mouseDown)
                     scope.onBlockSelected(x, y, z, blockList[x][y][z]);
+                else
+                    scope.onBlockHover(x, y, z, blockList[x][y][z]);
             }
 
         }
@@ -449,6 +489,9 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         renderer.render(scene, camera);
 
+        if (hoverDetectionEnabled)
+            pick(false);
+
         controls.update();
 
         //stats.update();
@@ -457,7 +500,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     function onMouseDown(event) {
         if (event.button == THREE.MOUSE.LEFT)
-            pick();
+            pick(true);
     }
 
     function onMouseMove(e) {
