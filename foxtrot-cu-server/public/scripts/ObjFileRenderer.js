@@ -25,7 +25,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     animate();
 
     function init() {
-        camera = new THREE.PerspectiveCamera(70, screen_width / screen_height, 0.1, 10000);
+        camera = new THREE.PerspectiveCamera(70, screen_width / screen_height, 0.1, 1000000);
         camera.position.set(10, 10, 10);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -146,7 +146,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         var convertedZ = centerOfMass.z + (centerZ-offset.z)*scale;
 
         var gridScale = Math.ceil(scale);
-        var gridsize = Math.floor(Math.max(maxX, maxZ) / 2) + 1;
+        var gridsize = Math.ceil(Math.max(maxX, maxZ) / 2);
 
         gridXZ = new THREE.GridHelper(gridsize,1);
         gridXZ.scale.set(gridScale, gridScale, gridScale);

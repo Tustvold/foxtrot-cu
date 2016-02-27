@@ -146,8 +146,6 @@ html(lang='en')
             }
             
             function showCollapse2() {
-                if (panelNumber < 2)
-                    return;
                 $("#collapse2").collapse('show');
                 $("#collapse1").collapse('hide');
                 $("#collapse3").collapse('hide');
@@ -155,8 +153,6 @@ html(lang='en')
             }
             
             function showCollapse3() {
-                if (panelNumber < 3)
-                    return
                 $("#collapse3").collapse('show');
                 $("#collapse1").collapse('hide');
                 $("#collapse2").collapse('hide');
@@ -180,9 +176,24 @@ html(lang='en')
                 $('#request-mould').hide()
 
 
-                $(".collapse1-button").click(showCollapse1);    
-                $(".collapse2-button").click(showCollapse2);
-                $(".collapse3-button").click(showCollapse3);
+                $(".collapse1-button").click(function () {
+                    if (panelNumber > 1 && !window.confirm("Are you sure you wish to continue? All changes will be lost."))
+                        return;
+                    showCollapse1();
+                    });
+                    
+                $(".collapse2-button").click(function() {
+                    if (panelNumber < 2)
+                        return;
+                        
+                    showCollapse2();
+                    });
+                    
+                $(".collapse3-button").click(function() {
+                    if (panelNumber < 3)
+                        return
+                    showCollapse3();
+                    });
                 
                 $('.model-viewer').css('width', width).css('height', height);
         
@@ -250,7 +261,6 @@ html(lang='en')
                     console.log('start')
                     console.log(formData)
                     
-                    panelNumber = 2;
                     showCollapse2();
 
                     $('#output-container-spinner').show();
@@ -317,7 +327,6 @@ html(lang='en')
                     $('#instruction-container-spinner').show();
                     $('#instruction-container-canvas').hide();
                     
-                    panelNumber = 3;
                     showCollapse3();
                     
                     request_moulds();

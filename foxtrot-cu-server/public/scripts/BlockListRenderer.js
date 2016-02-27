@@ -50,7 +50,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     animate();
 
     function init() {
-        camera = new THREE.PerspectiveCamera(70, screen_width / screen_height, 0.1, 10000);
+        camera = new THREE.PerspectiveCamera(70, screen_width / screen_height, 0.1, 1000000);
         camera.position.set(10, 10, 10);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -344,7 +344,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         model_renderer.position.set(- Math.floor(maxX / 2), 0, -Math.floor(maxZ / 2));
         model_picker.position.set(- Math.floor(maxX / 2), 0, -Math.floor(maxZ / 2));
 
-        var gridSize = Math.floor(Math.max(maxX, maxZ) / 2) + 1;
+        var gridSize = Math.ceil(Math.max(maxX, maxZ) / 2);
 
         gridXZ = new THREE.GridHelper(gridSize, 1);
         scene.add(gridXZ);
