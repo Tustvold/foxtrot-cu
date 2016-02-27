@@ -156,6 +156,12 @@ html(lang='en')
                 blockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
                 blockRenderer.enableYLimit();
                 blockRenderer.enableHoverDetection();
+                
+                var setHighlightBlockPositionSuper = blockRenderer.setHighlightBlockPosition;
+                blockRenderer.setHighlightBlockPosition = function(x,y,z) {
+                    objRenderer.setHighlightBlockPosition(x,y,z);
+                    setHighlightBlockPositionSuper.call(blockRenderer, x, y, z);
+                }
 
 
                 
@@ -179,13 +185,13 @@ html(lang='en')
                     if (!block.use_custom_part) {
                         block.use_custom_part = true;
                         block.custom_part_index = 0;
-                    } else if (block.custom_part_index == 5) {
+                    } else if (block.custom_part_index == 3) {
                         block.use_custom_part = false;
                     } else {
                         block.custom_part_index++;
                     }
                     while (block.custom_part_array[block.custom_part_index] == null) {
-                        if (block.custom_part_index == 5) {
+                        if (block.custom_part_index == 3) {
                             block.use_custom_part = false;
                             break;
                         }

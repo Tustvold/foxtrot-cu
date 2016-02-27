@@ -4,6 +4,18 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
     var model_renderer;
     var loader = new THREE.OBJLoader();
+    var selectBox;
+
+    var center;
+
+    var select_box_material = new THREE.MeshBasicMaterial({
+        color: 0xFFE135,
+        wireframe: true
+    });
+
+    var selectBoxDim = 1.02;
+    var selectBoxHalfDim = selectBoxDim / 2.0;
+    var scale = 0.5;
 
     init();
     animate();
@@ -34,6 +46,14 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         renderer.sortObjects = false;
 
         domElement.appendChild(renderer.domElement);
+
+        var selectBoxGeom = new THREE.BoxGeometry(selectBoxDim, selectBoxDim, selectBoxDim);
+
+        selectBox = new THREE.Mesh( selectBoxGeom, select_box_material );
+        selectBox.visible = false;
+        scene.add(selectBox);
+
+
 
         //stats = new Stats();
         //stats.domElement.style.position = 'absolute';
@@ -74,16 +94,28 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
         var bounds = {min: new THREE.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE), max: new THREE.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE)};
         model_renderer = loader.parse(objData, bounds);
 
-        var center = new THREE.Vector3((bounds.min.x + bounds.max.x) / 2.0, (bounds.min.y + bounds.max.y) / 2.0, (bounds.min.z + bounds.max.z) / 2.0);
+        center = new THREE.Vector3((bounds.min.x + bounds.max.x) / 2.0, (bounds.min.y + bounds.max.y) / 2.0, (bounds.min.z + bounds.max.z) / 2.0);
         var half_extents = new THREE.Vector3((bounds.max.x - bounds.min.x) / 2.0, (bounds.max.y - bounds.min.y) / 2.0, (bounds.max.z - bounds.min.z) / 2.0);
 
         var radius = half_extents.length() + 10.0;
 
-        controls.position0.addVectors(center, new THREE.Vector3(radius,radius,radius));
-        controls.target0 = center;
+        model_renderer.position.set(-center.x, -center.y, -center.z);
+
+        controls.position0.set(radius, radius, radius);
+        controls.target0.set(0,0,0);
         controls.reset();
 
         scene.add(model_renderer)
+    }
+
+    this.setHighlightBlockPosition = function(x,y,z) {
+        selectBox.visible = true;
+        selectBox.position.set((x+selectBoxHalfDim-center.x)/scale,(y+selectBoxHalfDim -center.y)/scale,(z+selectBoxHalfDim-center.z)/scale);
+        selectBox.scale.set(scale, scale, scale);
+    }
+
+    this.setSelectBoxScale = function(scale_) {
+        scale = scale_;
     }
 
 }
