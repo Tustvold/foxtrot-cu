@@ -438,8 +438,11 @@ public class SideFiller
                 {
                     curr = polygons.get(j);
                     // go through all the polygons bigger than main
-                    if (pointIsInsidePolygon(prev.getCenterOfMass(), curr))
+                    if (pointIsInsidePolygon(prev.getPoint(0), curr))
                     {
+                        // if one of the points of the smaller polygon
+                        // is within the bigger one, the entire first
+                        // polygon is within the second one
                         prev.isNowInsideOf(curr);
                         curr.isNowOutsideOf(prev);
                         if (curr.wasVisited())
