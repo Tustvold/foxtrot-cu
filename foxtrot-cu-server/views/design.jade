@@ -115,6 +115,8 @@ html(lang='en')
                                             .panel.panel-default
                                                 .panel-body
                                                     div#instruction-container.model-viewer
+                                                        div#instruction-container-spinner(style='position:relative;top: 50%;') Loading...
+                                                        div#instruction-container-canvas
 
                                     .col-md-3
                                 row
@@ -132,7 +134,7 @@ html(lang='en')
             var objRenderer, blockRenderer, instructionRenderer;
             var objRendererContainer = document.getElementById("input-container-canvas")
             var blockRendererContainer = document.getElementById("output-container-canvas")
-            var instructionContainer = document.getElementById("instruction-container")
+            var instructionContainer = document.getElementById("instruction-container-canvas")
 
 
             
@@ -145,6 +147,7 @@ html(lang='en')
                 $('.mould-downloader').hide()
                 $('#output-container-spinner').hide();
                 $('#input-container-spinner').hide();
+                $('#instruction-container-spinner').hide();
                 $('#request-mould').hide()
 
 
@@ -273,6 +276,7 @@ html(lang='en')
                 }
 
                 var request_moulds = function() {
+                    
                     var xhr = new XMLHttpRequest();
                     xhr.open("POST", '/request-moulds', true);
                     xhr.setRequestHeader("Content-type", "application/json");
@@ -284,6 +288,8 @@ html(lang='en')
                             $('.mould-downloader').click(function() {
                                 saveAs(blob, fileName);
                             }).show();
+                            $('#instruction-container-spinner').hide();
+                            $('#instruction-container-canvas').show();
                         }
                     }
                     var blockList = blockRenderer.getBlockList();
@@ -293,6 +299,13 @@ html(lang='en')
                 }
 
                 $('#request-mould').click(function(event) {
+                    $('#instruction-container-spinner').show();
+                    $('#instruction-container-canvas').hide();
+                    
+                    $("#collapse3").collapse('show');
+                    $("#collapse1").collapse('hide');
+                    $("#collapse2").collapse('hide');
+                    
                     request_moulds();
                     //console.log('test')
                 })
