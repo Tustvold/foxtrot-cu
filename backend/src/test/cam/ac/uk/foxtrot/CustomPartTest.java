@@ -11,8 +11,7 @@ import java.io.File;
 import java.util.Random;
 
 public class CustomPartTest {
-/*
-// TODO REMAKE THE TESTS
+    /*
     @Test
     public void testSingleTriangle() {
         Point3d[] points = new Point3d[3];
