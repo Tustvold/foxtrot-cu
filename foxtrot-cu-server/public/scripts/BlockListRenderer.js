@@ -378,10 +378,18 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         if (typeof blockList == "undefined") {
             return;
         }
-        var coords = getCoords(maxBlockID);
-        var x = coords.x;
-        var y = coords.y;
-        var z = coords.z + 1;
+        var x, y, z;
+        if (maxBlockID === -1) {
+            x = 0;
+            y = 0;
+            z = 0;
+        } else {
+            var coords = getCoords(maxBlockID);
+            x = coords.x;
+            y = coords.y;
+            z = coords.z + 1;
+        }
+
         for (; y < maxY; y++) {
             for (; x < maxX; x++) {
                 for (; z < maxZ; z++) {
