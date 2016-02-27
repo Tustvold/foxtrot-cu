@@ -28,6 +28,7 @@ public class CustomPartMouldGenerator
     private double[] mesh_dimension; // the internal dimensions of the mesh
 
     /**
+     *  Determines all the relevant faces, once the mould depth is calculated.
      */
     private void determine_faces()
     {
