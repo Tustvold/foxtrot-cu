@@ -58,7 +58,7 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
                         throw err;
                     res.send(data);
                     console.log(tempfile.path);
-                    //fs.unlink(tempfile.path)
+                    fs.unlink(tempfile.path)
                 });
             }
 
