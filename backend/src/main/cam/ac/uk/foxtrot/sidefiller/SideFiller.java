@@ -18,8 +18,8 @@ import java.util.*;
  */
 public class SideFiller
 {
-    Block[][][] blocks; // the block matrix whose blocks need side filling
-    int dim[];          // dimensions of the input block matrix
+    private Block[][][] blocks; // the block matrix whose blocks need side filling
+    private int dim[];          // dimensions of the input block matrix
 
     /**
      * @return Returns
