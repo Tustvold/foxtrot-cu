@@ -20,10 +20,17 @@ public class BlockJSONDeserializer implements JsonDeserializer<Block> {
             parts = new Gson().fromJson(jsonObj.get("custom_part_array"), CustomPart[].class);
         }
 
+        double[] dim = null;
+        if (jsonObj.get("internal_dimension") != null) {
+            dim = new Gson().fromJson(jsonObj.get("internal_dimension"), double[].class);
+        }
+
         boolean usingCustomPart = jsonObj.getAsJsonPrimitive("use_custom_part").getAsBoolean();
         int partNumber = jsonObj.getAsJsonPrimitive("custom_part_index").getAsInt();
 
-
-        return new Block(parts, usingCustomPart, partNumber);
+        Block block = new Block(parts, usingCustomPart, partNumber);
+        if(usingCustomPart)
+            block.modifInternalDim(dim);
+        return block;
     }
 }

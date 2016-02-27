@@ -77,6 +77,11 @@ public class Block
         return internalDim;
     }
 
+    public void modifInternalDim(double[] dimension)
+    {
+        internalDim = dimension;
+    }
+
     /**
      * Grid aligns the coordinates of point A which are
      * within the tolerance from the nearest grid plane.
