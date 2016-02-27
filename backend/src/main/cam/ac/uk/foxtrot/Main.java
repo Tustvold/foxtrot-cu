@@ -55,6 +55,13 @@ public class Main
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
 
+        // get the function reversing parameters (needed for yellow cube highlight on the frontend)
+        // if the original transformation for all points is: P --> P' the reverse is then:
+        // P = InitialCenterOfMass + (P' - MeshOffset)*blockSize
+        Point3d InitialCenterOfMass = m.getInitialCM();
+        Point3d MeshOffset = m.getOffset();
+        FunctionParameters parameters = new FunctionParameters(InitialCenterOfMass, MeshOffset);
+
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
         blocks = filler.getBlocks();

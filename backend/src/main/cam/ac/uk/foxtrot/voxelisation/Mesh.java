@@ -11,6 +11,7 @@ public class Mesh
     private Point3d offset;               // position of the mesh relative to the grid origin
     private ArrayList<Point3d> triangles; // the list of triangles representing the mesh
     private double blockSize;             // the size of a single block in mesh units
+    private Point3d initialCM;            // the initial center of mass
 
     /**
      * Gwtter for the offset of the mesh from the origin.
@@ -83,7 +84,7 @@ public class Mesh
     private void rescaleAndCenterMesh()
     {
         Point3d cm = getCentreOfMass();
-
+        initialCM = cm;
         Point3d curr = new Point3d(0, 0, 0);
         int cnt = triangles.size();
         for (int i = 0; i < cnt; i++)
@@ -92,6 +93,14 @@ public class Mesh
             triangles.get(i).y = (triangles.get(i).y - cm.y) / blockSize;
             triangles.get(i).z = (triangles.get(i).z - cm.z) / blockSize;
         }
+    }
+
+    /**
+     * Retruns the initial Center of Mass of the mesh;
+     */
+    public Point3d getInitialCM()
+    {
+        return initialCM;
     }
 
     /**

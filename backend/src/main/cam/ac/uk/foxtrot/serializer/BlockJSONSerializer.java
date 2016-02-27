@@ -1,6 +1,7 @@
 package cam.ac.uk.foxtrot.serializer;
 
 import cam.ac.uk.foxtrot.voxelisation.Block;
+import cam.ac.uk.foxtrot.voxelisation.FunctionParameters;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;

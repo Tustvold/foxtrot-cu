@@ -172,7 +172,6 @@ public class MeshVoxeliser
             initTrigs.get(i).z += meshOffset.z;
         }
         mesh.setTriangles(initTrigs);
-
         // TESTING METHOD!!!
         // mesh.drawTriangles("testing/output/mesh_centered.obj");
         System.out.println("Mesh shifted...");
