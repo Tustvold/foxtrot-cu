@@ -1,10 +1,10 @@
 InstructionRenderer = function(screen_width, screen_height, domElement) {
-    var renderer = new BlockListRenderer(screen_width, screen_height, domElement);
-    renderer.enableIDLimit();
-    renderer.resetMaxBlockID();
+    this.renderer = new BlockListRenderer(screen_width, screen_height, domElement);
+    this.renderer.enableIDLimit();
+    this.renderer.resetMaxBlockID();
 
     this.setBlockList = function(blockList_) {
-        renderer.setBlockList(blockList_);
-        renderer.resetMaxBlockID();
+        this.renderer.setBlockList(blockList_);
+        this.renderer.resetMaxBlockID();
     }
 }
