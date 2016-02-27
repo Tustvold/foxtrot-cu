@@ -62,6 +62,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         light.target.position.set(0, 0, 0);
         scene.add(light);
 
+        var light2 = new THREE.DirectionalLight( 0xffffff, 0.2 );
+        light2.position.set(-1500,-2000,-1500);
+        light2.target.position.set(0,0,0);
+        scene.add(light2);
+
         pickingScene = new THREE.Scene();
         pickingTexture = new THREE.WebGLRenderTarget(screen_width, screen_height);
         pickingTexture.minFilter = THREE.LinearFilter;
