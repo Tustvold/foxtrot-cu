@@ -85,7 +85,7 @@ html(lang='en')
                                     br
                                 row
                                     .col-md-6
-                                       button#request-mould(type="submit",class="btn btn-primary btn-file collapse3-button")
+                                       button#request-mould(type="submit",class="btn btn-primary btn-file")
                                          |Submit Custom Generated Design
                                        
                              .panel-footer Viewer Instructions
@@ -131,7 +131,7 @@ html(lang='en')
             var objRendererContainer = document.getElementById("input-container-canvas")
             var blockRendererContainer = document.getElementById("output-container-canvas")
             var instructionContainer = document.getElementById("instruction-container-canvas")
-
+            var panelNumber = 1;
 
             
             
@@ -142,18 +142,25 @@ html(lang='en')
                 $("#collapse1").collapse('show');
                 $("#collapse2").collapse('hide');
                 $("#collapse3").collapse('hide');
+                panelNumber = 1;
             }
             
             function showCollapse2() {
+                if (panelNumber < 2)
+                    return;
                 $("#collapse2").collapse('show');
                 $("#collapse1").collapse('hide');
                 $("#collapse3").collapse('hide');
+                panelNumber = 2;
             }
             
             function showCollapse3() {
+                if (panelNumber < 3)
+                    return
                 $("#collapse3").collapse('show');
                 $("#collapse1").collapse('hide');
                 $("#collapse2").collapse('hide');
+                panelNumber = 3;
             }
             
             
@@ -243,6 +250,7 @@ html(lang='en')
                     console.log('start')
                     console.log(formData)
                     
+                    panelNumber = 2;
                     showCollapse2();
 
                     $('#output-container-spinner').show();
@@ -309,9 +317,8 @@ html(lang='en')
                     $('#instruction-container-spinner').show();
                     $('#instruction-container-canvas').hide();
                     
-                    $("#collapse3").collapse('show');
-                    $("#collapse1").collapse('hide');
-                    $("#collapse2").collapse('hide');
+                    panelNumber = 3;
+                    showCollapse3();
                     
                     request_moulds();
                     //console.log('test')
