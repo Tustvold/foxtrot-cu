@@ -23,6 +23,9 @@ router.post('/', function(req,res,next){
         }
         console.log(archive.pointer() + ' total bytes');
         console.log('archiver has been finalized and the output file descriptor has closed.');
+        temp.cleanup(function(err,stats) {
+            console.log(stats);
+        })
     });
 
 
