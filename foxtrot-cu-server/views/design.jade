@@ -80,6 +80,9 @@ html(lang='en')
                                             .panel.panel-default
                                                 .panel-body
                                                     div#output-container.model-viewer
+                                                        div#output-container-spinner(style='position:relative;top: 50%;') Loading...
+                                                        div#output-container-canvas
+
                                 row
                                     br
                                 row
@@ -110,6 +113,7 @@ html(lang='en')
                                             .panel.panel-default
                                                 .panel-body
                                                     div#instruction-container.model-viewer
+
                                     .col-md-3
                                 row
                                     .col-md-3
@@ -125,7 +129,7 @@ html(lang='en')
         script(type='text/javascript').
             var objRenderer, blockRenderer, instructionRenderer;
             var objRendererContainer = document.getElementById("input-container")
-            var blockRendererContainer = document.getElementById("output-container")
+            var blockRendererContainer = document.getElementById("output-container-canvas")
             var instructionContainer = document.getElementById("instruction-container")
 
 
@@ -136,6 +140,8 @@ html(lang='en')
     
             $('document').ready(function () {
                 $('.mould-downloader').hide()
+                $('#output-container-spinner').hide();
+                $('#request-mould').hide()
 
 
                 $(".btn-collapse1").click(function(){
@@ -177,16 +183,13 @@ html(lang='en')
                 
                 instructionRenderer = new InstructionRenderer(width, height, instructionContainer);
 
-                window.instr = instructionRenderer
 
-                        $("#button-left").click(function(){
+                $("#button-left").click(function(){
                     instructionRenderer.renderer.decrementMaxBlockID();
-                    console.log("???")
                 });
 
                 $("#button-right").click(function(){
                     instructionRenderer.renderer.incrementMaxBlockID();
-                    console.log("???")
                 });
                 
                 blockRenderer.onBlockSelected = function(x, y, z, block) {
@@ -222,6 +225,9 @@ html(lang='en')
         
                     console.log('start')
                     console.log(formData)
+
+                    $('#output-container-spinner').show();
+                    $('#output-container-canvas').hide();
                     
                     customPartSize = formData[2].value;
                   
@@ -244,6 +250,9 @@ html(lang='en')
                         offset = response.offset;
                         blockRenderer.setBlockList(response.block_list)
                     }
+                    $('#output-container-spinner').hide();
+                    $('#output-container-canvas').show();
+                    $('#request-mould').show()
                 }
 
                 var request_moulds = function() {
