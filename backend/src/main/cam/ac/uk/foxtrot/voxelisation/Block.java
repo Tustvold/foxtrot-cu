@@ -1,5 +1,6 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
+import cam.ac.uk.foxtrot.sidefiller.Point;
 import com.google.gson.annotations.SerializedName;
 
 import javax.media.j3d.TriangleArray;
@@ -9,6 +10,14 @@ import java.util.ArrayList;
 
 public class Block
 {
+    @SerializedName("internal_dimension")
+    private double[] internalDim; // the dimension of the internal triangles
+    // internalDim[0] = minimum x
+    // internalDim[1] = minimum y
+    // internalDim[2] = minimum z
+    // internalDim[3] = maximum x
+    // internalDim[4] = maximum y
+    // internalDim[5] = maximum z
 
     @SerializedName("pos")
     private Point3d mPosition;
@@ -33,7 +42,7 @@ public class Block
     public void addTriangles(ArrayList<Point3d> points)
     {
         triangles.addAll(points);
-        triangleCnt += points.size()/3;
+        triangleCnt += points.size() / 3;
     }
 
     public void addTriangle(Point3d fir, Point3d sec, Point3d trd)
@@ -42,6 +51,30 @@ public class Block
         triangles.add(adjustPoint(sec));
         triangles.add(adjustPoint(trd));
         triangleCnt++;
+    }
+
+    public void setInternalDim()
+    {
+        internalDim = new double[6];
+        internalDim[0] = internalDim[3] = triangles.get(0).x;
+        internalDim[1] = internalDim[4] = triangles.get(0).y;
+        internalDim[2] = internalDim[5] = triangles.get(0).z;
+        for (int i = 1; i < triangleCnt * 3; i++)
+        {
+            // go through all the points and find the minimums and maximums
+            Point3d curr = triangles.get(i);
+            if (curr.x < internalDim[0]) internalDim[0] = curr.x;
+            else if (curr.x > internalDim[3]) internalDim[3] = curr.x;
+            if (curr.y < internalDim[1]) internalDim[1] = curr.y;
+            else if (curr.y > internalDim[4]) internalDim[4] = curr.y;
+            if (curr.z < internalDim[2]) internalDim[2] = curr.z;
+            else if (curr.z > internalDim[5]) internalDim[5] = curr.z;
+        }
+    }
+
+    public double[] getInternalDim()
+    {
+        return internalDim;
     }
 
     /**

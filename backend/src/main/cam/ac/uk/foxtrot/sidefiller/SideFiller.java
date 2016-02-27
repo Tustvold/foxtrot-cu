@@ -58,7 +58,8 @@ public class SideFiller
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, false));
                     }
-                    blocks[x][y][z].addTriangles(newTriangles);
+                    blocks[x][y][z].addTriangles(newTriangles); // add all the newly created triangles
+                    blocks[x][y][z].setInternalDim(); // determine the internal dimensions of the block
                 }
             }
         }

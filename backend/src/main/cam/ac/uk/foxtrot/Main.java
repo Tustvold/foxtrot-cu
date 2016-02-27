@@ -59,11 +59,21 @@ public class Main
         SideFiller filler = new SideFiller(blocks);
         blocks = filler.getBlocks();
 
-
-
         // add custom parts
         ArrayList<Block> sortedBlocks = new ArrayList<>();
         int[] dim = {blocks.length, blocks[0].length, blocks[0][0].length};
+        // set make a selection of all custom parts
+        int currdim = dim[1];
+        int selectedProjection = 1;
+        if(dim[0] < currdim)
+        {
+            selectedProjection = 0;
+            currdim = dim[0];
+        }
+        if(dim[2] < currdim)
+        {
+            selectedProjection = 2;
+        }
         for (int x = 0; x < dim[0]; x++)
         {
             for (int y = 0; y < dim[1]; y++)
@@ -77,44 +87,16 @@ public class Main
                         continue;
                     }
 
+                    // add the block to the sorted array
                     sortedBlocks.add(block);
-                    ArrayList<Point3d> al = block.getTriangles();
 
-                    CustomPartGenerator cp = new CustomPartGenerator(al.toArray(new Point3d[al.size()]));
-                    CustomPart p0 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZY0);
-                    block.setCustomPart(0, p0);
-                    CustomPart p2 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.ZX0);
-                    block.setCustomPart(1, p2);
-                    CustomPart p4 = cp.generateCustomPart(ProjectionUtils.ProjectionFace.XY0);
-                    block.setCustomPart(2, p4);
+                    // generate all the custom parts for the blocks
+                    CustomPartGenerator cp = new CustomPartGenerator(block);
+                    cp.generateAllCustomParts();
 
-                    // set suggested custom part
                     // nullify the selection initially, so that we can later select the top n as custom
                     block.setIsCustom(false);
-                    if (x + 1 < dim[0] && blocks[x + 1][y][z] != null)
-                    {
-                        block.setSuggestedCustomPartIndex(5);
-                    }
-                    else if (x - 1 > 0 && blocks[x - 1][y][z] != null)
-                    {
-                        block.setSuggestedCustomPartIndex(4);
-                    }
-                    else if (z + 1 < dim[2] && blocks[x][y][z + 1] != null)
-                    {
-                        block.setSuggestedCustomPartIndex(1);
-                    }
-                    else if (z - 1 > 0 && blocks[x][y][z - 1] != null)
-                    {
-                        block.setSuggestedCustomPartIndex(0);
-                    }
-                    else if (y - 1 > 0 && blocks[x][y - 1][z] != null)
-                    {
-                        block.setSuggestedCustomPartIndex(2);
-                    }
-                    else if (y + 1 < dim[1] && blocks[x][y + 1][z] != null)
-                    {
-                        block.setSuggestedCustomPartIndex(3);
-                    }
+                    block.setSuggestedCustomPartIndex(selectedProjection);
                 }
             }
         }
