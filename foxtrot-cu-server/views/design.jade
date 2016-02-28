@@ -47,7 +47,8 @@ html(lang='en')
                                             button(type="submit",class="btn btn-primary btn-file")
                                               |View Generated Design
 
-                                    
+                            .panel-footer 
+                                p Please upload a mesh, specify the desired parameters and when finished click 'View Generated Design'
             
 
             div.panel-group
@@ -86,7 +87,12 @@ html(lang='en')
                                        button#request-mould(type="submit",class="btn btn-primary btn-file")
                                          |Submit Custom Generated Design
                                        
-                             .panel-footer Viewer Instructions
+                             .panel-footer
+                                p The left hand view shows the uploaded mesh, the right hand view shows the generated result.
+                                p Left-clicking on a block in the right hand view will cycle through the available custom parts for that block.
+                                p Use the right mouse button to pan and the middle mouse button to rotate
+                                p Use the up and down arrow keys to limit the render height
+                                
 
 
             .panel-group
@@ -126,8 +132,10 @@ html(lang='en')
                                         
                                     .col-md-3
                                 
-                            .panel-footer Instruction Viewer Instructions
-
+                            .panel-footer
+                                p Use the arrow keys or the on screen buttons to step through the assembly Instructions
+                                p Use the 'Download Moulds' button to download the moulds for 3D printing
+                               
         
         script(type='text/javascript').
             var objRenderer, blockRenderer, instructionRenderer;
