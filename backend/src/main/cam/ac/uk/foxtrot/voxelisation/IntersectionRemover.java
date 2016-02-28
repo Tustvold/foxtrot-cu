@@ -10,6 +10,9 @@ import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 
 public class IntersectionRemover
 {
@@ -47,7 +50,7 @@ public class IntersectionRemover
     public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace projectionFace)
     {
         this.projectionFace = projectionFace;
-        ArrayList<Point3dPolygon> triangles = new ArrayList<>();
+        ArrayList<Area> triangleList = new ArrayList<>();
         convertBetweenPlanes(originalCoordinates);
         if (originalCoordinates.length > 0)
         {
@@ -57,10 +60,26 @@ public class IntersectionRemover
         { //i,i+1,i+2 vertices of one triangle, iterate through triangles
             Point3d[] points = {originalCoordinates[i], originalCoordinates[i + 1], originalCoordinates[i + 2]};
             Point3dPolygon triangle = new Point3dPolygon(points, null);
-            triangles.add(triangle);
+         } for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
+            Point3d[] points = {originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2]};
+            triangleList.add(toArea(points));
         }
-        combinedArray = merge(triangles.toArray(new Point3dPolygon[0]));
+        ArrayList<Point3d[]> polygons = generatePolygons(merge(triangleList));
+        combinedArray = determinePolygonsAndHoles(polygons).toArray(new Point3dPolygon[0]);
         generateArrays();
+    }
+
+    private Area merge(List<Area> areas) {
+        Area result = new Area();
+        int length = areas.size();
+        if (length == 1) {
+            result = areas.get(0);
+        } if (length > 1) {
+            int i = length/2;
+            result = merge(areas.subList(0,i));
+            result.add(merge(areas.subList(i,length)));
+        }
+        return result;
     }
 
     /**
@@ -83,120 +102,6 @@ public class IntersectionRemover
             }
         }
         holeArray = holeList.toArray(new Point3d[0][]);
-    }
-
-    private Point3dPolygon[] merge(Point3dPolygon[] polygons)
-    {
-        int length = polygons.length;
-        if (length == 0)
-        {
-            return new Point3dPolygon[0];
-        }
-        if (length == 1)
-        {
-            return polygons;
-        }
-        else
-        {
-            return merge(polygons[0], merge(Arrays.copyOfRange(polygons, 1, length)));
-        }
-    }
-
-    /**
-     * Merge polygon iteratively into array of non-intersecting polygons
-     *
-     * @return Array representing non-intersecting result of merge
-     */
-    private Point3dPolygon[] merge(Point3dPolygon polygon, Point3dPolygon[] polygons)
-    {
-        ArrayList<Point3dPolygon> result = new ArrayList<>();
-        if (polygons.length == 0)
-        {
-            result.add(polygon);
-        }
-        while (polygons.length > 0)
-        {
-            Point3dPolygon[] merged = merge(polygon, polygons[0]);
-            if (merged.length == 2)
-            {
-                result.add(merged[1]);
-                polygons = Arrays.copyOfRange(polygons, 1, polygons.length);
-                result.addAll(Arrays.asList(merge(merged[0], polygons)));
-            }
-            if (merged.length == 1)
-            {
-                polygons = Arrays.copyOfRange(polygons, 1, polygons.length);
-                result.addAll(Arrays.asList(merge(merged[0], polygons)));
-            }
-        }
-        return result.toArray(new Point3dPolygon[0]);
-    }
-
-    /**
-     * Merge two polygons
-     *
-     * @return Array of two polygons if inputs don't merge to one polygon, otherwise array of one polygon - the merge of the inputs
-     */
-    private Point3dPolygon[] merge(Point3dPolygon polygon1, Point3dPolygon polygon2)
-    {
-        Point3d[] exterior;
-        Area polygon1Area = toArea(polygon1);
-        Area polygon2Area = toArea(polygon2);
-        Area temp1 = (Area) polygon1Area.clone();
-        temp1.intersect(polygon2Area);
-        if (!temp1.isEmpty() || touching(polygon1Area, polygon2Area))
-        { // polygons intersect or touch
-            Area mergedPolygon = polygon1Area;
-            mergedPolygon.add(polygon2Area); // generate merged polygons
-            ArrayList<Point3d[]> holesList = new ArrayList<>();
-            ArrayList<Point3d[]> polygons = generatePolygons(mergedPolygon);
-            exterior = polygons.get(0);
-            if (polygons.size() > 1)
-            {
-                holesList.addAll(polygons.subList(1, polygons.size()));
-            }
-            return new Point3dPolygon[]{new Point3dPolygon(exterior, holesList.toArray(new Point3d[0][]))};
-        }
-        else
-        { // polygons don't intersect
-            return new Point3dPolygon[]{polygon1, polygon2};
-        }
-    }
-
-    /**
-     * Check if polygons are touching
-     *
-     * @param polygon1 Polygon that may be touching polygon2 but not intersecting it
-     * @param polygon2 Polygon that may be touching polygon1 but not intersecting it
-     * @return
-     */
-    private boolean touching(Area polygon1, Area polygon2)
-    {
-        Area temp = toArea(generatePolygons(polygon1).get(0));
-        temp.add(toArea(generatePolygons(polygon2).get(0)));
-        Area tempExterior = toArea(generatePolygons(temp).get(0));
-        if (tempExterior.equals(polygon1) || tempExterior.equals(polygon2))
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-    /**
-     * Convert a polygon to corresponding Area
-     */
-    private Area toArea(Point3dPolygon polygon)
-    {
-        Area result = toArea(polygon.getExterior());
-        Point3d[][] holes = polygon.getHoles();
-        for (Point3d[] hole : holes)
-        {
-            result.subtract(toArea(hole));
-        }
-        return result;
     }
 
     /**
@@ -236,8 +141,6 @@ public class IntersectionRemover
     private ArrayList<Point3d[]> generatePolygons(Area area)
     {
         ArrayList<Point3d[]> result = new ArrayList<>();
-        Point3d[] currentExterior = new Point3d[0];
-        ArrayList<Point3d[]> polygons = new ArrayList<>();
         ArrayList<Point3d> polygon = new ArrayList<>();
         PathIterator iterator = area.getPathIterator(null);
         double[] doubles = new double[6];
@@ -255,37 +158,10 @@ public class IntersectionRemover
                 {
                     polygon.remove(polygon.size() - 1);
                 }
-                polygons.add(polygon.toArray(new Point3d[0]));
+                result.add(polygon.toArray(new Point3d[0]));
                 polygon = new ArrayList<>();
             }
             iterator.next();
-        }
-        for (Point3d[] p : polygons)
-        {
-            if (inside(currentExterior, p))
-            { // is currentExterior inside current p
-                currentExterior = p;
-            }
-        }
-        polygons.remove(currentExterior);
-        result.add(currentExterior);
-        result.addAll(polygons);
-        return result;
-    }
-
-    /**
-     * Returns whether polygon1 inside polygon2
-     */
-    private boolean inside(Point3d[] polygon1, Point3d[] polygon2)
-    {
-        Area polygon = toArea(polygon2);
-        boolean result = true;
-        for (Point3d point : polygon1)
-        {
-            if (!polygon.contains(point.x, point.y))
-            {
-                return false;
-            }
         }
         return result;
     }
@@ -452,4 +328,13 @@ public class IntersectionRemover
         return res;
     }
 
+    public static void main(String[] args) {
+        Point3d[] coordinates = new Point3d[]{new Point3d(0,0,0),new Point3d(2,0,0),new Point3d(1,2,0),
+                                              new Point3d(3,0,0),new Point3d(5,0,0),new Point3d(4,2,0),
+                                              new Point3d(1,0,0),new Point3d(4,0,0),new Point3d(2.5,2,0),
+                                              new Point3d(0,1.5,0),new Point3d(5,1.5,0),new Point3d(2.5,5,0)};
+        IntersectionRemover intersectionRemover = new IntersectionRemover(coordinates, ProjectionUtils.ProjectionFace.XY0);
+        System.out.println(Arrays.deepToString(intersectionRemover.getPolygonArray()));
+        System.out.println(Arrays.deepToString(intersectionRemover.getHoleArray()));
+    }
 }
