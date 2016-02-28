@@ -12,8 +12,8 @@ public class CustomPartMouldGenerator
 {
 
     private double MOULD_DEPTH; // distance from top mould face projection will go as a fraction of scale
-    private double MOULD_PADDING = .05; // extra space for depth of the mould as a fraction of scale
-    private double EXTRA_WH = .05; // extra space for width and height of the mould as a fraction of scale
+    private double MOULD_PADDING = .1; // extra space for depth of the mould as a fraction of scale
+    private double EXTRA_WH = .1; // extra space for width and height of the mould as a fraction of scale
     private double MOULD_SIZE_IN_X; // the new dimension in x of the mould
     private double MOULD_SIZE_IN_Y; // the new dimension in y of the mould
     private double SUBTRACT_IN_X; // the amount we need to shift the projection back

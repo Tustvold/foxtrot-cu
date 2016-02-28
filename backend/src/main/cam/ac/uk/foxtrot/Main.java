@@ -224,7 +224,7 @@ public class Main
             double[] standard_block_dim = {0,0,0,1,1,1};
             CustomPartMouldGenerator m = new CustomPartMouldGenerator(MeshVoxeliser.makeUnitSquareXY1(), scale, standard_block_dim);
             File outFile = new File(mouldDirectoryPath, "standard-block.obj");
-            m.generateMould(0, outFile);
+            m.generateMould(2, outFile);
 
         } catch (FileNotFoundException e)
         {
