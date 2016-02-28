@@ -281,6 +281,19 @@ public class IntersectionRemover
         }
         LinkedList<Polygon> queue = new LinkedList<>();
 
+        // reset the visitings
+        polyCnt = polygons.size();
+        for (int i = 0; i < polyCnt; i++)
+        {
+            Polygon curr = polygons.get(i);
+            curr.unvisit();
+            if (!curr.hasAbove())
+            {
+                // add all the tree-tops to the queue
+                queue.push(curr);
+            }
+        }
+
         // do a depth first search and prepare the arrays
         while (!queue.isEmpty())
         {
