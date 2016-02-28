@@ -103,7 +103,8 @@ public class CustomPartMouldGenerator
         {
             if (pt.x < 0 || pt.x > 1 || pt.y < 0 || pt.y > 1 || pt.z < 0 || pt.z > 1)
             {
-                throw new IllegalArgumentException("CustomPartMouldGenerator: coordinates for all points in the mesh" +
+                if(!correctPoint3d(pt))
+                    throw new IllegalArgumentException("CustomPartMouldGenerator: coordinates for all points in the mesh" +
                         "must be between 0 and 1");
             }
         }
@@ -111,6 +112,18 @@ public class CustomPartMouldGenerator
         mesh_dimension = dimensions;
         mesh = inMesh;
         scale = inScale;
+    }
+
+    private boolean correctPoint3d(Point3d A)
+    {
+        boolean corrected = false;
+        if(MeshVoxeliser.areIdentical(1, A.x)) {A.x = 1.0; corrected = true;}
+        else if(MeshVoxeliser.areIdentical(0, A.x)) {A.x = 0.0; corrected = true;}
+        if(MeshVoxeliser.areIdentical(1, A.y)) {A.y = 1.0; corrected = true;}
+        else if(MeshVoxeliser.areIdentical(0, A.y)) {A.y = 0.0; corrected = true;}
+        if(MeshVoxeliser.areIdentical(1, A.z)) {A.z = 1.0; corrected = true;}
+        else if(MeshVoxeliser.areIdentical(0, A.z)) {A.z = 0.0; corrected = true;}
+        return corrected;
     }
 
     /**

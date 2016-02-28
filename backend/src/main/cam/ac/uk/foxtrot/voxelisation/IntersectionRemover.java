@@ -224,7 +224,7 @@ public class IntersectionRemover
 
     private ArrayList<Point3dPolygon> determinePolygonsAndHoles(ArrayList<Point3d[]> unsortedPolygons)
     {
-        // transform between spaces // TODO remove this and modify Point3dPolygon
+        // transform between spaces
         ArrayList<Point3dPolygon> result = new ArrayList<>();
         double h = unsortedPolygons.get(0)[0].z;
         ArrayList<Polygon> polygons = new ArrayList<>();
@@ -298,7 +298,7 @@ public class IntersectionRemover
         while (!queue.isEmpty())
         {
             Polygon curr = queue.pop();
-            Point3d[] ext = transformToPoint3dArray(curr, 2, h, curr.isAFace());
+            Point3d[] ext = transformToPoint3dArray(curr, 2, h, !curr.isAFace());
 
             Point3d[][] hls = new Point3d[curr.getBelow().size()][];
             int pos = 0;
@@ -307,7 +307,7 @@ public class IntersectionRemover
             while (itHole.hasNext())
             {
                 Polygon hole = itHole.next();
-                hls[pos] = transformToPoint3dArray(hole, 2, h, !hole.isAFace());
+                hls[pos] = transformToPoint3dArray(hole, 2, h, hole.isAFace());
                 pos++;
 
                 Iterator<Polygon> itPoly = hole.getBelow().iterator();
@@ -339,15 +339,5 @@ public class IntersectionRemover
                 res[cnt-1-i] = curr;
         }
         return res;
-    }
-
-    public static void main(String[] args) {
-        Point3d[] coordinates = new Point3d[]{new Point3d(0,0,0),new Point3d(2,0,0),new Point3d(1,2,0),
-                                              new Point3d(3,0,0),new Point3d(5,0,0),new Point3d(4,2,0),
-                                              new Point3d(1,0,0),new Point3d(4,0,0),new Point3d(2.5,2,0),
-                                              new Point3d(0,1.5,0),new Point3d(5,1.5,0),new Point3d(2.5,5,0)};
-        IntersectionRemover intersectionRemover = new IntersectionRemover(coordinates, ProjectionUtils.ProjectionFace.XY0);
-        System.out.println(Arrays.deepToString(intersectionRemover.getPolygonArray()));
-        System.out.println(Arrays.deepToString(intersectionRemover.getHoleArray()));
     }
 }
