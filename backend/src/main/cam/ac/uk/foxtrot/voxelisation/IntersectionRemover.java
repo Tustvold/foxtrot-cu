@@ -1,6 +1,5 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
-import cam.ac.uk.foxtrot.sidefiller.Point;
 import cam.ac.uk.foxtrot.sidefiller.Polygon;
 import cam.ac.uk.foxtrot.sidefiller.SideFiller;
 
@@ -12,7 +11,6 @@ import java.awt.geom.PathIterator;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 
 public class IntersectionRemover
 {
@@ -52,15 +50,9 @@ public class IntersectionRemover
         this.projectionFace = projectionFace;
         ArrayList<Area> triangleList = new ArrayList<>();
         convertBetweenPlanes(originalCoordinates);
-        if (originalCoordinates.length > 0)
-        {
+        if (originalCoordinates.length > 0) {
             z = originalCoordinates[0].z;
-        }
-        for (int i = 0; i < originalCoordinates.length; i += 3)
-        { //i,i+1,i+2 vertices of one triangle, iterate through triangles
-            Point3d[] points = {originalCoordinates[i], originalCoordinates[i + 1], originalCoordinates[i + 2]};
-            Point3dPolygon triangle = new Point3dPolygon(points, null);
-         } for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
+        } for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
             Point3d[] points = {originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2]};
             triangleList.add(toArea(points));
         }
