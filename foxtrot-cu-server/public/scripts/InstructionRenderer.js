@@ -21,11 +21,24 @@ InstructionRenderer = function(screen_width, screen_height, domElement, labelDom
         setMaxBlockIDSuper.call(this, maxBlockID_);
     }
 
+    var finished = false;
+
     var incrementMaxBlockIDSuper = this.renderer.incrementMaxBlockID;
     this.renderer.incrementMaxBlockID = function() {
         if (!incrementMaxBlockIDSuper.call(this)) {
             this.setHighlightBlockVisible(false);
             labelDom.textContent = "Model Finished";
+            finished = true;
+        }
+    }
+
+    var decrementMaxBlockIDSuper = this.renderer.decrementMaxBlockID;
+    this.renderer.decrementMaxBlockID = function() {
+        if (finished) {
+            this.setMaxBlockID(this.getMaxBlockID());
+            finished = false;
+        } else {
+            decrementMaxBlockIDSuper.call(this);
         }
     }
 }

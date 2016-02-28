@@ -410,6 +410,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         this.refresh();
     }
 
+    this.getMaxBlockID = function() {
+        return maxBlockID;
+    }
+
     this.incrementMaxBlockID = function() {
         if (typeof blockList == "undefined") {
             return;
