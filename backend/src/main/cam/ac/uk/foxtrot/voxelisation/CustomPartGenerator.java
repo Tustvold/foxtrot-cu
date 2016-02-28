@@ -88,8 +88,8 @@ public class CustomPartGenerator
      *
      * @param projectTo face index on which to project the custom part
      *                  cases: 0 -> ZY0
-     *                  1 -> ZX0
-     *                  2 -> XY0
+     *                         1 -> ZX0
+     *                         2 -> XY0
      */
     private ProjectionUtils.ProjectionFace getProjectionFace(int projectTo)
     {
@@ -119,8 +119,8 @@ public class CustomPartGenerator
      *
      * @param projectTo face index on which to project the custom part
      *                  cases: 0 -> ZY0
-     *                  1 -> ZX0
-     *                  2 -> XY0
+     *                         1 -> ZX0
+     *                         2 -> XY0
      * @return a CustomPart representing the custom part
      */
     public CustomPart generateCustomPart(int projectTo)
