@@ -186,7 +186,6 @@ public class Main
 
         try
         {
-
             GsonBuilder b = new GsonBuilder();
             b.registerTypeAdapter(Block.class, new BlockJSONDeserializer());
 

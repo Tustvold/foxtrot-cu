@@ -242,6 +242,7 @@ public class CustomPartMouldGenerator
         ProjectionUtils.ProjectionFace face;
         face = getProjectionFace(projectTo);
         MOULD_DEPTH = determinePartDepth(projectTo);
+
         determine_faces();
 
         if (face == null)

@@ -47,7 +47,6 @@ public class SideFillerTest
         filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_after.obj", false);
     }
 
-
     @Test
     public void testALL()
     {
@@ -58,6 +57,9 @@ public class SideFillerTest
         int h = 1;
         boolean top = true;
         ArrayList<Point3d> points = new ArrayList<>();
+
+        // add the side square
+        points.addAll(createRectangle(0.0, 0.0, 0.0, 1.0, ignore, h));
 
         // add left line
         points.addAll(createRectangle(0.2, 1.0, 0.1, 0.9, ignore, h));
