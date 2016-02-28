@@ -334,7 +334,8 @@ html(lang='en')
                             } else if (xhr.status == 200) {
                                 var blob = new Blob([xhr.response], {type: "octet/stream"});
                                 var fileName = "moulds.zip";
-                                $('.mould-downloader').click(function() {
+                                $('.mould-downloader').unbind('click')
+                                $('.mould-downloader').bind('click',function() {
                                     saveAs(blob, fileName);
                                 }).show();
                                 $('#instruction-container-spinner').hide();
