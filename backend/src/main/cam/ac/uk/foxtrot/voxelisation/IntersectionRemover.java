@@ -49,7 +49,7 @@ public class IntersectionRemover {
     /**
      * Checks if points can be approximated as on the same line
      */
-    public boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
+    public static boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
     {
         return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < approximate_tolerance;
     }

@@ -109,14 +109,14 @@ public class SideFillerTest
         points.addAll(createRectangle(0.9, 0.6, 1.0, 0.4, ignore, h));
 
         // add the two double nested holes
-        points.addAll(createRectangle(0.7, 0.5, 0.7, 0.4, ignore, h));
-        points.addAll(createRectangle(0.7, 0.4, 0.6, 0.5, ignore, h));
-        points.addAll(createRectangle(0.6, 0.5, 0.7, 0.5, ignore, h));
+        points.addAll(createRectangle(0.7, 0.5, 0.6, 0.5, ignore, h));
+        points.addAll(createRectangle(0.6, 0.5, 0.7, 0.4, ignore, h));
+        points.addAll(createRectangle(0.7, 0.4, 0.7, 0.5, ignore, h));
 
-        points.addAll(createRectangle(0.8, 0.5, 0.9, 0.5, ignore, h));
-        points.addAll(createRectangle(0.9, 0.5, 0.9, 0.4, ignore, h));
-        points.addAll(createRectangle(0.9, 0.4, 0.8, 0.4, ignore, h));
-        points.addAll(createRectangle(0.8, 0.4, 0.8, 0.5, ignore, h));
+        points.addAll(createRectangle(0.8, 0.5, 0.8, 0.4, ignore, h));
+        points.addAll(createRectangle(0.8, 0.4, 0.9, 0.4, ignore, h));
+        points.addAll(createRectangle(0.9, 0.4, 0.9, 0.5, ignore, h));
+        points.addAll(createRectangle(0.9, 0.5, 0.8, 0.5, ignore, h));
 
         block.addTriangles(points);
         SideFiller filler = new SideFiller(blocks);

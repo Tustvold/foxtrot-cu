@@ -1,14 +1,18 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
+import javafx.util.Pair;
+
 import javax.vecmath.Point3d;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 
-public class ProjectionUtils {
+public class ProjectionUtils
+{
 
     // codes used to tell what projection our custom part should use
     public enum ProjectionFace
@@ -56,16 +60,16 @@ public class ProjectionUtils {
     /**
      * Add polygons obtained from the projection at the appropriate depth
      *
-     * @param coordinates list of coordinates of the mould to add to
-     * @param stripCounts list of strips of the mould to add to
-     * @param contourCounts list of contours of the mould to add to
-     * @param face the face from which to project
+     * @param coordinates        list of coordinates of the mould to add to
+     * @param stripCounts        list of strips of the mould to add to
+     * @param contourCounts      list of contours of the mould to add to
+     * @param face               the face from which to project
      * @param projectionPolygons the polygons to project
-     * @param depth projection depth
+     * @param depth              projection depth
      */
     public static void addPolygons(ArrayList<Point3d> coordinates, ArrayList<Integer> stripCounts,
-                             ArrayList<Integer> contourCounts, ProjectionFace face,
-                             Point3dPolygon[] projectionPolygons, double depth)
+                                   ArrayList<Integer> contourCounts, ProjectionFace face,
+                                   Point3dPolygon[] projectionPolygons, double depth)
     {
         for (Point3dPolygon projectionPolygon : projectionPolygons)
         {
@@ -127,7 +131,7 @@ public class ProjectionUtils {
                             point.y -= depth;
                             break;
                     }
-                    
+
 
                     coordinates.add(point);
                 }
@@ -143,16 +147,16 @@ public class ProjectionUtils {
      * Given a list of polygons projected onto a face of a cube, add rectangles that connect
      * each side of each polygon to the side of that polygon projected to its appropriate depth
      *
-     * @param coordinates list of coordinates of the mould to add to
-     * @param stripCounts list of strips of the mould to add to
+     * @param coordinates   list of coordinates of the mould to add to
+     * @param stripCounts   list of strips of the mould to add to
      * @param contourCounts list of contours of the mould to add to
-     * @param face the face on which polygons are projected
-     * @param polygons the projected polygons
-     * @param depth the depth that the side rectangles should reach
+     * @param face          the face on which polygons are projected
+     * @param polygons      the projected polygons
+     * @param depth         the depth that the side rectangles should reach
      */
     public static void addSideRectangles(ArrayList<Point3d> coordinates, ArrayList<Integer> stripCounts,
-                                   ArrayList<Integer> contourCounts, ProjectionFace face,
-                                   Point3d[][] polygons, double depth)
+                                         ArrayList<Integer> contourCounts, ProjectionFace face,
+                                         Point3d[][] polygons, double depth)
     {
         for (Point3d[] polygon : polygons)
         {
@@ -223,7 +227,7 @@ public class ProjectionUtils {
      * Given a projected coordinate and what face it is on, intrude it to depth
      *
      * @param coord the projected coordinate
-     * @param face the face on which coord lies
+     * @param face  the face on which coord lies
      * @param depth the depth of intrusion
      */
     public static void intrudeCoordinate(Point3d coord, ProjectionFace face, double depth)
@@ -254,36 +258,104 @@ public class ProjectionUtils {
     /**
      * Given a mesh of Point3ds representing triangles, print an obj file representing this mesh
      *
-     * @param pts the mesh
-     * @param file the file to print output to
+     * @param pts   the mesh
+     * @param file  the file to print output to
      * @param scale factor by which to scale points
      */
     public static void generateObjFile(Point3d[] pts, File file, double scale)
     {
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+        if (pts.length % 3 != 0)
+        {
+            throw new IllegalArgumentException("generateObjFile: number of vertices not a multiple of 3");
+        }
 
-            if (pts.length % 3 != 0)
+        if (pts.length <= 0)
+        {
+            return;
+        }
+
+        // extract the points
+        ArrayList<Pair<Point3d, Integer>> sortedpoints = new ArrayList<>();
+        for (int i = 0; i < pts.length; i++)
+        {
+            sortedpoints.add(new Pair<>(pts[i], i));
+        }
+        // sort the points
+        Collections.sort(sortedpoints, (Pair<Point3d, Integer> par1, Pair<Point3d, Integer> par2) ->
+                MeshVoxeliser.areIdentical(par1.getKey().x, par2.getKey().x) ?
+                        (MeshVoxeliser.areIdentical(par1.getKey().y, par2.getKey().y) ?
+                                (MeshVoxeliser.areIdentical(par1.getKey().z, par2.getKey().z) ?
+                                        0
+                                        : (par1.getKey().z < par2.getKey().z ? -1 : 1))
+                                : (par1.getKey().y < par2.getKey().y ? -1 : 1))
+                        : (par1.getKey().x < par2.getKey().x ? -1 : 1));
+
+        // stores the uncoupled points
+        ArrayList<Point3d> points = new ArrayList<>();
+        // stores which final index each of the original points belongs to
+        int[] fromSet = new int[sortedpoints.size()];
+
+        // initialise the first set
+        int set = 1;
+        fromSet[sortedpoints.get(0).getValue()] = set;
+
+        // label all the sets
+        boolean notDone = true;
+        int pos = 1;
+        int pointCnt = sortedpoints.size();
+        while (notDone)
+        {
+            for (; pos < pointCnt && MeshVoxeliser.areIdentical(sortedpoints.get(pos).getKey(), sortedpoints.get(pos - 1).getKey()); pos++)
             {
-                throw new IllegalArgumentException("generateObjFile: number of vertices not a multiple of 3");
+                // label the point
+                fromSet[sortedpoints.get(pos).getValue()] = set;
             }
 
-            // print vertices
-            for (Point3d pt : pts)
+            // add the last point of the set as its representative
+            points.add(new Point3d(sortedpoints.get(pos - 1).getKey()));
+
+            if (pos < pointCnt)
             {
-                bw.write("v " + pt.x * scale + " " + pt.y * scale + " " + pt.z * scale);
+                // we have more to go, so open new set and set its representative
+                set++;
+                fromSet[sortedpoints.get(pos).getValue()] = set;
+            }
+            else
+            {
+                // we are done
+                notDone = false;
+            }
+            // lastly move the pos cursor, so that we include the last point in the calculation
+            pos++;
+        }
+
+        try
+        {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+
+            // print vertices
+            Point3d curr;
+            for (int i = 0; i < points.size(); i++)
+            {
+                curr = points.get(i);
+                bw.write("v " + curr.x * scale + " " + curr.y * scale + " " + curr.z * scale);
                 bw.newLine();
             }
 
             // print faces
-            for (int i = 1; i < pts.length + 1; i += 3)
+            for (int i = 0; i < fromSet.length; i += 3)
             {
-                bw.write("f " + i + " " + (i + 1) + " " + (i + 2));
-                bw.newLine();
+                if (fromSet[i] != fromSet[i + 1] && fromSet[i + 1] != fromSet[i + 2] && fromSet[i + 2] != fromSet[i])
+                {
+                    // only take in faces which have all points different
+                    bw.write("f " + fromSet[i] + " " + fromSet[i + 1] + " " + fromSet[i + 2]);
+                    bw.newLine();
+                }
             }
             bw.flush();
             bw.close();
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
             System.err.println("generateObjFile: couldn't write to file");
             e.printStackTrace();
         }
@@ -295,22 +367,27 @@ public class ProjectionUtils {
      * @param combinedPolygons - an array of Point3dPolygons
      * @return an array of Point3dPolygons with the winding orders of the polygons reversed
      */
-    public static Point3dPolygon[] reverseWindingOrder(Point3dPolygon[] combinedPolygons) {
+    public static Point3dPolygon[] reverseWindingOrder(Point3dPolygon[] combinedPolygons)
+    {
         Point3dPolygon[] ret = new Point3dPolygon[combinedPolygons.length];
-        for (int i = 0; i < combinedPolygons.length; i++) {
+        for (int i = 0; i < combinedPolygons.length; i++)
+        {
             Point3dPolygon combinedPolygon = combinedPolygons[i];
             Point3d[] polygon = combinedPolygon.getExterior();
             Point3d[] reverseWind = new Point3d[polygon.length];
-            for (int j = 0; j < polygon.length; j++) {
+            for (int j = 0; j < polygon.length; j++)
+            {
                 reverseWind[j] = polygon[polygon.length - (j + 1)];
             }
 
             Point3d[][] holes = combinedPolygon.getHoles();
             Point3d[][] reverseWindHoles = new Point3d[holes.length][];
-            for (int j = 0; j < holes.length; j++) {
+            for (int j = 0; j < holes.length; j++)
+            {
                 Point3d[] hole = holes[j];
                 Point3d[] reverseWindHole = new Point3d[hole.length];
-                for (int k = 0; k < hole.length; k++) {
+                for (int k = 0; k < hole.length; k++)
+                {
                     reverseWindHole[k] = hole[hole.length - (k + 1)];
                 }
                 reverseWindHoles[j] = reverseWindHole;
