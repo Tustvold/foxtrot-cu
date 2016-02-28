@@ -167,10 +167,21 @@ public class ProjectionUtils {
                 intrudeCoordinate(projectionFaceCoord1, face, depth);
                 intrudeCoordinate(projectionFaceCoord2, face, depth);
 
-                sideRectangles[i][0] = polygon[i];
-                sideRectangles[i][1] = projectionFaceCoord1;
-                sideRectangles[i][2] = projectionFaceCoord2;
-                sideRectangles[i][3] = polygon[i + 1];
+                // reverse winding order for non- XY0 or XY1 projection
+                if (face == ProjectionFace.XY0 || face == ProjectionFace.XY1)
+                {
+                    sideRectangles[i][0] = polygon[i];
+                    sideRectangles[i][1] = projectionFaceCoord1;
+                    sideRectangles[i][2] = projectionFaceCoord2;
+                    sideRectangles[i][3] = polygon[i + 1];
+                }
+                else
+                {
+                    sideRectangles[i][3] = polygon[i];
+                    sideRectangles[i][2] = projectionFaceCoord1;
+                    sideRectangles[i][1] = projectionFaceCoord2;
+                    sideRectangles[i][0] = polygon[i + 1];
+                }
             }
 
             // create the last rectangle which contains the edge between the first and last points
@@ -182,10 +193,21 @@ public class ProjectionUtils {
             intrudeCoordinate(projectionFaceCoord1, face, depth);
             intrudeCoordinate(projectionFaceCoord2, face, depth);
 
-            sideRectangles[sideRectangles.length - 1][0] = polygon[polygon.length - 1];
-            sideRectangles[sideRectangles.length - 1][1] = projectionFaceCoord1;
-            sideRectangles[sideRectangles.length - 1][2] = projectionFaceCoord2;
-            sideRectangles[sideRectangles.length - 1][3] = polygon[0];
+            // reverse winding order for non- XY0 or XY1 projection
+            if (face == ProjectionFace.XY0 || face == ProjectionFace.XY1)
+            {
+                sideRectangles[sideRectangles.length - 1][0] = polygon[polygon.length - 1];
+                sideRectangles[sideRectangles.length - 1][1] = projectionFaceCoord1;
+                sideRectangles[sideRectangles.length - 1][2] = projectionFaceCoord2;
+                sideRectangles[sideRectangles.length - 1][3] = polygon[0];
+            }
+            else
+            {
+                sideRectangles[sideRectangles.length - 1][3] = polygon[polygon.length - 1];
+                sideRectangles[sideRectangles.length - 1][2] = projectionFaceCoord1;
+                sideRectangles[sideRectangles.length - 1][1] = projectionFaceCoord2;
+                sideRectangles[sideRectangles.length - 1][0] = polygon[0];
+            }
 
             // add all of the created polygons to our mesh
             for (Point3d[] rectangle : sideRectangles)
@@ -282,7 +304,18 @@ public class ProjectionUtils {
             for (int j = 0; j < polygon.length; j++) {
                 reverseWind[j] = polygon[polygon.length - (j + 1)];
             }
-            ret[i] = new Point3dPolygon(reverseWind, combinedPolygon.getHoles());
+
+            Point3d[][] holes = combinedPolygon.getHoles();
+            Point3d[][] reverseWindHoles = new Point3d[holes.length][];
+            for (int j = 0; j < holes.length; j++) {
+                Point3d[] hole = holes[j];
+                Point3d[] reverseWindHole = new Point3d[hole.length];
+                for (int k = 0; k < hole.length; k++) {
+                    reverseWindHole[k] = hole[hole.length - (k + 1)];
+                }
+                reverseWindHoles[j] = reverseWindHole;
+            }
+            ret[i] = new Point3dPolygon(reverseWind, combinedPolygon.getHoles());//reverseWindHoles);
         }
 
         return ret;
