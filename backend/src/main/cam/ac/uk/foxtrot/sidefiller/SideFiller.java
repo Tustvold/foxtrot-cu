@@ -19,7 +19,7 @@ public class SideFiller
     private int dim[];          // dimensions of the input block matrix
 
     /**
-     * @return Returns
+     * @return Returns the blocks stored in the Side Filler.
      */
     public Block[][][] getBlocks()
     {
@@ -35,6 +35,9 @@ public class SideFiller
         dim[2] = blocks[0][0].length;
     }
 
+    /**
+     * Fills all the sides of all blocks in the array stored int the SideFiller.
+     */
     public void fillAllSides()
     {
         for (int x = 0; x < dim[0]; x++)
@@ -56,13 +59,18 @@ public class SideFiller
                     }
                     blocks[x][y][z].addTriangles(newTriangles); // add all the newly created triangles
                     blocks[x][y][z].setInternalDim(); // determine the internal dimensions of the block
-                    //drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
                 }
             }
         }
-        //drawTrianglesFromBlocks("testing/output/mesh_side_filled.obj", true);
     }
 
+    /**
+     * Fills a single side of a single block of the block matrix.
+     *
+     * @param ignore the coordinate to ignore (0 -> x, 1 -> y, 2 -> z)
+     * @param top true if the ignore coordinate is 1
+     * @return
+     */
     public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)
     {
         // checks for adjacency with full block
