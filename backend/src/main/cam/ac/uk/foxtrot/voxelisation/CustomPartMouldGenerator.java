@@ -12,8 +12,8 @@ public class CustomPartMouldGenerator
 {
 
     private double MOULD_DEPTH; // distance from top mould face projection will go as a fraction of scale
-    private double MOULD_PADDING = .1; // extra space for depth of the mould as a fraction of scale
-    private double EXTRA_WH = .1; // extra space for width and height of the mould as a fraction of scale
+    private double MOULD_PADDING; // extra space for depth of the mould as a fraction of scale
+    private double EXTRA_WH; // extra space for width and height of the mould as a fraction of scale
     private double MOULD_SIZE_IN_X; // the new dimension in x of the mould
     private double MOULD_SIZE_IN_Y; // the new dimension in y of the mould
     private double SUBTRACT_IN_X; // the amount we need to shift the projection back
@@ -271,7 +271,16 @@ public class CustomPartMouldGenerator
         ProjectionUtils.ProjectionFace face;
         face = getProjectionFace(projectTo);
         MOULD_DEPTH = determinePartDepth(projectTo);
-
+        MOULD_PADDING = 0.1;
+        EXTRA_WH = 0.1;
+        if(EXTRA_WH < 2 / scale)
+        {
+            EXTRA_WH = 2 / scale; // the extra mould thickness in xy never going to be under 2 mm
+        }
+        if(MOULD_PADDING < 2 / scale)
+        {
+            MOULD_PADDING = 2 / scale; // the extra mould height is never going to be under 2 mm
+        }
 
         if (face == null)
         {
