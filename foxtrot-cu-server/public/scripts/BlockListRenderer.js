@@ -1,3 +1,4 @@
+// TODO: Split this up - it has grown into a monstrous piece of spaghetti code
 BlockListRenderer = function(screen_width, screen_height, domElement) {
     // Will create a canvas of the specified dimensions added as a child of domElement
 
@@ -137,7 +138,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                     var block = blockList[x][y][z];
                     if (block == null)
                         continue;
-                    var block_id = getBlockID(x, y, z);
+                    var block_id = scope.getBlockID(x, y, z);
                     if (idLimitEnabled && block_id > maxBlockID)
                         return;
                     color.setHex(block_id);
@@ -157,7 +158,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         continue;
                     }
 
-                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || (idLimitEnabled && getBlockID(x + 1, y, z) > maxBlockID)) {
+                    if (x == maxX - 1 || blockList[x + 1][y][z] === null || blockList[x + 1][y][z].use_custom_part || (idLimitEnabled && scope.getBlockID(x + 1, y, z) > maxBlockID)) {
                         // Add positive x face
                         vertices.push(x + 1, y, z);
                         vertices.push(x + 1, y, z + 1);
@@ -176,7 +177,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
                     }
 
-                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || (idLimitEnabled && getBlockID(x - 1, y, z) > maxBlockID)) {
+                    if (x == 0 || blockList[x - 1][y][z] === null || blockList[x - 1][y][z].use_custom_part || (idLimitEnabled && scope.getBlockID(x - 1, y, z) > maxBlockID)) {
                         // Add negative x face
                         vertices.push(x, y, z);
                         vertices.push(x, y + 1, z);
@@ -194,7 +195,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || (idLimitEnabled && getBlockID(x, y + 1, z) > maxBlockID)) {
+                    if (y == yCap - 1 || blockList[x][y + 1][z] === null || blockList[x][y + 1][z].use_custom_part || (idLimitEnabled && scope.getBlockID(x, y + 1, z) > maxBlockID)) {
                         // Add top face
                         vertices.push(x, y + 1, z);
                         vertices.push(x + 1, y + 1, z);
@@ -212,7 +213,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || (idLimitEnabled && getBlockID(x, y - 1, z) > maxBlockID)) {
+                    if (y == 0 || blockList[x][y - 1][z] === null || blockList[x][y - 1][z].use_custom_part || (idLimitEnabled && scope.getBlockID(x, y - 1, z) > maxBlockID)) {
                         // Add bottom face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -230,7 +231,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || (idLimitEnabled && getBlockID(x, y, z + 1) > maxBlockID)) {
+                    if (z == maxZ - 1 || blockList[x][y][z + 1] === null || blockList[x][y][z + 1].use_custom_part || (idLimitEnabled && scope.getBlockID(x, y, z + 1) > maxBlockID)) {
                         // Add positive z face
                         vertices.push(x, y, z + 1);
                         vertices.push(x, y + 1, z + 1);
@@ -248,7 +249,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
                         cur_index += 4;
                     }
 
-                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || (idLimitEnabled && getBlockID(x, y, z - 1) > maxBlockID)) {
+                    if (z == 0 || blockList[x][y][z - 1] === null || blockList[x][y][z - 1].use_custom_part || (idLimitEnabled && scope.getBlockID(x, y, z - 1) > maxBlockID)) {
                         // Add negative z face
                         vertices.push(x, y, z);
                         vertices.push(x + 1, y, z);
@@ -303,6 +304,18 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     this.enableYLimit = function() {
         yLimitEnabled = true;
+    }
+
+    this.getBlockID = function(x, y, z) {
+        return ((y & 0xFF) << 16) | ((x & 0xFF) << 8) | (z & 0xFF);
+    }
+
+    this.getCoords = function(id) {
+        return {
+            y: id >> 16,
+            x: (id >> 8) & 0xFF,
+            z: (id & 0xFF)
+        }
     }
 
     this.enableIDLimit = function() {
@@ -361,8 +374,12 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     }
 
     this.setHighlightBlockPosition = function(x,y,z) {
-        selectBox.visible = true;
+        this.setHighlightBlockVisible(true);
         selectBox.position.set(x+selectBoxHalfDim+model_renderer.position.x,y+selectBoxHalfDim+model_renderer.position.y,z+selectBoxHalfDim+model_renderer.position.z);
+    }
+
+    this.setHighlightBlockVisible = function(visible) {
+        selectBox.visible = visible;
     }
 
     this.onBlockHover = function(x, y, z, block) {
@@ -388,6 +405,11 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         return {x: maxX, y: maxY, z: maxZ};
     }
 
+    this.setMaxBlockID = function(maxBlockID_) {
+        maxBlockID = maxBlockID_;
+        this.refresh();
+    }
+
     this.incrementMaxBlockID = function() {
         if (typeof blockList == "undefined") {
             return;
@@ -398,7 +420,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
             y = 0;
             z = 0;
         } else {
-            var coords = getCoords(maxBlockID);
+            var coords = scope.getCoords(maxBlockID);
             x = coords.x;
             y = coords.y;
             z = coords.z + 1;
@@ -408,22 +430,22 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
             for (; x < maxX; x++) {
                 for (; z < maxZ; z++) {
                     if (typeof blockList[x][y][z] !== "undefined" && blockList[x][y][z] != null) {
-                        maxBlockID = getBlockID(x, y, z);
-                        this.refresh();
-                        return;
+                        this.setMaxBlockID(scope.getBlockID(x,y,z));
+                        return true;
                     }
                 }
                 z = 0;
             }
             x = 0;
         }
+        return false;
     }
 
     this.decrementMaxBlockID = function() {
         if (typeof blockList == "undefined") {
             return;
         }
-        var coords = getCoords(maxBlockID);
+        var coords = scope.getCoords(maxBlockID);
         var x = coords.x;
         var y = coords.y;
         var z = coords.z - 1;
@@ -431,33 +453,21 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
             for (; x >= 0; x--) {
                 for (; z >= 0; z--) {
                     if (typeof blockList[x][y][z] !== "undefined" && blockList[x][y][z] != null) {
-                        maxBlockID = getBlockID(x, y, z);
-                        this.refresh();
-                        return;
+                        scope.setMaxBlockID(scope.getBlockID(x,y,z));
+                        return true;
                     }
                 }
                 z = maxZ - 1;
             }
             x = maxX - 1;
         }
+        return false;
     }
 
     this.resetMaxBlockID = function() {
         maxBlockID = -1;
         this.incrementMaxBlockID();
         this.refresh();
-    }
-
-    function getBlockID(x, y, z) {
-        return ((y & 0xFF) << 16) | ((x & 0xFF) << 8) | (z & 0xFF);
-    }
-
-    function getCoords(id) {
-        return {
-            y: id >> 16,
-            x: (id >> 8) & 0xFF,
-            z: (id & 0xFF)
-        }
     }
 
     function pick(mouseDown) {
@@ -485,7 +495,7 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
         // This will need to be changed if the clear color is changed
         if (id != 0xFFFFFF) {
-            var coords = getCoords(id);
+            var coords = scope.getCoords(id);
             var x = coords.x;
             var y = coords.y;
             var z = coords.z;
@@ -519,7 +529,6 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         controls.update();
 
         //stats.update();
-
     }
 
     function onMouseDown(event) {

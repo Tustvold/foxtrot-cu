@@ -15,7 +15,7 @@ html(lang='en')
         script(src='/scripts/InstructionRenderer.js')
 
         .container
-            row
+            div.row
                 h1(class="text-center") Edible Lego
             div.panel-group
                 .col-md-12
@@ -48,7 +48,7 @@ html(lang='en')
                                               |View Generated Design
 
                                     
-            row
+            
 
             div.panel-group
                 .col-md-12
@@ -58,7 +58,7 @@ html(lang='en')
                                 |Mesh Viewer
                         div#collapse2.panel-collapse.collapse
                             .panel-body
-                                row
+                                div.row
                                     .col-md-6
                                         div
                                             h3(class="text-center") Uploaded Mesh
@@ -70,7 +70,6 @@ html(lang='en')
                                                         div#input-container-canvas
 
 
-                                row
                                     .col-md-6
                                         div
                                             h3(class="text-center") Generated Design
@@ -80,11 +79,10 @@ html(lang='en')
                                                     div#output-container.model-viewer
                                                         div#output-container-spinner(style='position:relative;top: 50%;') Loading...
                                                         div#output-container-canvas
-
-                                row
+                                div.row
                                     br
-                                row
-                                    .col-md-6
+                                div.row
+                                    .col-md-12
                                        button#request-mould(type="submit",class="btn btn-primary btn-file")
                                          |Submit Custom Generated Design
                                        
@@ -99,14 +97,11 @@ html(lang='en')
                                 |Instruction Viewer
                         div#collapse3.panel-collapse.collapse
                             .panel-body
-                                row
-                                    button.btn.btn-primary.btn-file.mould-downloader(type='hidden')
-                                         | Download Moulds
-                                row
+                                div.row
+                                    h3(class="text-center") Instructions
+                                div.row
                                     .col-md-3
                                     .col-md-6
-                                        div
-                                            h3(class="text-center") Instructions
                                         div(style="margin-left:auto; margin-right:auto" align="center")
                                             .panel.panel-default
                                                 .panel-body
@@ -115,12 +110,17 @@ html(lang='en')
                                                         div#instruction-container-canvas
 
                                     .col-md-3
-                                row
+                                        h4#instruction-label Coords: 23-12-67
+                                div.row
+                                        br
+                                div.row
                                     .col-md-3
-                                        .test
-                                    .col-md-6
-                                        button.btn.btn-primary.btn-file#button-left Previous step
-                                        button.btn.btn-primary.btn-file#button-right Next step
+                                        
+                                    .col-md-6#instruction-buttons
+                                        button.btn.btn-primary#button-left(style="margin-right:5px") Previous step
+                                        button.btn.btn-primary#button-right(style="margin-right:5px") Next step
+                                        button.btn.btn-primary.mould-downloader(type='hidden', style="margin-right:5px")
+                                             | Download Moulds
                                     .col-md-3
                                 
                             .panel-footer Instruction Viewer Instructions
@@ -131,6 +131,7 @@ html(lang='en')
             var objRendererContainer = document.getElementById("input-container-canvas")
             var blockRendererContainer = document.getElementById("output-container-canvas")
             var instructionContainer = document.getElementById("instruction-container-canvas")
+            var instructionLabel = document.getElementById("instruction-label");
             var panelNumber = 1;
 
             
@@ -211,6 +212,7 @@ html(lang='en')
         
                 objRenderer = new ObjFileRenderer(width, height, objRendererContainer);
                 blockRenderer = new BlockListRenderer(width, height, blockRendererContainer);
+                instructionRenderer = new InstructionRenderer(width, height, instructionContainer, instructionLabel);
                 blockRenderer.enableYLimit();
                 blockRenderer.enableHoverDetection();
                 
@@ -229,7 +231,7 @@ html(lang='en')
                     setHighlightBlockPositionSuper.call(blockRenderer, x, y, z);
                 }
 
-                instructionRenderer = new InstructionRenderer(width, height, instructionContainer);
+                
                 
                 showCollapse1();
 
@@ -334,6 +336,8 @@ html(lang='en')
                                 }).show();
                                 $('#instruction-container-spinner').hide();
                                 $('#instruction-container-canvas').show();
+                                $('#instruction-label').show();
+                                $('#instruction-buttons').show();
                             }
                         }
                     }
@@ -346,6 +350,8 @@ html(lang='en')
                 $('#request-mould').click(function(event) {
                     $('#instruction-container-spinner').show();
                     $('#instruction-container-canvas').hide();
+                    $('#instruction-label').hide();
+                    $('#instruction-buttons').hide();
                     
                     showCollapse3();
                     
