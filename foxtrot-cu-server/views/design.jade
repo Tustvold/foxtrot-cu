@@ -109,18 +109,21 @@ html(lang='en')
                                                         div#instruction-container-spinner(style='position:relative;top: 50%;') Loading...
                                                         div#instruction-container-canvas
 
-                                    .col-md-3
-                                        h4#instruction-label Coords: 23-12-67
+                                    .col-md-3.instruction-buttons
+                                        button.btn.btn-primary.mould-downloader(type='hidden', style="margin-right:5px")
+                                            | Download Moulds
                                 div.row
                                         br
                                 div.row
                                     .col-md-3
                                         
-                                    .col-md-6#instruction-buttons
-                                        button.btn.btn-primary#button-left(style="margin-right:5px") Previous step
-                                        button.btn.btn-primary#button-right(style="margin-right:5px") Next step
-                                        button.btn.btn-primary.mould-downloader(type='hidden', style="margin-right:5px")
-                                             | Download Moulds
+                                    .col-md-6
+                                        div.instruction-buttons
+                                            h4#instruction-label.pull-left Coords: 23-12-67
+                                            div.btn-group.inline.pull-right
+                                                button.btn.btn-default#button-left Previous step
+                                                button.btn.btn-default#button-right Next step
+                                        
                                     .col-md-3
                                 
                             .panel-footer Instruction Viewer Instructions
@@ -336,8 +339,7 @@ html(lang='en')
                                 }).show();
                                 $('#instruction-container-spinner').hide();
                                 $('#instruction-container-canvas').show();
-                                $('#instruction-label').show();
-                                $('#instruction-buttons').show();
+                                $('.instruction-buttons').show();
                             }
                         }
                     }
@@ -350,8 +352,7 @@ html(lang='en')
                 $('#request-mould').click(function(event) {
                     $('#instruction-container-spinner').show();
                     $('#instruction-container-canvas').hide();
-                    $('#instruction-label').hide();
-                    $('#instruction-buttons').hide();
+                    $('.instruction-buttons').hide();
                     
                     showCollapse3();
                     
