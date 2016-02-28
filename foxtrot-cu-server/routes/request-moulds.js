@@ -46,7 +46,7 @@ router.post('/', function(req,res,next){
 
             var exec_str = 'java -jar "jars/EdibleLego-fat-1.0.jar" mouldify ' + filePath + " " + dirPath + " " + custom_part_size;
             console.log(exec_str)
-            child = exec(exec_str);
+            child = exec(exec_str, {timeout: 60*1000});
 
             hasError = false;
             errorBuffer = "";
@@ -59,11 +59,20 @@ router.post('/', function(req,res,next){
             });
 
             // If the jar finished successfully
-            child.on('exit', function (code) {
-                if (hasError) {
+            child.on('exit', function (code, signal) {
+                if (signal) {
+                    res.header("Content-Type", "application/json");
+                    console.log("Terminated with signal: " + signal);
+                    if (signal === "SIGTERM")
+                        res.status(500).json({error: "Process Timed Out"}); // We assume it timed out
+                    else
+                        res.status(500).json({error: "Process Exited With Signal: " + signal});
+                    res.end();
+                }
+                else if (hasError) {
                     res.header("Content-Type", "application/json");
                     console.log(errorBuffer);
-                    res.status(200).json({error: errorBuffer});
+                    res.status(500).json({error: errorBuffer});
                     res.end();
                 }
                 else if(!res.finished) {

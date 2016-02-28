@@ -19,7 +19,7 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
     var gridXZ = null;
 
-
+    var active = true;
 
     init();
     animate();
@@ -86,8 +86,10 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
     }
 
     function animate() {
-
         requestAnimationFrame(animate);
+
+        if (!active)
+            return;
 
         renderer.render(scene, camera);
 
@@ -95,6 +97,10 @@ ObjFileRenderer = function(screen_width, screen_height, domElement) {
 
         //stats.update();
 
+    }
+
+    this.setActive = function(active_) {
+        active = active_;
     }
 
     this.setObjData = function(objData) {

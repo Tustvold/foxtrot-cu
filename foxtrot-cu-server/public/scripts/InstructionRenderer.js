@@ -7,4 +7,8 @@ InstructionRenderer = function(screen_width, screen_height, domElement) {
         this.renderer.setBlockList(blockList_);
         this.renderer.resetMaxBlockID();
     }
+
+    this.setActive = function(active_) {
+        this.renderer.setActive(active_);
+    }
 }

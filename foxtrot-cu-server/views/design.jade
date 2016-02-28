@@ -23,7 +23,7 @@ html(lang='en')
                         .panel-heading.collapse1-button
                             h3.panel-title
                                 |Upload Obj File
-                        div#collapse1.panel-collapse.collapse.in
+                        div#collapse1.panel-collapse.collapse
                             .panel-body
                                 form.form-group(method="post",enctype="multipart/form-data",action="/upload")
                                     p
@@ -139,6 +139,10 @@ html(lang='en')
             var height = width;
             
             function showCollapse1() {
+                objRenderer.setActive(false);
+                blockRenderer.setActive(false);
+                instructionRenderer.setActive(false);
+                
                 $("#collapse1").collapse('show');
                 $("#collapse2").collapse('hide');
                 $("#collapse3").collapse('hide');
@@ -146,6 +150,10 @@ html(lang='en')
             }
             
             function showCollapse2() {
+                objRenderer.setActive(true);
+                blockRenderer.setActive(true);
+                instructionRenderer.setActive(false);
+                
                 $("#collapse2").collapse('show');
                 $("#collapse1").collapse('hide');
                 $("#collapse3").collapse('hide');
@@ -153,6 +161,10 @@ html(lang='en')
             }
             
             function showCollapse3() {
+                objRenderer.setActive(false);
+                blockRenderer.setActive(false);
+                instructionRenderer.setActive(true);
+                
                 $("#collapse3").collapse('show');
                 $("#collapse1").collapse('hide');
                 $("#collapse2").collapse('hide');
@@ -218,7 +230,8 @@ html(lang='en')
                 }
 
                 instructionRenderer = new InstructionRenderer(width, height, instructionContainer);
-
+                
+                showCollapse1();
 
                 $("#button-left").click(function(){
                     instructionRenderer.renderer.decrementMaxBlockID();
@@ -285,7 +298,8 @@ html(lang='en')
                 function showResponse(response, statusText, xhr, $form) {
                     console.log(response)
                     if ('error' in response) {
-                        console.log('Error: ' + response.error)
+                        alert('An Error Occurred: ' + response.error)
+                        showCollapse1();
                     } else {
                         centerOfMass = response.center_of_mass;
                         offset = response.offset;
@@ -307,14 +321,20 @@ html(lang='en')
                     xhr.setRequestHeader("Content-type", "application/json");
                     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
                     xhr.onreadystatechange = function () {
-                        if (xhr.readyState == 4 && xhr.status == 200) {
-                            var blob = new Blob([xhr.response], {type: "octet/stream"});
-                            var fileName = "moulds.zip";
-                            $('.mould-downloader').click(function() {
-                                saveAs(blob, fileName);
-                            }).show();
-                            $('#instruction-container-spinner').hide();
-                            $('#instruction-container-canvas').show();
+                        if (xhr.readyState == 4) {
+                            if (xhr.status == 500){
+                                var ret = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(xhr.response)));                                
+                                alert('An Error Occurred: ' + ret.error)
+                                showCollapse2();
+                            } else if (xhr.status == 200) {
+                                var blob = new Blob([xhr.response], {type: "octet/stream"});
+                                var fileName = "moulds.zip";
+                                $('.mould-downloader').click(function() {
+                                    saveAs(blob, fileName);
+                                }).show();
+                                $('#instruction-container-spinner').hide();
+                                $('#instruction-container-canvas').show();
+                            }
                         }
                     }
                     var blockList = blockRenderer.getBlockList();

@@ -27,12 +27,12 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
 
         var args = 'java -jar "jars/EdibleLego-fat-1.0.jar" voxelise ' + req.file.path + " " + tempfile.path + " " + block_number + " " + block_size
         console.log(args);
-        child = exec(args);
-
-        res.header("Content-Type", "application/json");
-
         hasError = false;
         errorBuffer = "";
+
+        child = exec(args, {timeout: 1000*60});
+
+        res.header("Content-Type", "application/json");
 
         child.stdout.on('data', function(data) {
             //console.log(data);
@@ -46,8 +46,16 @@ router.post('/', upload.single('uploaded-mesh'), function(req,res,next){
         });
 
         // If the jar finished successfully
-        child.on('exit', function (code) {
-            if (hasError) {
+        child.on('exit', function (code, signal) {
+            if (signal) {
+                console.log("Terminated with signal: " + signal);
+                if (signal === "SIGTERM")
+                    res.status(200).json({error: "Process Timed Out"}); // We assume it timed out
+                else
+                    res.status(200).json({error: "Process Exited With Signal: " + signal});
+                res.end();
+            }
+            else if (hasError) {
                 console.log(errorBuffer);
                 res.status(200).json({error: errorBuffer});
                 res.end();

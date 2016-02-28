@@ -46,6 +46,8 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     var idLimitEnabled = false;
     var hoverDetectionEnabled = false;
 
+    var active = true;
+
     init();
     animate();
 
@@ -311,6 +313,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
         hoverDetectionEnabled = true;
     }
 
+    this.setActive = function(active_) {
+        active = active_;
+    }
+
     this.setBlockList = function(blockList_) {
         blockList = blockList_;
         selectBox.visible = false;
@@ -500,8 +506,10 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
     }
 
     function animate() {
-
         requestAnimationFrame(animate);
+
+        if (!active)
+            return;
 
         renderer.render(scene, camera);
 
