@@ -74,7 +74,7 @@ public class IntersectionRemoverTest {
     @Test
     public void NonIntersecting() {
         coordinates = new Point3d[]{new Point3d(0,0,0), new Point3d(0,2,0), new Point3d(0,1,2),
-                                    new Point3d(0,0,-1), new Point3d(0,2,-1), new Point3d(0,1,-3)};
+                                    new Point3d(0,0,-1), new Point3d(0,1,-3), new Point3d(0,2,-1)};
         IntersectionRemover ir = new IntersectionRemover(coordinates, ProjectionUtils.ProjectionFace.ZY1);
         polygons = ir.getPolygonArray();
         holes = ir.getHoleArray();
@@ -84,7 +84,7 @@ public class IntersectionRemoverTest {
     }
     @Test
     public void TouchingAtOnePoint() {
-        coordinates = new Point3d[]{new Point3d(-1,2,0), new Point3d(1,2,0), new Point3d(0,0,0),
+        coordinates = new Point3d[]{new Point3d(-1,2,0), new Point3d(0,0,0), new Point3d(1,2,0),
                                     new Point3d(-1,-2,0), new Point3d(1,-2,0),new Point3d(0,0,0)};
         IntersectionRemover ir = new IntersectionRemover(coordinates, ProjectionUtils.ProjectionFace.XY1);
         polygons = ir.getPolygonArray();
@@ -107,7 +107,7 @@ public class IntersectionRemoverTest {
     @Test
     public void SharePartOfSide() {
         coordinates = new Point3d[]{new Point3d(0,0,0), new Point3d(2,0,0), new Point3d(1,2,0),
-                                    new Point3d(0.5,0,0), new Point3d(1.5,0,0), new Point3d(1,-2,0)};
+                                    new Point3d(0.5,0,0), new Point3d(1,-2,0), new Point3d(1.5,0,0)};
         IntersectionRemover ir = new IntersectionRemover(coordinates, ProjectionUtils.ProjectionFace.XY1);
         polygons = ir.getPolygonArray();
         holes = ir.getHoleArray();
@@ -137,9 +137,7 @@ public class IntersectionRemoverTest {
         polygons = ir.getPolygonArray();
         holes = ir.getHoleArray();
         assertEquals(polygons.length,1);
-        assertTrue(polygonsEquivalent(new Point3d[]{new Point3d(0,0,0), new Point3d(1,0,0), new Point3d(2,0,0),
-                                              new Point3d(3,0,0), new Point3d(2.25,1.5,0), new Point3d(2.5,1.5,0),
-                                              new Point3d(1.5,3.5,0), new Point3d(0.5,1.5,0), new Point3d(0.75,1.5,0)},polygons[0]));
+        assertTrue(polygonsEquivalent(new Point3d[]{new Point3d(0,0,0), new Point3d(3,0,0), new Point3d(2.25,1.5,0), new Point3d(2.5,1.5,0), new Point3d(1.5,3.5,0), new Point3d(0.5,1.5,0), new Point3d(0.75,1.5,0)},polygons[0]));
         assertEquals(holes.length,1);
         assertTrue(polygonsEquivalent(new Point3d[]{new Point3d(1.5,1,0), new Point3d(1.25,1.5,0), new Point3d(1.75,1.5,0)},holes[0]));
     }
@@ -152,6 +150,19 @@ public class IntersectionRemoverTest {
         holes = ir.getHoleArray();
         assertEquals(polygons.length,1);
         assertTrue(polygonsEquivalent(new Point3d[]{new Point3d(-0.5,-0.5,0), new Point3d(2.5,-0.5,0), new Point3d(1,2.5,0)},polygons[0]));
+        assertEquals(holes.length,0);
+    }
+    @Test
+    public void OverlapHoleTotally() {
+        coordinates = new Point3d[]{new Point3d(0,0,0), new Point3d(3,0,0), new Point3d(0,6,0),
+                                    new Point3d(1,0,0), new Point3d(4,0,0), new Point3d(4,6,0),
+                                    new Point3d(0,4,0), new Point3d(4,4,0), new Point3d(2,8,0),
+                                    new Point3d(0.5,5,0), new Point3d(2,1,0), new Point3d(3.5,5,0)};
+        IntersectionRemover ir = new IntersectionRemover(coordinates, ProjectionUtils.ProjectionFace.XY0);
+        polygons = ir.getPolygonArray();
+        holes = ir.getHoleArray();
+        assertEquals(polygons.length,1);
+        assertTrue(polygonsEquivalent(new Point3d[]{new Point3d(0,0,0), new Point3d(4,0,0), new Point3d(4,6,0), new Point3d(3.5,5,0), new Point3d(2,8,0), new Point3d(0.5,5,0), new Point3d(0,6,0)},polygons[0]));
         assertEquals(holes.length,0);
     }
 }
