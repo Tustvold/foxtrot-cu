@@ -273,13 +273,14 @@ public class CustomPartMouldGenerator
         MOULD_DEPTH = determinePartDepth(projectTo);
         MOULD_PADDING = 0.1;
         EXTRA_WH = 0.1;
-        if(EXTRA_WH < 2 / scale)
+        double MIN_VALUE = 1.4 / scale;
+        if(EXTRA_WH < MIN_VALUE)
         {
-            EXTRA_WH = 2 / scale; // the extra mould thickness in xy never going to be under 2 mm
+            EXTRA_WH = MIN_VALUE; // the extra mould thickness in xy never going to be under MinValue
         }
-        if(MOULD_PADDING < 2 / scale)
+        if(MOULD_PADDING < MIN_VALUE)
         {
-            MOULD_PADDING = 2 / scale; // the extra mould height is never going to be under 2 mm
+            MOULD_PADDING = MIN_VALUE; // the extra mould height is never going to be under MinValue
         }
 
         if (face == null)
