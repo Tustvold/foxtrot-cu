@@ -66,7 +66,7 @@ public class Polygon
         centerOfMass.y /= cnt;
     }
 
-    private void calctulateIsFace(boolean clockwisePolygon)
+    public void calctulateIsFace(boolean clockwisePolygon)
     {
         int botlef = findBotLef();
         Point2d A = points.get(botlef);
@@ -93,7 +93,7 @@ public class Polygon
         return idx;
     }
 
-    private void calculateVolume()
+    public void calculateVolume()
     {
         V = 0;
         int cnt = points.size();

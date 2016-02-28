@@ -597,7 +597,7 @@ public class SideFiller
         return res;
     }
 
-    private boolean pointIsInsidePolygon(Point2d test, Polygon poly)
+    public static boolean pointIsInsidePolygon(Point2d test, Polygon poly)
     {
         int nvert = poly.getNumberOfVertices();
         int i, j;

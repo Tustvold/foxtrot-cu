@@ -1,278 +1,455 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
-import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.operation.union.UnaryUnionOp;
+import cam.ac.uk.foxtrot.sidefiller.Point;
+import cam.ac.uk.foxtrot.sidefiller.Polygon;
+import cam.ac.uk.foxtrot.sidefiller.SideFiller;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
+import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
+import java.util.*;
 
-public class IntersectionRemover {
-    Geometry union;                       // list of non-intersecting polygons
-    Point3d[][] polygonArray = new Point3d[0][];                        // array of all polygons in non-intersecting representation
-    Point3d[][] holeArray = new Point3d[0][];                           // array of all holes in non-intersecting representation
-    Point3dPolygon[] combinedArray = new Point3dPolygon[0];             // array of polygons with their holes
-    private static final double approximate_tolerance = 0.0000000001;   // tolerance for deciding whether triangle approximates to line
-    double z;                                                           // value of z if projected to x-y plane, y if x-z plane, x if y-z plane
-    ProjectionUtils.ProjectionFace projectionFace;                      // which face mesh was project onto
+public class IntersectionRemover
+{
 
-    public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace projectionFace){
-        // rotate to x-y plane (JTS only operates in x-y plane)
-        this.projectionFace = projectionFace;
-        Point3d[] rotatedCoordinates = originalCoordinates.clone();
-        convertBetweenPlanes(rotatedCoordinates);
-        // store z value (in rotated plane) as JTS generated coordinates will use NaN by default
-        if(rotatedCoordinates.length > 1) {
-            z = rotatedCoordinates[0].z;
-        }
-        GeometryFactory factory = new GeometryFactory();
-        // convert points to list of triangles
-        ArrayList<Geometry> triangleList= new ArrayList<>();
-        for(int i = 0; i < rotatedCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
-            if(!approximatesToLine(rotatedCoordinates[i],rotatedCoordinates[i+1],rotatedCoordinates[i+2])) {
-                Coordinate coordinate1 = toJTSCoordinate(rotatedCoordinates[i]);
-                Coordinate coordinate2 = toJTSCoordinate(rotatedCoordinates[i + 1]);
-                Coordinate coordinate3 = toJTSCoordinate(rotatedCoordinates[i + 2]);
-                Coordinate[] coordinates = {coordinate1, coordinate2, coordinate3, coordinate1}; //coordinates of triangle looped round
-                triangleList.add(factory.createPolygon(factory.createLinearRing(coordinates), null)); //add triangle to list of geometries
-            }
-        }
-        union = merge(triangleList, new ArrayList<>());
-        if (union != null) {
-            generateArrays();
-        }
-    }
+    private Point3dPolygon[] combinedArray = new Point3dPolygon[0];     //array of non-intersecting polygons with their holes
+    private Point3d[][] polygonArray = new Point3d[0][];                //array of non-intersecting polygons without their holes
+    private Point3d[][] holeArray = new Point3d[0][];                   //array of all holes in non-intersecting representation
+    private double z;                                                   //value of z if projected to x-y plane, y if x-z plane, x if y-z plane
+    private ProjectionUtils.ProjectionFace projectionFace;              //which face mesh was projected onto
 
     /**
-     * Checks if points can be approximated as on the same line
+     * Getter for combined array
      */
-    public static boolean approximatesToLine(Point3d A, Point3d B, Point3d C)
+    public Point3dPolygon[] getCombinedArray()
     {
-        return Math.abs((C.x - B.x) * (B.y - A.y) - (B.x - A.x) * (C.y - B.y)) < approximate_tolerance;
-    }
-
-    /**
-     * Merges lists of intersecting polygons to return a list of non-intersecting polygons
-     * @param polygons1 list of possibly intersecting polygons
-     * @param polygons2 list of possibly intersecting polygons
-     * @return list of non-intersecting polygons
-     */
-    private Geometry merge(List<Geometry> polygons1, List<Geometry> polygons2) {
-        int length1 = polygons1.size();
-        int length2 = polygons2.size();
-        if (length1 == 0 && length2 == 0) {
-            GeometryFactory factory = new GeometryFactory();
-            return factory.createGeometry(null);
-        } if (length1 == 0 && length2 == 1) {
-            return polygons2.get(0);
-        } if (length1 == 1 && length2 == 0) {
-            return polygons1.get(0);
-        } if (length1 == 0 && length2 >= 2) {
-            int i = length2/2;
-            return merge(polygons2.subList(0,i),polygons2.subList(i,length2));
-        } if (length1 >= 2 && length2 == 0) {
-            int i = length1/2;
-            return merge(polygons1.subList(0,i),polygons1.subList(i,length1));
-        }
-        int i = length1/2;
-        Geometry nonIntersecting1 = merge(polygons1.subList(0,i),polygons1.subList(i,length1));
-        int j = length2/2;
-        Geometry nonIntersecting2 = merge(polygons2.subList(0,j),polygons2.subList(j,length2));
-        try {
-            ArrayList<Geometry> list = new ArrayList<>();
-            list.add(nonIntersecting1);
-            list.add(nonIntersecting2);
-            return UnaryUnionOp.union(list);
-        } catch (TopologyException e) {
-            if (nonIntersecting1.getArea() > nonIntersecting2.getArea()) {
-                return nonIntersecting1;
-            } else {
-                return nonIntersecting2;
-            }
-        }
-    }
-    
-    /**
-     * Rotate between x-y plane and y-z plane
-     * @param coordinates coordinates that should be rotated
-     */
-    private void yz(Point3d[] coordinates) {
-        int length = coordinates.length;
-        for (int i = 0; i < length; i++) {
-            Point3d point = coordinates[i];
-            coordinates[i] = new Point3d(point.z, point.y, point.x);
-        }
-    }
-
-    /**
-     * Rotate between x-y plane and x-z plane
-     * @param coordinates coordinates that should be rotated
-     */
-    private void zx(Point3d[] coordinates) {
-        int length = coordinates.length;
-        for (int i = 0; i < length; i++) {
-            Point3d point = coordinates[i];
-            coordinates[i] = new Point3d(point.x,point.z,point.y);
-        }
-    }
-
-    // converts coordinates depending on which face it was projected onto
-
-    /**
-     * Convert coordinates between x-y plane and original plane
-     */
-    private void convertBetweenPlanes(Point3d[] coordinates) {
-        switch (projectionFace) {
-            case ZX0: zx(coordinates); break;
-            case ZX1: zx(coordinates); break;
-            case ZY0: yz(coordinates); break;
-            case ZY1: yz(coordinates); break;
-            default: break;
-        }
-    }
-
-    /**
-     * Convert from a Point3d from the Java3D library to a Coordinate used in the JTS library
-     * @param point Point3d to be converted
-     * @return Coordinate equivalent to the point
-     */
-    private Coordinate toJTSCoordinate(Point3d point) {
-        return new Coordinate(point.x, point.y, point.z);
-    }
-
-    // create arrays of polygons, holes & their combinations from union
-
-    /**
-     * Use the list of merged polgyons to create the necessary arrays
-     */
-    private void generateArrays() {
-//        int length = union.size();
-        int length = union.getNumGeometries();
-        polygonArray = new Point3d[length][];
-        combinedArray = new Point3dPolygon[length];
-        ArrayList<Point3d[]> holeList = new ArrayList<>();
-        // take each element of union and use it to generate the equivalents for each array/list
-        for(int i = 0; i < length; i++) {
-//            Point3dPolygon polygon = new Point3dPolygon(union.get(i),z);
-            Point3dPolygon polygon = new Point3dPolygon((Polygon)union.getGeometryN(i),z);
-            convertBetweenPlanes(polygon.getExterior());
-            Point3d[][] holes = polygon.getHoles();
-            polygonArray[i] = polygon.getExterior();
-            int numHoles = holes.length;
-            for(int j = 0; j < numHoles; j++) {
-                convertBetweenPlanes(holes[j]);
-                holeList.add(holes[j]);
-            }
-            combinedArray[i] = polygon;
-        }
-        holeArray = holeList.toArray(new Point3d[0][]);
+        return combinedArray;
     }
 
     /**
      * Getter for polygon array
-     * @return Returns array of arrays of points representing the exterior of each non-intersecting polygon
      */
-    public Point3d[][] getPolygonArray() {
+    public Point3d[][] getPolygonArray()
+    {
         return polygonArray;
     }
 
     /**
      * Getter for hole array
-     * @return Returns array of arrays of points representing each hole in the the non-intersecting polygons
      */
-    public Point3d[][] getHoleArray() {
+    public Point3d[][] getHoleArray()
+    {
         return holeArray;
     }
 
-    // getter for combined array
+    public IntersectionRemover(Point3d[] originalCoordinates, ProjectionUtils.ProjectionFace projectionFace)
+    {
+        this.projectionFace = projectionFace;
+        ArrayList<Point3dPolygon> triangles = new ArrayList<>();
+        convertBetweenPlanes(originalCoordinates);
+        if (originalCoordinates.length > 0)
+        {
+            z = originalCoordinates[0].z;
+        }
+        for (int i = 0; i < originalCoordinates.length; i += 3)
+        { //i,i+1,i+2 vertices of one triangle, iterate through triangles
+            Point3d[] points = {originalCoordinates[i], originalCoordinates[i + 1], originalCoordinates[i + 2]};
+            Point3dPolygon triangle = new Point3dPolygon(points, null);
+            triangles.add(triangle);
+        }
+        combinedArray = merge(triangles.toArray(new Point3dPolygon[0]));
+        generateArrays();
+    }
 
     /**
-     * Getter for combined array
-     * @return Returns array of each non-intersecting polygon, representing each exterior with associated holes
+     * Use the list of merged polgyons to create the necessary polygon and hole arrays
      */
-    public Point3dPolygon[] getCombinedArray() {
-        return combinedArray;
-    }
-
-    public void drawPolygon(String filename)
+    private void generateArrays()
     {
-        System.out.println("Drawing single face...");
-        Point3d[][] polys = new Point3d[polygonArray.length + holeArray.length][];
-        for(int i = 0; i < polygonArray.length; i++)
+        polygonArray = new Point3d[combinedArray.length][];
+        ArrayList<Point3d[]> holeList = new ArrayList<>();
+        for (int i = 0; i < combinedArray.length; i++)
         {
-            polys[i] = new Point3d[polygonArray[i].length];
-            for(int j = 0; j < polygonArray[i].length; j++)
+            Point3dPolygon polygon = combinedArray[i];
+            convertBetweenPlanes(polygon.getExterior());
+            polygonArray[i] = polygon.getExterior();
+            Point3d[][] holes = polygon.getHoles();
+            for (Point3d[] hole : holes)
             {
-                polys[i][j] = new Point3d(polygonArray[i][j]);
+                convertBetweenPlanes(hole);
+                holeList.add(hole);
             }
         }
-        for(int i = 0; i < holeArray.length; i++)
-        {
-            polys[polygonArray.length + i] = new Point3d[holeArray[i].length];
-            for(int j = 0; j < holeArray[i].length; j++)
-            {
-                polys[polygonArray.length + i][j] = new Point3d(holeArray[i][j]);
-            }
-        }
-        drawPolygonList(polys, filename);
-        System.out.println("Single face drawn...");
+        holeArray = holeList.toArray(new Point3d[0][]);
     }
 
-    public void drawPolygonList(Point3d[][] polys, String filename)
+    private Point3dPolygon[] merge(Point3dPolygon[] polygons)
     {
-        Writer writer = null;
-        try
+        int length = polygons.length;
+        if (length == 0)
         {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
-        } catch (IOException ex)
+            return new Point3dPolygon[0];
+        }
+        if (length == 1)
         {
-            //System.err.println(ex.getMessage());
-            return;
+            return polygons;
+        }
+        else
+        {
+            return merge(polygons[0], merge(Arrays.copyOfRange(polygons, 1, length)));
+        }
+    }
+
+    /**
+     * Merge polygon iteratively into array of non-intersecting polygons
+     *
+     * @return Array representing non-intersecting result of merge
+     */
+    private Point3dPolygon[] merge(Point3dPolygon polygon, Point3dPolygon[] polygons)
+    {
+        ArrayList<Point3dPolygon> result = new ArrayList<>();
+        if (polygons.length == 0)
+        {
+            result.add(polygon);
+        }
+        while (polygons.length > 0)
+        {
+            Point3dPolygon[] merged = merge(polygon, polygons[0]);
+            if (merged.length == 2)
+            {
+                result.add(merged[1]);
+                polygons = Arrays.copyOfRange(polygons, 1, polygons.length);
+                result.addAll(Arrays.asList(merge(merged[0], polygons)));
+            }
+            if (merged.length == 1)
+            {
+                polygons = Arrays.copyOfRange(polygons, 1, polygons.length);
+                result.addAll(Arrays.asList(merge(merged[0], polygons)));
+            }
+        }
+        return result.toArray(new Point3dPolygon[0]);
+    }
+
+    /**
+     * Merge two polygons
+     *
+     * @return Array of two polygons if inputs don't merge to one polygon, otherwise array of one polygon - the merge of the inputs
+     */
+    private Point3dPolygon[] merge(Point3dPolygon polygon1, Point3dPolygon polygon2)
+    {
+        Point3d[] exterior;
+        Area polygon1Area = toArea(polygon1);
+        Area polygon2Area = toArea(polygon2);
+        Area temp1 = (Area) polygon1Area.clone();
+        temp1.intersect(polygon2Area);
+        if (!temp1.isEmpty() || touching(polygon1Area, polygon2Area))
+        { // polygons intersect or touch
+            Area mergedPolygon = polygon1Area;
+            mergedPolygon.add(polygon2Area); // generate merged polygons
+            ArrayList<Point3d[]> holesList = new ArrayList<>();
+            ArrayList<Point3d[]> polygons = generatePolygons(mergedPolygon);
+            exterior = polygons.get(0);
+            if (polygons.size() > 1)
+            {
+                holesList.addAll(polygons.subList(1, polygons.size()));
+            }
+            return new Point3dPolygon[]{new Point3dPolygon(exterior, holesList.toArray(new Point3d[0][]))};
+        }
+        else
+        { // polygons don't intersect
+            return new Point3dPolygon[]{polygon1, polygon2};
+        }
+    }
+
+    /**
+     * Check if polygons are touching
+     *
+     * @param polygon1 Polygon that may be touching polygon2 but not intersecting it
+     * @param polygon2 Polygon that may be touching polygon1 but not intersecting it
+     * @return
+     */
+    private boolean touching(Area polygon1, Area polygon2)
+    {
+        Area temp = toArea(generatePolygons(polygon1).get(0));
+        temp.add(toArea(generatePolygons(polygon2).get(0)));
+        Area tempExterior = toArea(generatePolygons(temp).get(0));
+        if (tempExterior.equals(polygon1) || tempExterior.equals(polygon2))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    /**
+     * Convert a polygon to corresponding Area
+     */
+    private Area toArea(Point3dPolygon polygon)
+    {
+        Area result = toArea(polygon.getExterior());
+        Point3d[][] holes = polygon.getHoles();
+        for (Point3d[] hole : holes)
+        {
+            result.subtract(toArea(hole));
+        }
+        return result;
+    }
+
+    /**
+     * Convert points to corresponding Area
+     *
+     * @param points Points representing a polygon without holes
+     * @return Area corresponding to path represented by points
+     */
+    private Area toArea(Point3d[] points)
+    {
+        Path2D.Double result = new Path2D.Double();
+        int length = points.length;
+        if (length > 0)
+        {
+            Point3d point = points[0];
+            result.moveTo(point.x, point.y);
+        }
+        for (int i = 1; i < length; i++)
+        {
+            Point3d point = points[i];
+            result.lineTo(point.x, point.y);
+        }
+        if (length > 0)
+        {
+            Point3d point = points[0];
+            result.lineTo(point.x, point.y);
+        }
+        return new Area(result);
+    }
+
+    /**
+     * Creates ArrayList of polygons from an Area
+     *
+     * @param area Area consisting of polygon with holes
+     * @return List with exterior of polygon as first element and the holes as the remaining elements
+     */
+    private ArrayList<Point3d[]> generatePolygons(Area area)
+    {
+        ArrayList<Point3d[]> result = new ArrayList<>();
+        Point3d[] currentExterior = new Point3d[0];
+        ArrayList<Point3d[]> polygons = new ArrayList<>();
+        ArrayList<Point3d> polygon = new ArrayList<>();
+        PathIterator iterator = area.getPathIterator(null);
+        double[] doubles = new double[6];
+        while (!iterator.isDone())
+        {
+            int type = iterator.currentSegment(doubles);
+            Point3d currentPoint = new Point3d(doubles[0], doubles[1], z);
+            if (type != PathIterator.SEG_CLOSE)
+            { // reached end of current polygon
+                polygon.add(currentPoint);
+            }
+            else
+            {
+                if (polygon.get(0).equals(polygon.get(polygon.size() - 1)))
+                {
+                    polygon.remove(polygon.size() - 1);
+                }
+                polygons.add(polygon.toArray(new Point3d[0]));
+                polygon = new ArrayList<>();
+            }
+            iterator.next();
+        }
+        for (Point3d[] p : polygons)
+        {
+            if (inside(currentExterior, p))
+            { // is currentExterior inside current p
+                currentExterior = p;
+            }
+        }
+        polygons.remove(currentExterior);
+        result.add(currentExterior);
+        result.addAll(polygons);
+        return result;
+    }
+
+    /**
+     * Returns whether polygon1 inside polygon2
+     */
+    private boolean inside(Point3d[] polygon1, Point3d[] polygon2)
+    {
+        Area polygon = toArea(polygon2);
+        boolean result = true;
+        for (Point3d point : polygon1)
+        {
+            if (!polygon.contains(point.x, point.y))
+            {
+                return false;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Convert coordinates between x-y and original plane
+     *
+     * @param coordinates Coordinates to be converted
+     */
+    private void convertBetweenPlanes(Point3d[] coordinates)
+    {
+        switch (projectionFace)
+        {
+            case ZX0:
+                zx(coordinates);
+                break;
+            case ZX1:
+                zx(coordinates);
+                break;
+            case ZY0:
+                zy(coordinates);
+                break;
+            case ZY1:
+                zy(coordinates);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Rotate between x-y and x-z plane
+     *
+     * @param coordinates Coordinates that should be rotated
+     */
+    private void zx(Point3d[] coordinates)
+    {
+        int length = coordinates.length;
+        for (int i = 0; i < length; i++)
+        {
+            Point3d point = coordinates[i];
+            coordinates[i] = new Point3d(point.x, point.z, point.y);
+        }
+    }
+
+    /**
+     * Rotate between x-y and y-z plane
+     *
+     * @param coordinates Coordinates that should be rotated
+     */
+    private void zy(Point3d[] coordinates)
+    {
+        int length = coordinates.length;
+        for (int i = 0; i < length; i++)
+        {
+            Point3d point = coordinates[i];
+            coordinates[i] = new Point3d(point.z, point.y, point.x);
+        }
+    }
+
+    private ArrayList<Point3dPolygon> determinePolygonsAndHoles(ArrayList<Point3d[]> unsortedPolygons)
+    {
+        // transform between spaces // TODO remove this and modify Point3dPolygon
+        ArrayList<Point3dPolygon> result = new ArrayList<>();
+        double h = unsortedPolygons.get(0)[0].z;
+        ArrayList<Polygon> polygons = new ArrayList<>();
+        for(int i = 0; i < unsortedPolygons.size(); i++)
+        {
+            Polygon poly = new Polygon();
+            for(int j = 0; j < unsortedPolygons.get(i).length; j++)
+                poly.addPoint(new Point2d(unsortedPolygons.get(i)[j].x,unsortedPolygons.get(i)[j].y));
+            polygons.add(poly);
         }
 
-        for (int i = 0; i < polys.length; i++)
+        // set the needed intial parameters
+        int polyCnt = polygons.size();
+        if (polyCnt <= 0)
         {
-            for (int j = 0; j < polys[i].length; j++)
-            {
-                try
-                {
-                    writer.write("v " + (polys[i][j].x) + " "
-                            + (polys[i][j].y) + " "
-                            + (polys[i][j].z) + "\n");
+            // no polygons need to be added
+            return new ArrayList<>();
+        }
+        for (int i = 0; i < polyCnt; i++)
+        {
+            polygons.get(i).calculateVolume();
+            polygons.get(i).calctulateIsFace(true);
+        }
 
-                } catch (IOException err)
+        // sort all the polygons in ascending order by volume
+        Collections.sort(polygons, (Polygon p1, Polygon p2) -> p1.getVolume() < p2.getVolume() ? -1 : 1);
+
+        // create the tree
+        for (int i = 0; i < polyCnt; i++)
+        {
+            Polygon prev = polygons.get(i);
+            if (!prev.wasVisited())
+            {
+                prev.visit();
+                Polygon curr;
+                for (int j = i + 1; j < polyCnt; j++)
                 {
-                    System.err.println("Could not write blocks: " + err.getMessage());
+                    curr = polygons.get(j);
+                    // go through all the polygons bigger than main
+                    if (SideFiller.pointIsInsidePolygon(prev.getPoint(0), curr))
+                    {
+                        // if one of the points of the smaller polygon
+                        // is within the bigger one, the entire first
+                        // polygon is within the second one
+                        prev.isNowInsideOf(curr);
+                        curr.isNowOutsideOf(prev);
+                        if (curr.wasVisited())
+                            break;
+                        curr.visit();
+                        prev = curr;
+                    }
                 }
             }
         }
-        int curr = 1;
-        for (int poly = 0; poly < polys.length; poly++)
+        LinkedList<Polygon> queue = new LinkedList<>();
+
+        // do a depth first search and prepare the arrays
+        while (!queue.isEmpty())
         {
-            String out = "f";
-            for (int i = 0; i < polys[poly].length; i++)
+            Polygon curr = queue.pop();
+            Point3d[] ext = transformToPoint3dArray(curr, 2, h, curr.isAFace());
+
+            Point3d[][] hls = new Point3d[curr.getBelow().size()][];
+            int pos = 0;
+            // add all the second level polygons to the queue
+            Iterator<Polygon> itHole = curr.getBelow().iterator();
+            while (itHole.hasNext())
             {
-                out += " " + curr;
-                curr++;
+                Polygon hole = itHole.next();
+                hls[pos] = transformToPoint3dArray(hole, 2, h, !hole.isAFace());
+                pos++;
+
+                Iterator<Polygon> itPoly = hole.getBelow().iterator();
+                while (itPoly.hasNext())
+                {
+                    queue.add(itPoly.next());
+                }
             }
-            try
-            {
-                writer.write(out + "\n");
-            } catch (IOException err)
-            {
-                System.err.println("Could not write blocks: " + err.getMessage());
-            }
+            result.add(new Point3dPolygon(ext, hls));
         }
 
-        try
-        {
-            writer.close();
-        } catch (Exception ex)
+        return result;
+    }
 
-        {/*ignore*/}
+    public static Point3d[] transformToPoint3dArray(Polygon p, int ignore, double h, boolean doNotReverse)
+    {
+        int cnt = p.getSize();
+        Point3d[] res = new Point3d[cnt];
+        for (int i = 0; i < cnt; i++)
+        {
+            double[] coord = new double[3];
+            coord[ignore] = h;
+            coord[(ignore + 1) % 3] = p.getPoint(i).x;
+            coord[(ignore + 2) % 3] = p.getPoint(i).y;
+            Point3d curr = new Point3d(coord);
+            if(doNotReverse)
+                res[i] = curr;
+            else
+                res[cnt-1-i] = curr;
+        }
+        return res;
     }
 
 }
