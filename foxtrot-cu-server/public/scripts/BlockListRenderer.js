@@ -18,10 +18,12 @@ BlockListRenderer = function(screen_width, screen_height, domElement) {
 
     var picking_material = new THREE.MeshBasicMaterial({
         vertexColors: THREE.VertexColors,
+        side: THREE.DoubleSide
     });
 
     var render_material = new THREE.MeshLambertMaterial({
         color: 0xFF0000,
+        side: THREE.DoubleSide
     });
 
     var render_material_wireframe = new THREE.MeshBasicMaterial({
