@@ -271,17 +271,9 @@ public class CustomPartMouldGenerator
         ProjectionUtils.ProjectionFace face;
         face = getProjectionFace(projectTo);
         MOULD_DEPTH = determinePartDepth(projectTo);
-        MOULD_PADDING = 0.1;
-        EXTRA_WH = 0.1;
-        double MIN_VALUE = 1.4 / scale;
-        if(EXTRA_WH < MIN_VALUE)
-        {
-            EXTRA_WH = MIN_VALUE; // the extra mould thickness in xy never going to be under MinValue
-        }
-        if(MOULD_PADDING < MIN_VALUE)
-        {
-            MOULD_PADDING = MIN_VALUE; // the extra mould height is never going to be under MinValue
-        }
+        double THICKNESS = 2 / scale; // currently 2mm
+        EXTRA_WH = THICKNESS; // the extra mould thickness in xy is fixed
+        MOULD_PADDING = THICKNESS; // the extra mould height is fixed
 
         if (face == null)
         {
