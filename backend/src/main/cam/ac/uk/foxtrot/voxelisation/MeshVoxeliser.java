@@ -956,7 +956,7 @@ public class MeshVoxeliser
      * @param z coordinate
      * @return list of appropriate triangles
      */
-    private ArrayList<Point3d> makeUnitCube(int x, int y, int z)
+    public ArrayList<Point3d> makeUnitCube(int x, int y, int z)
     {
         ArrayList<Point3d> cube = new ArrayList<>();
 
@@ -1037,6 +1037,26 @@ public class MeshVoxeliser
             cube.add(new Point3d(0, 1, 1));
         }
         return cube;
+    }
+
+    /**
+     * Creates a unit square in the xy1 plane with x,y in [0,1].
+     */
+    public static Point3d[] makeUnitSquareXY1()
+    {
+        Point3d[] square = new Point3d[6];
+
+        //xy11
+        square[0] = (new Point3d(1, 0, 1));
+        square[1] = (new Point3d(1, 1, 1));
+        square[2] = (new Point3d(0, 0, 1));
+
+        //xy12
+        square[3] = (new Point3d(0, 0, 1));
+        square[4] = (new Point3d(1, 1, 1));
+        square[5] = (new Point3d(0, 1, 1));
+
+        return square;
     }
 
     /**

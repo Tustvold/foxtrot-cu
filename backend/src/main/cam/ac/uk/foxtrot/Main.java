@@ -157,13 +157,13 @@ public class Main
         {
             pos[i]++;
             Block neighbour = null;
-            if(0 <= pos[i] && pos[i] < dim[i])
+            if (0 <= pos[i] && pos[i] < dim[i])
                 neighbour = blocks[pos[0]][pos[1]][pos[2]];
-            if ( neighbour == null || neighbour.isCustom())
+            if (neighbour == null || neighbour.isCustom())
                 hasNonBlockNeighbour = true;
             pos[i] -= 2;
             neighbour = null;
-            if(0 <= pos[i] && pos[i] < dim[i])
+            if (0 <= pos[i] && pos[i] < dim[i])
                 neighbour = blocks[pos[0]][pos[1]][pos[2]];
             if (neighbour == null || neighbour.isCustom())
                 hasNonBlockNeighbour = true;
@@ -213,12 +213,19 @@ public class Main
                         if (al != null)
                         {
                             CustomPartMouldGenerator m = new CustomPartMouldGenerator(al, scale, block.getInternalDim());
-                            File outFile = new File(mouldDirectoryPath, x + "-" + y + "-" + z + ".obj"); //todo better name?
+                            File outFile = new File(mouldDirectoryPath, "custom-part-" + x + "-" + y + "-" + z + ".obj");
                             m.generateMould(face, outFile);
                         }
                     }
                 }
             }
+
+            // finally output a single mould file for the standard block
+            double[] standard_block_dim = {0,0,0,1,1,1};
+            CustomPartMouldGenerator m = new CustomPartMouldGenerator(MeshVoxeliser.makeUnitSquareXY1(), scale, standard_block_dim);
+            File outFile = new File(mouldDirectoryPath, "standard-block.obj");
+            m.generateMould(0, outFile);
+
         } catch (FileNotFoundException e)
         {
             e.printStackTrace();
