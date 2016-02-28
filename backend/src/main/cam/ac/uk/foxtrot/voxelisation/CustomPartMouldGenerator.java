@@ -16,6 +16,8 @@ public class CustomPartMouldGenerator
     private double EXTRA_WH = .05; // extra space for width and height of the mould as a fraction of scale
     private double MOULD_SIZE_IN_X; // the new dimension in x of the mould
     private double MOULD_SIZE_IN_Y; // the new dimension in y of the mould
+    private double SUBTRACT_IN_X; // the amount we need to shift the projection back
+    private double SUBTRACT_IN_Y; // the amount we need to shift the projection back
 
     // polygons representing faces of the mould
     private Point3d[] FACE_XY0;
@@ -41,10 +43,10 @@ public class CustomPartMouldGenerator
         FACE_XY0[3] = new Point3d(MOULD_SIZE_IN_X + EXTRA_WH, 0               - EXTRA_WH, 0);
 
         FACE_XY1 = new Point3d[4];
-        FACE_XY1[0] = new Point3d(0 - EXTRA_WH, 0               - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
-        FACE_XY1[1] = new Point3d(1 + EXTRA_WH, 0               - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
-        FACE_XY1[2] = new Point3d(1 + EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
-        FACE_XY1[3] = new Point3d(0 - EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[0] = new Point3d(0               - EXTRA_WH, 0               - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[1] = new Point3d(MOULD_SIZE_IN_X + EXTRA_WH, 0               - EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[2] = new Point3d(MOULD_SIZE_IN_X + EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
+        FACE_XY1[3] = new Point3d(0               - EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
 
         FACE_ZY0 = new Point3d[4];
         FACE_ZY0[0] = new Point3d(0 - EXTRA_WH, 0               - EXTRA_WH, 0);
@@ -69,6 +71,18 @@ public class CustomPartMouldGenerator
         FACE_ZX1[1] = new Point3d(0               - EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
         FACE_ZX1[2] = new Point3d(MOULD_SIZE_IN_X + EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, MOULD_DEPTH + MOULD_PADDING);
         FACE_ZX1[3] = new Point3d(MOULD_SIZE_IN_X + EXTRA_WH, MOULD_SIZE_IN_Y + EXTRA_WH, 0);
+    }
+
+    /**
+     * Subrtacts the calculated constants from all points in proj;
+     */
+    private void subtractCoordinatesOfProjection(Point3d[] proj)
+    {
+        for (int i = 0; i < proj.length; i++)
+        {
+            proj[i].x -= SUBTRACT_IN_X;
+            proj[i].y -= SUBTRACT_IN_Y;
+        }
     }
 
     /**
@@ -121,18 +135,24 @@ public class CustomPartMouldGenerator
                 case XY1:
                     MOULD_SIZE_IN_X = mesh_dimension[3] - mesh_dimension[0]; // X -> X
                     MOULD_SIZE_IN_Y = mesh_dimension[4] - mesh_dimension[1]; // Y -> Y
+                    SUBTRACT_IN_X = mesh_dimension[0]; // X -> X
+                    SUBTRACT_IN_Y = mesh_dimension[1]; // Y -> Y
                     point.z = MOULD_DEPTH + MOULD_PADDING;
                     break;
                 case ZY0:
                 case ZY1:
-                    MOULD_SIZE_IN_X = mesh_dimension[3] - mesh_dimension[0]; // X -> X
-                    MOULD_SIZE_IN_Y = mesh_dimension[5] - mesh_dimension[2]; // Z -> Y
+                    MOULD_SIZE_IN_X = mesh_dimension[5] - mesh_dimension[2]; // Z -> X
+                    MOULD_SIZE_IN_Y = mesh_dimension[4] - mesh_dimension[1]; // Y -> Y
+                    SUBTRACT_IN_X = mesh_dimension[2]; // Z -> X
+                    SUBTRACT_IN_Y = mesh_dimension[1]; // Y -> Y
                     point.x = MOULD_DEPTH + MOULD_PADDING;
                     break;
                 case ZX0:
                 case ZX1:
-                    MOULD_SIZE_IN_X = mesh_dimension[5] - mesh_dimension[2]; // Z -> Y
-                    MOULD_SIZE_IN_Y = mesh_dimension[4] - mesh_dimension[1]; // Y -> Y
+                    MOULD_SIZE_IN_X = mesh_dimension[3] - mesh_dimension[0]; // X -> X
+                    MOULD_SIZE_IN_Y = mesh_dimension[5] - mesh_dimension[2]; // Z -> Y
+                    SUBTRACT_IN_X = mesh_dimension[0]; // X -> X
+                    SUBTRACT_IN_Y = mesh_dimension[2]; // Z -> Y
                     point.y = MOULD_DEPTH + MOULD_PADDING;
                     break;
             }
@@ -265,8 +285,9 @@ public class CustomPartMouldGenerator
 
         // project the mesh onto the face and rotate so that face ends up as XY1
         Point3d[] projectionCoords = getMouldProjectionCoords(face);
-        // now we create the proper faces
+        // now we create the proper faces and then shift the coordinates
         determine_faces();
+        subtractCoordinatesOfProjection(projectionCoords);
 
         // remove self-intersections in the projection
         IntersectionRemover ir = new IntersectionRemover(projectionCoords, ProjectionUtils.ProjectionFace.XY1);

@@ -192,6 +192,61 @@ public class CustomPartTest {
         m.generateMould(2, new File("testing/output/","custom_part_test_odd_after_mould_2.obj"));
     }
 
+    @Test
+    public void testFaces()
+    {
+        Block[][][] blocks = new Block[1][1][1];
+        blocks[0][0][0] = new Block(new Point3d(0, 0, 0), true);
+        Block block = blocks[0][0][0];
+        int ignore = 2;
+        int h = 1;
+        boolean top = true;
+        ArrayList<Point3d> points = new ArrayList<>();
+
+        // add inner triangle and its inner line
+        points.addAll(createTriangle(0.4, 0.6, 0.4, 0.5, 0.5, 0.3, ignore, h));
+        points.addAll(createRectangle(0.4, 0.6, 0.5, 0.3, ignore, h));
+        points.addAll(createRectangle(0.5, 0.3, 0.4, 0.5, ignore, h));
+        points.addAll(createRectangle(0.4, 0.5, 0.4, 0.6, ignore, h));
+
+        // add second nested polygon
+        points.addAll(createRectangle(1.0, 0.4, 0.6, 0.3, ignore, h));
+        points.addAll(createRectangle(0.6, 0.3, 0.5, 0.4, ignore, h));
+        points.addAll(createRectangle(0.5, 0.4, 0.5, 0.6, ignore, h));
+        points.addAll(createRectangle(0.5, 0.6, 0.9, 0.6, ignore, h));
+        points.addAll(createRectangle(0.9, 0.6, 1.0, 0.4, ignore, h));
+
+        // add the two double nested holes
+        points.addAll(createRectangle(0.7, 0.5, 0.7, 0.4, ignore, h));
+        points.addAll(createRectangle(0.7, 0.4, 0.6, 0.5, ignore, h));
+        points.addAll(createRectangle(0.6, 0.5, 0.7, 0.5, ignore, h));
+
+        points.addAll(createRectangle(0.8, 0.5, 0.9, 0.5, ignore, h));
+        points.addAll(createRectangle(0.9, 0.5, 0.9, 0.4, ignore, h));
+        points.addAll(createRectangle(0.9, 0.4, 0.8, 0.4, ignore, h));
+        points.addAll(createRectangle(0.8, 0.4, 0.8, 0.5, ignore, h));
+
+        block.addTriangles(points);
+        SideFiller filler = new SideFiller(blocks);
+        filler.fillAllSides(); // fill the top and bottom side of z
+        filler.drawTrianglesFromBlocks("testing/output/custom_part_test_faces_before.obj", false);
+        block = blocks[0][0][0];
+        block.setInternalDim();
+
+        Point3d[] al = block.getTriangles().toArray(new Point3d[block.getTriangles().size()]);
+        CustomPartGenerator pg = new CustomPartGenerator(block);
+        CustomPart p0 = pg.generateCustomPart(0);
+        CustomPart p1 = pg.generateCustomPart(1);
+        CustomPart p2 = pg.generateCustomPart(2);
+        ProjectionUtils.generateObjFile(p0.getTriangles(), new File("testing/output/", "custom_part_test_faces_part_0.obj"), 1);
+        ProjectionUtils.generateObjFile(p1.getTriangles(), new File("testing/output/", "custom_part_test_faces_part_1.obj"), 1);
+        ProjectionUtils.generateObjFile(p2.getTriangles(), new File("testing/output/", "custom_part_test_faces_part_2.obj"), 1);
+        CustomPartMouldGenerator m = new CustomPartMouldGenerator(al, 1, block.getInternalDim());
+        m.generateMould(0, new File("testing/output/","custom_part_test_faces_mould_0.obj"));
+        m.generateMould(1, new File("testing/output/","custom_part_test_faces_mould_1.obj"));
+        m.generateMould(2, new File("testing/output/","custom_part_test_faces_mould_2.obj"));
+    }
+
     private ArrayList<Point3d> createTriangle(double Ax, double Ay, double Bx, double By, double Cx, double Cy, int ignore, int h)
     {
         ArrayList<Point3d> rectangle = new ArrayList<>();
