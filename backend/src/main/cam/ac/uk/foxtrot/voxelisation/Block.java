@@ -39,14 +39,33 @@ public class Block
         return triangles;
     }
 
+    /**
+     * Adds the triangles from the given array WITHOUT SHIFTING THEM!
+     */
     public void addTriangles(ArrayList<Point3d> points)
     {
-        triangles.addAll(points);
-        triangleCnt += points.size() / 3;
+        for(int i = 0; i < points.size(); i += 3)
+        {
+            if(MeshVoxeliser.areIdentical(points.get(i), points.get(i+1))
+                    || MeshVoxeliser.areIdentical(points.get(i+1), points.get(i+2))
+                    || MeshVoxeliser.areIdentical(points.get(i+2), points.get(i)))
+                continue;
+            triangles.add(adjustPoint01(points.get(i)));
+            triangles.add(adjustPoint01(points.get(i+1)));
+            triangles.add(adjustPoint01(points.get(i+2)));
+            triangleCnt++;
+        }
     }
 
+    /**
+     * Adds a single triangle with vertices fir sec and trd respectively.
+     */
     public void addTriangle(Point3d fir, Point3d sec, Point3d trd)
     {
+        if(MeshVoxeliser.areIdentical(fir, sec)
+                || MeshVoxeliser.areIdentical(sec, trd)
+                || MeshVoxeliser.areIdentical(trd, fir))
+            return;
         triangles.add(adjustPoint(fir));
         triangles.add(adjustPoint(sec));
         triangles.add(adjustPoint(trd));
@@ -93,6 +112,23 @@ public class Block
         double x = A.x - mPosition.x;
         double y = A.y - mPosition.y;
         double z = A.z - mPosition.z;
+
+        // correct the new coordinates
+        if (x < MeshVoxeliser.double_tolerance) x = 0;
+        else if (x > 1 - MeshVoxeliser.double_tolerance) x = 1;
+        if (y < MeshVoxeliser.double_tolerance) y = 0;
+        else if (y > 1 - MeshVoxeliser.double_tolerance) y = 1;
+        if (z < MeshVoxeliser.double_tolerance) z = 0;
+        else if (z > 1 - MeshVoxeliser.double_tolerance) z = 1;
+
+        return new Point3d(x, y, z);
+    }
+
+    private Point3d adjustPoint01(Point3d A)
+    {
+        double x = A.x;
+        double y = A.y;
+        double z = A.z;
 
         // correct the new coordinates
         if (x < MeshVoxeliser.double_tolerance) x = 0;

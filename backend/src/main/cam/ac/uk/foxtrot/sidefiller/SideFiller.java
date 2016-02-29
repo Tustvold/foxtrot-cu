@@ -54,14 +54,23 @@ public class SideFiller
 
                     for (int ignore = 0; ignore < 3; ignore++)
                     {
+                        if (x == 6 && y == 18 && z == 7 && ignore == 0)
+                        {
+                            drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/before_filling.obj");
+                        }
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, false));
                     }
                     blocks[x][y][z].addTriangles(newTriangles); // add all the newly created triangles
                     blocks[x][y][z].setInternalDim(); // determine the internal dimensions of the block
+                    if (x == 6 && y == 18 && z == 7)
+                    {
+                        drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/after_filling.obj");
+                    }
                 }
             }
         }
+        drawTrianglesFromBlocks("testing/output/sliced_and_diced.obj", false);
     }
 
     /**
@@ -73,7 +82,7 @@ public class SideFiller
      */
     public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)
     {
-        // checks for adjacency with full block
+        // checks for adjacency with full block or empty block
         // -------------------------------------------------------------------------------------------------------------
         int diff, h;
         if (top) diff = 1;
@@ -100,6 +109,12 @@ public class SideFiller
         {
             // the side is adjacent to a full block, so we just return two triangles representing this side
             return makeSquare(ignore, h);
+        }
+        else if (!isInGrid(adjacent)
+                || blocks[adjacent.x][adjacent.y][adjacent.z] == null)
+        {
+            // the side is adjacent to an empty block, so we return nothing
+            return new ArrayList<>();
         }
         // -------------------------------------------------------------------------------------------------------------
 
@@ -789,11 +804,7 @@ public class SideFiller
         pt[(ignore + 1) % 3] = 1;
         pt[(ignore + 2) % 3] = 1;
         square.add(new Point3d(pt));
-/*
-        square.add(new Point3d(0, 0, 1));
-        square.add(new Point3d(0, 0, 0));
-        square.add(new Point3d(1, 0, 1));
-*/
+
         //xz02
         pt = new double[3];
         pt[ignore] = h;
@@ -810,16 +821,26 @@ public class SideFiller
         pt[(ignore + 1) % 3] = 1;
         pt[(ignore + 2) % 3] = 0;
         square.add(new Point3d(pt));
-/*
-        square.add(new Point3d(1, 0, 1));
-        square.add(new Point3d(0, 0, 0));
-        square.add(new Point3d(1, 0, 0));
-*/
+
         if (h == 0)
         {
+            reversePolygon(square);
         }
         return square;
     }
+
+    private void reversePolygon(ArrayList<Point3d> poly)
+    {
+        if(poly.size() == 0)
+            return;
+        for(int i = 0; i < poly.size()/2; i++)
+        {
+            Point3d tmp = poly.get(i);
+            poly.set(i, poly.get(poly.size()-1-i));
+            poly.set(poly.size()-1-i, tmp);
+        }
+    }
+
 
     private Polygon make2DSquare(boolean clockwisePolygon)
     {

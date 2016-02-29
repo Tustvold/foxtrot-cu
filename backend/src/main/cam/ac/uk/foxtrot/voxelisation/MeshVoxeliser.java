@@ -52,8 +52,8 @@ public class MeshVoxeliser
         telemetry = 0;
         generateBlocks();
 
-        //drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
-        //drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", false);
+        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
+        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", false);
 
         System.out.println("Number of retries: " + telemetry);
     }
@@ -627,6 +627,13 @@ public class MeshVoxeliser
             // block, so we relocate the polygon to the cube 'below' in x
             res.x--;
         }
+        else if (n.x < 0 && areIdentical(res.x + 1, A.x) && areIdentical(res.x + 1, B.x) && areIdentical(res.x + 1, C.x))
+        {
+            // the polygon is in the 1yz plane in the selected blocks coordinate system
+            // and the surface normal is pointing to the inside of the currently selected
+            // block, so we relocate the polygon to the cube 'above' in x
+            res.x++;
+        }
         else if (n.y > 0 && areIdentical(res.y, A.y) && areIdentical(res.y, B.y) && areIdentical(res.y, C.y))
         {
             // the polygon is in the x0z plane in the selected blocks coordinate system
@@ -634,12 +641,26 @@ public class MeshVoxeliser
             // block, so we relocate the polygon to the cube 'below' in y
             res.y--;
         }
+        else if (n.y < 0 && areIdentical(res.y + 1, A.y) && areIdentical(res.y + 1, B.y) && areIdentical(res.y + 1, C.y))
+        {
+            // the polygon is in the x1z plane in the selected blocks coordinate system
+            // and the surface normal is pointing to the inside of the currently selected
+            // block, so we relocate the polygon to the cube 'above' in y
+            res.y++;
+        }
         else if (n.z > 0 && areIdentical(res.z, A.z) && areIdentical(res.z, B.z) && areIdentical(res.z, C.z))
         {
             // the polygon is in the xy0 plane in the selected blocks coordinate system
             // and the surface normal is pointing to the inside of the currently selected
             // block, so we relocate the polygon to the cube 'below' in z
             res.z--;
+        }
+        else if (n.z < 0 && areIdentical(res.z + 1, A.z) && areIdentical(res.z + 1, B.z) && areIdentical(res.z + 1, C.z))
+        {
+            // the polygon is in the xy1 plane in the selected blocks coordinate system
+            // and the surface normal is pointing to the inside of the currently selected
+            // block, so we relocate the polygon to the cube 'above' in z
+            res.z++;
         }
         return res;
     }
