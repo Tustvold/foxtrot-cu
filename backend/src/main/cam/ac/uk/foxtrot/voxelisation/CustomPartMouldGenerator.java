@@ -318,7 +318,7 @@ public class CustomPartMouldGenerator
         ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, ProjectionUtils.ProjectionFace.XY1, ProjectionUtils.reverseWindingOrder(combinedPolygons), MOULD_DEPTH);
 
         // add the polygons representing holes to the top of the mould
-    pr    for (Point3d[] hole : projectionHoles)
+        for (Point3d[] hole : projectionHoles)
         {
             Collections.addAll(coordinates, hole);
             stripCounts.add(hole.length);

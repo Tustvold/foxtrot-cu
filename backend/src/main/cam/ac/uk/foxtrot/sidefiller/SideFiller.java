@@ -3,14 +3,12 @@ package cam.ac.uk.foxtrot.sidefiller;
 import cam.ac.uk.foxtrot.voxelisation.Block;
 import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
 import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.jmx.remote.internal.ArrayQueue;
 
 import javax.media.j3d.GeometryArray;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class SideFiller
