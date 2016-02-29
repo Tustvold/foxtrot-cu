@@ -76,3 +76,4 @@ node_modules
 backend/output/
 # Ignore backend testing output
 backend/testing/output/
+backend/lib/*
