@@ -315,10 +315,10 @@ public class CustomPartMouldGenerator
         addFlatMouldFaces(coordinates, stripCounts, contourCounts);
 
         // prepare and add the polygons (with holes omitted) at depth
-        ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, ProjectionUtils.ProjectionFace.XY1, combinedPolygons, MOULD_DEPTH);
+        ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, ProjectionUtils.ProjectionFace.XY1, ProjectionUtils.reverseWindingOrder(combinedPolygons), MOULD_DEPTH);
 
         // add the polygons representing holes to the top of the mould
-        for (Point3d[] hole : projectionHoles)
+    pr    for (Point3d[] hole : projectionHoles)
         {
             Collections.addAll(coordinates, hole);
             stripCounts.add(hole.length);
