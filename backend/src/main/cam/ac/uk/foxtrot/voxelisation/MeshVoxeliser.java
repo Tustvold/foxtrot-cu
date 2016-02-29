@@ -52,6 +52,8 @@ public class MeshVoxeliser
         telemetry = 0;
         generateBlocks();
 
+        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", false, 0.2);
+
         System.out.println("Number of retries: " + telemetry);
     }
 
@@ -882,7 +884,7 @@ public class MeshVoxeliser
      * @param filename    name of file to which to write output
      * @param includeGrid if the x0z grid should be included
      */
-    public void drawTrianglesFromBlocks(String filename, boolean includeGrid)
+    public void drawTrianglesFromBlocks(String filename, boolean includeGrid, double spacing)
     {
         System.out.println("Preparing the sliced output...");
         Writer writer = null;
@@ -910,9 +912,9 @@ public class MeshVoxeliser
                     {
                         try
                         {
-                            writer.write("v " + (triangles.get(i).x + x) + " "
+                            writer.write("v " + (triangles.get(i).x + x + x * spacing) + " "
                                     + (triangles.get(i).y) + " "
-                                    + (triangles.get(i).z + z) + "\n");
+                                    + (triangles.get(i).z + z + z * spacing) + "\n");
 
                         } catch (IOException err)
                         {
@@ -932,9 +934,9 @@ public class MeshVoxeliser
                     {
                         try
                         {
-                            writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x) + " "
-                                    + (triangles.get(i).y + blocks[x][y][z].getPosition().y) + " "
-                                    + (triangles.get(i).z + blocks[x][y][z].getPosition().z) + "\n");
+                            writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x * (1 + spacing)) + " "
+                                    + (triangles.get(i).y + blocks[x][y][z].getPosition().y * (1 + spacing)) + " "
+                                    + (triangles.get(i).z + blocks[x][y][z].getPosition().z * (1 + spacing)) + "\n");
 
                         } catch (IOException err)
                         {

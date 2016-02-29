@@ -42,9 +42,9 @@ public class SideFillerTest
         block.addTriangles(points);
         blocks[0][0][0] = block;
         SideFiller filler = new SideFiller(blocks);
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_before.obj", false);
+        filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_before.obj", false, 0.0);
         filler.fillAllSides(); // fill the top and bottom side of z
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_after.obj", false);
+        filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_after.obj", false, 0.0);
     }
 
     @Test
@@ -120,9 +120,9 @@ public class SideFillerTest
 
         block.addTriangles(points);
         SideFiller filler = new SideFiller(blocks);
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_all_before.obj", false);
+        filler.drawTrianglesFromBlocks("testing/output/filler_test_all_before.obj", false, 0.0);
         filler.fillAllSides(); // fill the top and bottom side of z
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_all_after.obj", false);
+        filler.drawTrianglesFromBlocks("testing/output/filler_test_all_after.obj", false, 0.0);
     }
 
     private ArrayList<Point3d> createTriangle(double Ax, double Ay, double Bx, double By, double Cx, double Cy, int ignore, int h)
