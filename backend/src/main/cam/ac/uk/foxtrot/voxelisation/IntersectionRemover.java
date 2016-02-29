@@ -225,8 +225,7 @@ public class IntersectionRemover
             Polygon poly = new Polygon();
             for(int j = 0; j < unsortedPolygons.get(i).length; j++)
                 poly.addPoint(new Point2d(unsortedPolygons.get(i)[j].x,unsortedPolygons.get(i)[j].y));
-            if(poly.getSize() > 2)
-                polygons.add(poly);
+            polygons.add(poly);
         }
 
         // set the needed intial parameters
@@ -249,10 +248,6 @@ public class IntersectionRemover
         for (int i = 0; i < polyCnt; i++)
         {
             Polygon prev = polygons.get(i);
-            if(MeshVoxeliser.areIdentical(prev.getVolume(), 0))
-            {
-                continue;
-            }
             if (!prev.wasVisited())
             {
                 prev.visit();
