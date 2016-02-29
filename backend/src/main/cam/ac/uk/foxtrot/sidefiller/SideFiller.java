@@ -73,7 +73,7 @@ public class SideFiller
      */
     public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)
     {
-        // checks for adjacency with full block
+        // checks for adjacency with full block or empty block
         // -------------------------------------------------------------------------------------------------------------
         int diff, h;
         if (top) diff = 1;
@@ -100,6 +100,12 @@ public class SideFiller
         {
             // the side is adjacent to a full block, so we just return two triangles representing this side
             return makeSquare(ignore, h);
+        }
+        else if (!isInGrid(adjacent)
+                || blocks[adjacent.x][adjacent.y][adjacent.z] == null)
+        {
+            // the side is adjacent to an empty block, so we return nothing
+            return new ArrayList<>();
         }
         // -------------------------------------------------------------------------------------------------------------
 
@@ -494,7 +500,7 @@ public class SideFiller
         if (topHolesExist && !topFacesExist)
         {
             // the square is needed, so we add it
-            Polygon square = make2DSquare(clockwisePolygon);
+            Polygon square = make2DSquare(clockwisePolygon, ignore);
             for (int i = 0; i < polyCnt; i++)
             {
                 Polygon curr = polygons.get(i);
@@ -789,11 +795,7 @@ public class SideFiller
         pt[(ignore + 1) % 3] = 1;
         pt[(ignore + 2) % 3] = 1;
         square.add(new Point3d(pt));
-/*
-        square.add(new Point3d(0, 0, 1));
-        square.add(new Point3d(0, 0, 0));
-        square.add(new Point3d(1, 0, 1));
-*/
+
         //xz02
         pt = new double[3];
         pt[ignore] = h;
@@ -810,18 +812,28 @@ public class SideFiller
         pt[(ignore + 1) % 3] = 1;
         pt[(ignore + 2) % 3] = 0;
         square.add(new Point3d(pt));
-/*
-        square.add(new Point3d(1, 0, 1));
-        square.add(new Point3d(0, 0, 0));
-        square.add(new Point3d(1, 0, 0));
-*/
+
         if (h == 0)
         {
+            reversePolygon(square);
         }
         return square;
     }
 
-    private Polygon make2DSquare(boolean clockwisePolygon)
+    private void reversePolygon(ArrayList<Point3d> poly)
+    {
+        if(poly.size() == 0)
+            return;
+        for(int i = 0; i < poly.size()/2; i++)
+        {
+            Point3d tmp = poly.get(i);
+            poly.set(i, poly.get(poly.size()-1-i));
+            poly.set(poly.size()-1-i, tmp);
+        }
+    }
+
+
+    private Polygon make2DSquare(boolean clockwisePolygon, int ignore)
     {
         Polygon square = new Polygon();
         if (clockwisePolygon)

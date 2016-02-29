@@ -84,7 +84,7 @@ public class Polygon
         for (int i = 1; i < cnt; i++)
         {
             Point2d curr = points.get(i);
-            if (curr.x < botlef.x && curr.y < botlef.y)
+            if (curr.x <= botlef.x && curr.y <= botlef.y)
             {
                 botlef = curr;
                 idx = i;
