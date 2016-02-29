@@ -52,9 +52,6 @@ public class MeshVoxeliser
         telemetry = 0;
         generateBlocks();
 
-        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", true);
-        drawVoxelsOnly("testing/output/mesh_internal_voxels.obj", false);
-
         System.out.println("Number of retries: " + telemetry);
     }
 
@@ -172,8 +169,6 @@ public class MeshVoxeliser
             initTrigs.get(i).z += meshOffset.z;
         }
         mesh.setTriangles(initTrigs);
-        // TESTING METHOD!!!
-        // mesh.drawTriangles("testing/output/mesh_centered.obj");
         System.out.println("Mesh shifted...");
     }
 

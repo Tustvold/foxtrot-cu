@@ -54,23 +54,14 @@ public class SideFiller
 
                     for (int ignore = 0; ignore < 3; ignore++)
                     {
-                        if (x == 6 && y == 18 && z == 7 && ignore == 0)
-                        {
-                            drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/before_filling.obj");
-                        }
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
                         newTriangles.addAll(fillSingleSide(x, y, z, ignore, false));
                     }
                     blocks[x][y][z].addTriangles(newTriangles); // add all the newly created triangles
                     blocks[x][y][z].setInternalDim(); // determine the internal dimensions of the block
-                    if (x == 6 && y == 18 && z == 7)
-                    {
-                        drawTriangles(blocks[x][y][z].getTriangles(), "testing/output/after_filling.obj");
-                    }
                 }
             }
         }
-        drawTrianglesFromBlocks("testing/output/sliced_and_diced.obj", false);
     }
 
     /**
@@ -509,7 +500,7 @@ public class SideFiller
         if (topHolesExist && !topFacesExist)
         {
             // the square is needed, so we add it
-            Polygon square = make2DSquare(clockwisePolygon);
+            Polygon square = make2DSquare(clockwisePolygon, ignore);
             for (int i = 0; i < polyCnt; i++)
             {
                 Polygon curr = polygons.get(i);
@@ -842,7 +833,7 @@ public class SideFiller
     }
 
 
-    private Polygon make2DSquare(boolean clockwisePolygon)
+    private Polygon make2DSquare(boolean clockwisePolygon, int ignore)
     {
         Polygon square = new Polygon();
         if (clockwisePolygon)
