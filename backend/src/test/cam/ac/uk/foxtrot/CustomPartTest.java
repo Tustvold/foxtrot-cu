@@ -59,49 +59,6 @@ public class CustomPartTest {
     }
 
     @Test
-    public void testRandom() {
-        Block block = new Block(new Point3d(0,0,0), true);
-        int NUM_PTS = 9;
-        Point3d[] points = new Point3d[NUM_PTS];
-        double[] point = new double[3];
-        for (int i = 0; i < NUM_PTS; i++) {
-            point[0] = Math.random();
-            point[1] = Math.random();
-            point[2] = Math.random();
-            points[i] = new Point3d(point);
-            if(i % 3 == 2)
-                block.addTriangle(points[i-2],points[i-1],points[i]);
-        }
-        double[] dim = {0,0,0,1,1,1};
-        block.modifInternalDim(dim);
-
-        Random r = new Random();
-        int face = r.nextInt()%3;
-        CustomPartGenerator pg = new CustomPartGenerator(block);
-        CustomPart p = pg.generateCustomPart(face);
-        ProjectionUtils.generateObjFile(p.getTriangles(), new File("testing/output/", "randPart.obj"), 35);
-        CustomPartMouldGenerator m = new CustomPartMouldGenerator(points, 35, dim);
-        m.generateMould(face, new File("testing/output/","randMould.obj"));
-    }
-
-    @Test
-    public void testEmpty() {
-        Block block = new Block(new Point3d(0,0,0), true);
-        Point3d[] points = new Point3d[0];
-        double scale = 35;
-        double[] dim = {0,0,0,1,1,1};
-        block.modifInternalDim(dim);
-
-        Random r = new Random();
-        int face = r.nextInt()%3;
-        CustomPartGenerator pg = new CustomPartGenerator(block);
-        CustomPart p = pg.generateCustomPart(face);
-        ProjectionUtils.generateObjFile(p.getTriangles(), new File("testing/output/", "emptyPart.obj"), scale);
-        CustomPartMouldGenerator m = new CustomPartMouldGenerator(points, 35, dim);
-        m.generateMould(face, new File("testing/output/","emptyMould.obj"));
-    }
-
-    @Test
     public void testOdd()
     {
         Block[][][] blocks = new Block[1][1][1];
