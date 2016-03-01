@@ -230,49 +230,4 @@ public class Block
     {
         return customPartIndex;
     }
-
-    public void drawBlock(String filename)
-    {
-        System.out.println("Drawing single block...");
-        Writer writer = null;
-
-        try
-        {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
-        } catch (IOException ex)
-        {
-            System.err.println(ex.getMessage());
-        }
-
-        int totalTriangles = 0;
-
-        for (int i = 0; i < triangleCnt * 3; i++)
-        {
-            try
-            {
-                Point3d currPt = triangles.get(i);
-                writer.write("v " + currPt.x + " " + currPt.y + " " + currPt.z + "\n");
-            } catch (IOException err)
-            {
-                System.err.println("Could not write vertex: " + err.getMessage());
-            }
-        }
-
-        for (int i = 1; i < triangleCnt * 3; i += 3)
-        {
-            try
-            {
-                writer.write("f " + i + " " + (i + 1) + " " + (i + 2) + "\n");
-            } catch (IOException err)
-            {
-                System.err.println("Could not write triangle: " + err.getMessage());
-            }
-        }
-        try
-        {
-            writer.close();
-        } catch (Exception ex)
-        {/*ignore*/}
-        System.out.println("Done...");
-    }
 }

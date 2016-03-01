@@ -132,7 +132,7 @@ public class CustomPartTest {
         block.addTriangles(points);
         SideFiller filler = new SideFiller(blocks);
         filler.fillAllSides(); // fill the top and bottom side of z
-        filler.drawTrianglesFromBlocks("testing/output/custom_part_test_odd_before.obj", false, 0.0);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/custom_part_test_odd_before.obj", false, 0.0, 0);
         block = blocks[0][0][0];
         block.setInternalDim();
 
@@ -187,7 +187,7 @@ public class CustomPartTest {
         block.addTriangles(points);
         SideFiller filler = new SideFiller(blocks);
         filler.fillAllSides(); // fill the top and bottom side of z
-        filler.drawTrianglesFromBlocks("testing/output/custom_part_test_faces_before.obj", false, 0.0);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/custom_part_test_faces_before.obj", false, 0.0, 0);
         block = blocks[0][0][0];
         block.setInternalDim();
 

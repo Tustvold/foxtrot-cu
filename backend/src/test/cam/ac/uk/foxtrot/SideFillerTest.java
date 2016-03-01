@@ -2,10 +2,7 @@ package cam.ac.uk.foxtrot;
 
 import cam.ac.uk.foxtrot.sidefiller.Polygon;
 import cam.ac.uk.foxtrot.sidefiller.SideFiller;
-import cam.ac.uk.foxtrot.voxelisation.Block;
-import cam.ac.uk.foxtrot.voxelisation.Mesh;
-import cam.ac.uk.foxtrot.voxelisation.MeshIO;
-import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
+import cam.ac.uk.foxtrot.voxelisation.*;
 import org.junit.Test;
 
 import javax.vecmath.Point2d;
@@ -47,9 +44,9 @@ public class SideFillerTest
         block.addTriangles(points);
         blocks[0][0][0] = block;
         SideFiller filler = new SideFiller(blocks);
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_before.obj", false, 0.0);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/filler_test_hole_and_rectangle_before.obj", false, .0, 0);
         filler.fillAllSides(); // fill the top and bottom side of z
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_hole_and_rectangle_after.obj", false, 0.0);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/filler_test_hole_and_rectangle_after.obj", false, .0, 0);
     }
 
     @Test
@@ -125,9 +122,9 @@ public class SideFillerTest
 
         block.addTriangles(points);
         SideFiller filler = new SideFiller(blocks);
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_all_before.obj", false, 0.0);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/filler_test_all_before.obj", false, .5, 0);
         filler.fillAllSides(); // fill the top and bottom side of z
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_all_after.obj", false, 0.0);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/filler_test_all_after.obj", false, .5, 0);
     }
 
     @Test
@@ -152,9 +149,9 @@ public class SideFillerTest
 
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_intrusion_before.obj", false, .5);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/filler_test_intrusion_before.obj", false, .5, 0);
         filler.fillAllSides();
-        filler.drawTrianglesFromBlocks("testing/output/filler_test_intrusion_after.obj", false, .5);
+        DrawingUtilities.drawBlocks(blocks,"testing/output/filler_test_intrusion_after.obj", false, .5, 0);
     }
 
 

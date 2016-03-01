@@ -1,6 +1,7 @@
 package cam.ac.uk.foxtrot.sidefiller;
 
 import cam.ac.uk.foxtrot.voxelisation.Block;
+import cam.ac.uk.foxtrot.voxelisation.DrawingUtilities;
 import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import javafx.util.Pair;
@@ -176,7 +177,7 @@ public class SideFiller
                 already_covered += area;
             }
         }
-        if (initPoints.size() <= 1)
+        if (initPoints.size() == 0)
         {
             if (isInGrid(adjacent)
                     && blocks[adjacent.x][adjacent.y][adjacent.z] != null
@@ -809,11 +810,7 @@ public class SideFiller
     }
 
     /**
-     * Returns a outside facing square on the given side
-     *
-     * @param ignore
-     * @param h
-     * @return
+     * Returns a outside facing square on the given side.
      */
     private ArrayList<Point3d> makeSquare(int ignore, double h)
     {
@@ -890,162 +887,6 @@ public class SideFiller
             square.addPoint(new Point2d(1, 0));
         }
         square.setParameters(clockwisePolygon);
-        return square;
-    }
-
-    /**
-     * DEBUGGING and TESTING method!
-     * Outputs a .obj file representing the current mesh subdivision within the block matrix.
-     *
-     * @param filename    name of file to which to write output
-     * @param includeGrid if the x0z grid should be included
-     */
-    public void drawTrianglesFromBlocks(String filename, boolean includeGrid, double spacing)
-    {
-        System.out.println("Preparing the sliced output...");
-        Writer writer = null;
-
-        try
-        {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
-        } catch (IOException ex)
-        {
-            //System.err.println(ex.getMessage());
-            return;
-        }
-
-        int totalTriangles = 0;
-
-        for (int x = 0; x < dim[0]; x++)
-        {
-            for (int z = 0; z < dim[2]; z++)
-            {
-                if (includeGrid)
-                {
-                    ArrayList<Point3d> triangles = makeHorizontalSquare();
-                    totalTriangles += triangles.size() / 3;
-                    for (int i = 0; i < triangles.size(); i++)
-                    {
-                        try
-                        {
-                            writer.write("v " + (triangles.get(i).x + x + x * spacing) + " "
-                                    + (triangles.get(i).y) + " "
-                                    + (triangles.get(i).z + z + z * spacing) + "\n");
-
-                        } catch (IOException err)
-                        {
-                            System.err.println("Could not write blocks: " + err.getMessage());
-                        }
-                    }
-                }
-                for (int y = 0; y < dim[1]; y++)
-                {
-                    if (blocks[x][y][z] == null || !blocks[x][y][z].isCustom())
-                        continue;
-                    ArrayList<Point3d> triangles = new ArrayList<>(blocks[x][y][z].getTriangles());
-                    //blocks[x][y][z].drawBlock("testing/output/blocks/block_" + x + "_" + y + "_" + z + ".obj");
-
-                    totalTriangles += blocks[x][y][z].getTriangleCount();
-                    for (int i = 0; i < blocks[x][y][z].getTriangleCount() * 3; i++)
-                    {
-                        try
-                        {
-                            writer.write("v " + (triangles.get(i).x + blocks[x][y][z].getPosition().x * (1 + spacing)) + " "
-                                    + (triangles.get(i).y + blocks[x][y][z].getPosition().y * (1 + spacing)) + " "
-                                    + (triangles.get(i).z + blocks[x][y][z].getPosition().z * (1 + spacing)) + "\n");
-
-                        } catch (IOException err)
-                        {
-                            System.err.println("Could not write blocks: " + err.getMessage());
-                        }
-                    }
-                }
-            }
-        }
-
-        for (int i = 1; i <= totalTriangles * 3; i += 3)
-        {
-            try
-            {
-                writer.write("f " + i + " " + (i + 1) + " " + (i + 2) + "\n");
-            } catch (IOException err)
-            {
-                System.err.println("Could not write blocks: " + err.getMessage());
-            }
-        }
-        try
-        {
-            writer.close();
-        } catch (Exception ex)
-        {/*ignore*/}
-        System.out.println("Sliced output created...");
-    }
-
-    public static void drawTriangles(ArrayList<Point3d> trig, String filename)
-    {
-        System.out.println("Drawing triangles...");
-        Writer writer = null;
-
-        try
-        {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
-        } catch (IOException ex)
-        {
-            //System.err.println(ex.getMessage());
-            return;
-        }
-
-        int trianglecnt = trig.size() / 3;
-        for (int i = 0; i < trianglecnt * 3; i++)
-        {
-            try
-            {
-                writer.write("v " + trig.get(i).x + " "
-                        + trig.get(i).y + " "
-                        + trig.get(i).z + "\n");
-
-            } catch (IOException err)
-            {
-                System.err.println("Could not write triangles: " + err.getMessage());
-            }
-        }
-
-        for (int i = 1; i <= trianglecnt * 3; i += 3)
-        {
-            try
-            {
-                writer.write("f " + i + " " + (i + 1) + " " + (i + 2) + "\n");
-            } catch (IOException err)
-            {
-                System.err.println("Could not write triangles: " + err.getMessage());
-            }
-        }
-        try
-        {
-            writer.close();
-        } catch (Exception ex)
-        {/*ignore*/}
-        System.out.println("Triangles drawn...");
-    }
-
-    /**
-     * Creates a horizontal unit square in the xz plane.
-     *
-     * @return list of appropriate triangles
-     */
-    private ArrayList<Point3d> makeHorizontalSquare()
-    {
-        ArrayList<Point3d> square = new ArrayList<>();
-        //xz01
-        square.add(new Point3d(0, 0, 1));
-        square.add(new Point3d(0, 0, 0));
-        square.add(new Point3d(1, 0, 1));
-
-        //xz02
-        square.add(new Point3d(1, 0, 1));
-        square.add(new Point3d(0, 0, 0));
-        square.add(new Point3d(1, 0, 0));
-
         return square;
     }
 }
