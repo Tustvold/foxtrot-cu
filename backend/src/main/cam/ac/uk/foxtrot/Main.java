@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import javafx.geometry.Side;
+import sun.plugin.javascript.navig.Array;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import javax.vecmath.Point3d;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Main
 {
@@ -61,10 +63,17 @@ public class Main
         Point3d InitialCenterOfMass = m.getInitialCM();
         Point3d MeshOffset = m.getOffset();
 
+        // demo output
+        //blocks[1][1][2].drawBlock("testing/output/block_0_mesh_piece.obj");
+
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
         filler.fillAllSides();
         blocks = filler.getBlocks();
+
+        // demo output
+        //blocks[1][1][2].drawBlock("testing/output/block_1_filled.obj");
+
 
         // add custom parts
         ArrayList<Block> sortedBlocks = new ArrayList<>();
@@ -107,6 +116,8 @@ public class Main
                 }
             }
         }
+
+        //SideFiller.drawTriangles(new ArrayList<>(Arrays.asList(blocks[1][1][2].getCustomPart()[0].getTriangles())), "testing/output/block_4_custom_piece.obj");
 
         sortedBlocks.sort((Block o1, Block o2) -> o2.getTriangleCount() - o1.getTriangleCount());
         for (int i = 0; i < sortedBlocks.size() && i < numCustomParts; i++)

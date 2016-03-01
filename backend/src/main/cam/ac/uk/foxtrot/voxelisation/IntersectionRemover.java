@@ -2,6 +2,7 @@ package cam.ac.uk.foxtrot.voxelisation;
 
 import cam.ac.uk.foxtrot.sidefiller.Polygon;
 import cam.ac.uk.foxtrot.sidefiller.SideFiller;
+import javafx.geometry.Side;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
@@ -49,13 +50,25 @@ public class IntersectionRemover
     {
         this.projectionFace = projectionFace;
         ArrayList<Area> triangleList = new ArrayList<>();
+
+        // FOR DEMO
+        //ArrayList<Point3d> output = new ArrayList<>();
+
         convertBetweenPlanes(originalCoordinates);
         if (originalCoordinates.length > 0) {
             z = originalCoordinates[0].z;
         } for(int i = 0; i < originalCoordinates.length; i+=3) { //i,i+1,i+2 vertices of one triangle, iterate through triangles
             Point3d[] points = {originalCoordinates[i],originalCoordinates[i+1],originalCoordinates[i+2]};
             triangleList.add(toArea(points));
+
+            // FOR DEMO
+            //output.add(points[0]);
+            //output.add(points[1]);
+            //output.add(points[2]);
         }
+        // FOR DEMO
+        //SideFiller.drawTriangles(output, "testing/output/block_2_mangled_triangles.obj");
+
         ArrayList<Point3d[]> polygons = generatePolygons(merge(triangleList));
         combinedArray = determinePolygonsAndHoles(polygons).toArray(new Point3dPolygon[0]);
         generateArrays();
@@ -251,6 +264,8 @@ public class IntersectionRemover
             if (!prev.wasVisited())
             {
                 prev.visit();
+                if(prev.getVolume()< MeshVoxeliser.double_tolerance)
+                    continue;
                 Polygon curr;
                 for (int j = i + 1; j < polyCnt; j++)
                 {

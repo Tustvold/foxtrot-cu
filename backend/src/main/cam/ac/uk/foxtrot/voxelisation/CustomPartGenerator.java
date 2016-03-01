@@ -1,11 +1,14 @@
 package cam.ac.uk.foxtrot.voxelisation;
 
 
+import cam.ac.uk.foxtrot.sidefiller.SideFiller;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 
 import javax.media.j3d.GeometryArray;
 import javax.vecmath.Point3d;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class CustomPartGenerator
 {
@@ -88,8 +91,8 @@ public class CustomPartGenerator
      *
      * @param projectTo face index on which to project the custom part
      *                  cases: 0 -> ZY0
-     *                         1 -> ZX0
-     *                         2 -> XY0
+     *                  1 -> ZX0
+     *                  2 -> XY0
      */
     private ProjectionUtils.ProjectionFace getProjectionFace(int projectTo)
     {
@@ -119,8 +122,8 @@ public class CustomPartGenerator
      *
      * @param projectTo face index on which to project the custom part
      *                  cases: 0 -> ZY0
-     *                         1 -> ZX0
-     *                         2 -> XY0
+     *                  1 -> ZX0
+     *                  2 -> XY0
      * @return a CustomPart representing the custom part
      */
     public CustomPart generateCustomPart(int projectTo)
@@ -148,12 +151,16 @@ public class CustomPartGenerator
         Point3d[][] projectionPolygons = ir.getPolygonArray();
         Point3d[][] projectionHoles = ir.getHoleArray();
 
+        // FOR DEMO
+        //drawPolygons(combinedPolygons, "testing/output/block_3_polygons.obj");
+
         // add the polygons (with holes omitted) on the face and at depth
         if (projectTo == 2)
         {
             ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, 0);
             ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, ProjectionUtils.reverseWindingOrder(combinedPolygons), PART_DEPTH);
-        } else
+        }
+        else
         {
             ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, ProjectionUtils.reverseWindingOrder(combinedPolygons), 0);
             ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, PART_DEPTH);
@@ -230,5 +237,74 @@ public class CustomPartGenerator
         }
 
         return projectionCoords;
+    }
+
+
+    public static void drawPolygons(Point3dPolygon[] poly, String filename)
+    {
+        System.out.println("Drawing triangles...");
+        Writer writer = null;
+
+        try
+        {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+        } catch (IOException ex)
+        {
+            //System.err.println(ex.getMessage());
+            return;
+        }
+
+        try
+        {
+            for (int p = 0; p < poly.length; p++)
+            {
+                Point3d[][] holes = poly[p].getHoles();
+                Point3d[] ext = poly[p].getExterior();
+                for (int i = 0; i < ext.length; i++)
+                {
+                    writer.write("v " + ext[i].x + " "
+                            + ext[i].y + " "
+                            + ext[i].z + "\n");
+                }
+                for (int i = 0; i < holes.length; i++)
+                {
+                    for (int j = 0; j < holes[i].length; j++)
+                    {
+                        writer.write("v " + holes[i][j].x + " "
+                                + holes[i][j].y + " "
+                                + holes[i][j].z + "\n");
+                    }
+                }
+            }
+            int cumulative = 1;
+            for (int p = 0; p < poly.length; p++)
+            {
+                Point3d[][] holes = poly[p].getHoles();
+                Point3d[] ext = poly[p].getExterior();
+                writer.write("f");
+                for (int i = 0; i < ext.length; i++)
+                    writer.write(" " + (i + cumulative));
+                writer.write("\n");
+                cumulative += ext.length;
+                for (int i = 0; i < holes.length; i++)
+                {
+                    writer.write("f");
+                    for (int j = 0; j < holes[i].length; j++)
+                        writer.write(" " + (j + cumulative));
+                    writer.write("\n");
+                    cumulative += holes[i].length;
+                }
+            }
+        } catch (IOException err)
+        {
+            System.err.println("Could not write triangles: " + err.getMessage());
+        }
+
+        try
+        {
+            writer.close();
+        } catch (Exception ex)
+        {/*ignore*/}
+        System.out.println("Triangles drawn...");
     }
 }

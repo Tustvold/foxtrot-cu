@@ -941,7 +941,7 @@ public class SideFiller
         System.out.println("Sliced output created...");
     }
 
-    public void drawTriangles(ArrayList<Point3d> trig, String filename)
+    public static void drawTriangles(ArrayList<Point3d> trig, String filename)
     {
         System.out.println("Drawing triangles...");
         Writer writer = null;
