@@ -93,19 +93,6 @@ public class SideFiller
                 adjacent.z += diff;
                 break;
         }
-        if (isInGrid(adjacent)
-                && blocks[adjacent.x][adjacent.y][adjacent.z] != null
-                && !blocks[adjacent.x][adjacent.y][adjacent.z].isCustom())
-        {
-            // the side is adjacent to a full block, so we just return two triangles representing this side
-            return makeSquare(ignore, h);
-        }
-        else if (!isInGrid(adjacent)
-                || blocks[adjacent.x][adjacent.y][adjacent.z] == null)
-        {
-            // the side is adjacent to an empty block, so we return nothing
-            return new ArrayList<>();
-        }
         // -------------------------------------------------------------------------------------------------------------
 
 
@@ -152,10 +139,26 @@ public class SideFiller
                 already_covered += area;
             }
         }
-        if (initPoints.size() == 0)
+        if (initPoints.size() <= 1)
         {
-            // there are no polygons to return, so we just terminate
-            return new ArrayList<>();
+            if (isInGrid(adjacent)
+                    && blocks[adjacent.x][adjacent.y][adjacent.z] != null
+                    && !blocks[adjacent.x][adjacent.y][adjacent.z].isCustom())
+            {
+                // the side is adjacent to a full block, so we just return two triangles representing this side
+                return makeSquare(ignore, h);
+            }
+            else if (!isInGrid(adjacent)
+                    || blocks[adjacent.x][adjacent.y][adjacent.z] == null)
+            {
+                // the side is adjacent to an empty block, so we return nothing
+                return new ArrayList<>();
+            }
+            else
+            {
+                // there are no polygons to return, so we just terminate
+                return new ArrayList<>();
+            }
         }
 
         // sort our points
