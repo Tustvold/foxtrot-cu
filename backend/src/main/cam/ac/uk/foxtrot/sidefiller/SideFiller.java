@@ -57,24 +57,24 @@ public class SideFiller
 
                     // first run which fills all the faces which have points on them, or which are touching
                     // the a full/empty block
-                    for(int i = 0; i < 6; i++)
+                    for (int i = 0; i < 6; i++)
                     {
-                        int ignore = i%3;
-                        int top = i/3;
+                        int ignore = i % 3;
+                        int top = i / 3;
                         Pair<Boolean, ArrayList<Point3d>> res = fillSingleSide(blocks[x][y][z].getTriangles(), x, y, z, ignore, top == 1);
                         decided[i] = res.getKey();
-                        if(decided[i])
+                        if (decided[i])
                         {
                             newTriangles.addAll(res.getValue());
                             filled++;
                         }
                     }
                     // then we check for any left-over full faces
-                    for(int step = 0; step < 2 && filled < 6; step++)
+                    for (int step = 0; step < 2 && filled < 6; step++)
                     {
                         for (int i = 0; i < 6; i++)
                         {
-                            if(decided[i])
+                            if (decided[i])
                                 continue;
 
                             int ignore = i % 3;
@@ -101,10 +101,14 @@ public class SideFiller
     /**
      * Fills a single side of a single block of the block matrix.
      *
+     * @param input  the input array of triangles on which to perform the filling
      * @param ignore the coordinate to ignore (0 -> x, 1 -> y, 2 -> z)
-     * @param top true if the ignore coordinate is 1
+     * @param top    true if the ignore coordinate is 1
+     * @return returns the resulting patch for the side in the form of the Point3d ArrayList and a parameter,
+     *         which is true if any the side is finalised and does not need to be reconsidered in the second
+     *         step of the side filling.
      */
-    public Pair<Boolean, ArrayList<Point3d>> fillSingleSide(ArrayList<Point3d> input,int x, int y, int z, int ignore, boolean top)
+    public Pair<Boolean, ArrayList<Point3d>> fillSingleSide(ArrayList<Point3d> input, int x, int y, int z, int ignore, boolean top)
     {
         // checks for adjacency with full block or empty block
         // -------------------------------------------------------------------------------------------------------------
@@ -250,7 +254,7 @@ public class SideFiller
                 Point realFrom = interPoints.get(currFrom.getInSet());
                 Point realTo = interPoints.get(currTo.getInSet());
 
-                if(realFrom == realTo)
+                if (realFrom == realTo)
                     continue;
 
                 if (realTo.hasNeighbour(realFrom))
@@ -430,14 +434,14 @@ public class SideFiller
         // -------------------------------------------------------------------------------------------------------------
         // first remove the point itself from the adjacency lists, if it happens
         pointCnt = finalPoints.size();
-        for(int i = 0; i < pointCnt; i++)
+        for (int i = 0; i < pointCnt; i++)
         {
             Point curr = finalPoints.get(i);
-            if(curr.getFirstParent() == curr)
+            if (curr.getFirstParent() == curr)
             {
                 curr.removeParent(curr);
             }
-            if(curr.getFirstNeighbour() == curr)
+            if (curr.getFirstNeighbour() == curr)
             {
                 curr.removeNeighbour(curr);
             }
@@ -858,13 +862,13 @@ public class SideFiller
 
     private void reversePolygon(ArrayList<Point3d> poly)
     {
-        if(poly.size() == 0)
+        if (poly.size() == 0)
             return;
-        for(int i = 0; i < poly.size()/2; i++)
+        for (int i = 0; i < poly.size() / 2; i++)
         {
             Point3d tmp = poly.get(i);
-            poly.set(i, poly.get(poly.size()-1-i));
-            poly.set(poly.size()-1-i, tmp);
+            poly.set(i, poly.get(poly.size() - 1 - i));
+            poly.set(poly.size() - 1 - i, tmp);
         }
     }
 
