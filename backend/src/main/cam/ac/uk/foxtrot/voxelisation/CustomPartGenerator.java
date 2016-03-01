@@ -151,9 +151,6 @@ public class CustomPartGenerator
         Point3d[][] projectionPolygons = ir.getPolygonArray();
         Point3d[][] projectionHoles = ir.getHoleArray();
 
-        // FOR DEMO
-        //drawPolygons(combinedPolygons, "testing/output/block_3_polygons.obj");
-
         // add the polygons (with holes omitted) on the face and at depth
         if (projectTo == 2)
         {
@@ -165,7 +162,6 @@ public class CustomPartGenerator
             ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, ProjectionUtils.reverseWindingOrder(combinedPolygons), 0);
             ProjectionUtils.addPolygons(coordinates, stripCounts, contourCounts, face, combinedPolygons, PART_DEPTH);
         }
-
 
         // prepare and add side rectangles for each hole and non-hole
         ProjectionUtils.addSideRectangles(coordinates, stripCounts, contourCounts, face, projectionPolygons, PART_DEPTH);

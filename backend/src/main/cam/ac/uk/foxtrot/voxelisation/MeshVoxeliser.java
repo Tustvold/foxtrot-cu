@@ -52,8 +52,6 @@ public class MeshVoxeliser
         telemetry = 0;
         generateBlocks();
 
-        drawTrianglesFromBlocks("testing/output/mesh_subdivided.obj", false, 0.2);
-
         System.out.println("Number of retries: " + telemetry);
     }
 
