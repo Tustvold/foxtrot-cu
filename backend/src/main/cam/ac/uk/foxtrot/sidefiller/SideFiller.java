@@ -94,6 +94,7 @@ public class SideFiller
                 }
             }
         }
+        drawTrianglesFromBlocks("testing/output/mesh_sliced.obj", false, 0.2);
     }
 
 
