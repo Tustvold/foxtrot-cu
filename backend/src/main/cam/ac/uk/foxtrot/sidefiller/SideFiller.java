@@ -3,8 +3,10 @@ package cam.ac.uk.foxtrot.sidefiller;
 import cam.ac.uk.foxtrot.voxelisation.Block;
 import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
 import com.sun.j3d.utils.geometry.GeometryInfo;
+import javafx.util.Pair;
 
 import javax.media.j3d.GeometryArray;
+import javax.media.j3d.PointArray;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
@@ -50,10 +52,42 @@ public class SideFiller
                     }
                     ArrayList<Point3d> newTriangles = new ArrayList<>();
 
-                    for (int ignore = 0; ignore < 3; ignore++)
+                    boolean[] decided = {false, false, false, false, false, false};
+                    int filled = 0;
+
+                    // first run which fills all the faces which have points on them, or which are touching
+                    // the a full/empty block
+                    for(int i = 0; i < 6; i++)
                     {
-                        newTriangles.addAll(fillSingleSide(x, y, z, ignore, true));
-                        newTriangles.addAll(fillSingleSide(x, y, z, ignore, false));
+                        int ignore = i%3;
+                        int top = i/3;
+                        Pair<Boolean, ArrayList<Point3d>> res = fillSingleSide(blocks[x][y][z].getTriangles(), x, y, z, ignore, top == 1);
+                        decided[i] = res.getKey();
+                        if(decided[i])
+                        {
+                            newTriangles.addAll(res.getValue());
+                            filled++;
+                        }
+                    }
+                    // then we check for any left-over full faces
+                    for(int step = 0; step < 2 && filled < 6; step++)
+                    {
+                        for (int i = 0; i < 6; i++)
+                        {
+                            if(decided[i])
+                                continue;
+
+                            int ignore = i % 3;
+                            int top = i / 3;
+
+                            Pair<Boolean, ArrayList<Point3d>> res = fillSingleSide(newTriangles, x, y, z, ignore, top == 1);
+                            decided[i] = res.getKey();
+                            if (decided[i])
+                            {
+                                newTriangles.addAll(res.getValue());
+                                filled++;
+                            }
+                        }
                     }
                     blocks[x][y][z].addTriangles(newTriangles); // add all the newly created triangles
                     blocks[x][y][z].setInternalDim(); // determine the internal dimensions of the block
@@ -63,14 +97,14 @@ public class SideFiller
         drawTrianglesFromBlocks("testing/output/mesh_sliced.obj", false, 0.2);
     }
 
+
     /**
      * Fills a single side of a single block of the block matrix.
      *
      * @param ignore the coordinate to ignore (0 -> x, 1 -> y, 2 -> z)
      * @param top true if the ignore coordinate is 1
-     * @return
      */
-    public ArrayList<Point3d> fillSingleSide(int x, int y, int z, int ignore, boolean top)
+    public Pair<Boolean, ArrayList<Point3d>> fillSingleSide(ArrayList<Point3d> input,int x, int y, int z, int ignore, boolean top)
     {
         // checks for adjacency with full block or empty block
         // -------------------------------------------------------------------------------------------------------------
@@ -99,7 +133,7 @@ public class SideFiller
         // create the appropriate polygons on the given side
         // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         Block block = blocks[x][y][z];
-        ArrayList<Point3d> triangles = block.getTriangles();          // all of the triangles from the block
+        ArrayList<Point3d> triangles = input; //block.getTriangles();          // all of the triangles from the block
         ArrayList<Point> initPoints = new ArrayList<>();              // the initial set of points on the face
         ArrayList<Point> interPoints = new ArrayList<>();             // the new set of with no duplicate points
         ArrayList<Point> finalPoints = new ArrayList<>();             // the final points with triangles eroded
@@ -146,18 +180,18 @@ public class SideFiller
                     && !blocks[adjacent.x][adjacent.y][adjacent.z].isCustom())
             {
                 // the side is adjacent to a full block, so we just return two triangles representing this side
-                return makeSquare(ignore, h);
+                return new Pair<>(true, makeSquare(ignore, h));
             }
             else if (!isInGrid(adjacent)
                     || blocks[adjacent.x][adjacent.y][adjacent.z] == null)
             {
                 // the side is adjacent to an empty block, so we return nothing
-                return new ArrayList<>();
+                return new Pair<>(true, new ArrayList<>());
             }
             else
             {
                 // there are no polygons to return, so we just terminate
-                return new ArrayList<>();
+                return new Pair<>(false, new ArrayList<>());
             }
         }
 
@@ -412,7 +446,7 @@ public class SideFiller
         // continue to the actual polygon extraction
         if (pointCnt < 3)
         {
-            return new ArrayList<>();
+            return new Pair<>(true, new ArrayList<>());
         }
         for (int i = 0; i < pointCnt; i++)
         {
@@ -447,7 +481,7 @@ public class SideFiller
         if (polyCnt <= 0)
         {
             // no polygons need to be added
-            return new ArrayList<>();
+            return new Pair<>(true, new ArrayList<>());
         }
         for (int i = 0; i < polyCnt; i++)
         {
@@ -517,7 +551,7 @@ public class SideFiller
         else if (topHolesExist && topFacesExist)
         {
             // something is wrong with the mesh return empty
-            return new ArrayList<>();
+            return new Pair<>(true, null);
         }
 
         // finally prepare grounds for the triangulation
@@ -585,7 +619,7 @@ public class SideFiller
             returnPoints.add(new Point3d(pts[i]));
         }
 
-        return returnPoints;
+        return new Pair<>(true, returnPoints);
         // -------------------------------------------------------------------------------------------------------------
     }
 

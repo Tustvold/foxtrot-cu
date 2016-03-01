@@ -144,21 +144,12 @@ public class SideFillerTest
             System.err.println("Loading failed:" + error.getMessage());
             return;
         }
-        if (tri == null || tri.size() == 0)
-        {
-            System.err.println("Loading failed: Input file is empty!");
-            return;
-        }
-        if (tri.size() % 3 != 0)
-        {
-            System.err.println("Loading failed: Input file is malformed!");
-            return;
-        }
+
         Mesh m = new Mesh(tri, 800);
         // voxelise it
         MeshVoxeliser voxeliser = new MeshVoxeliser(m);
         Block[][][] blocks = voxeliser.getBlocks();
-        
+
         // fill in the missing sides
         SideFiller filler = new SideFiller(blocks);
         filler.drawTrianglesFromBlocks("testing/output/filler_test_intrusion_before.obj", false, .5);
