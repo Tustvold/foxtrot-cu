@@ -1,11 +1,16 @@
 package cam.ac.uk.foxtrot;
 
+import cam.ac.uk.foxtrot.sidefiller.Polygon;
 import cam.ac.uk.foxtrot.sidefiller.SideFiller;
 import cam.ac.uk.foxtrot.voxelisation.Block;
+import cam.ac.uk.foxtrot.voxelisation.Mesh;
+import cam.ac.uk.foxtrot.voxelisation.MeshIO;
+import cam.ac.uk.foxtrot.voxelisation.MeshVoxeliser;
 import org.junit.Test;
 
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -125,6 +130,43 @@ public class SideFillerTest
         filler.drawTrianglesFromBlocks("testing/output/filler_test_all_after.obj", false, 0.0);
     }
 
+    @Test
+    public void testIntrusion()
+    {
+        // input the mesh
+        MeshIO meshIO = new MeshIO();
+        ArrayList<Point3d> tri;
+        try
+        {
+            tri = meshIO.getTriangles("testing/input/Gear.obj");
+        } catch (IOException error)
+        {
+            System.err.println("Loading failed:" + error.getMessage());
+            return;
+        }
+        if (tri == null || tri.size() == 0)
+        {
+            System.err.println("Loading failed: Input file is empty!");
+            return;
+        }
+        if (tri.size() % 3 != 0)
+        {
+            System.err.println("Loading failed: Input file is malformed!");
+            return;
+        }
+        Mesh m = new Mesh(tri, 800);
+        // voxelise it
+        MeshVoxeliser voxeliser = new MeshVoxeliser(m);
+        Block[][][] blocks = voxeliser.getBlocks();
+        
+        // fill in the missing sides
+        SideFiller filler = new SideFiller(blocks);
+        filler.drawTrianglesFromBlocks("testing/output/filler_test_intrusion_before.obj", false, .5);
+        filler.fillAllSides();
+        filler.drawTrianglesFromBlocks("testing/output/filler_test_intrusion_after.obj", false, .5);
+    }
+
+
     private ArrayList<Point3d> createTriangle(double Ax, double Ay, double Bx, double By, double Cx, double Cy, int ignore, int h)
     {
         ArrayList<Point3d> rectangle = new ArrayList<>();
@@ -192,4 +234,34 @@ public class SideFillerTest
 
         return rectangle;
     }
+
+    private Point3d makePoint(Point2d point, int h, int ignore)
+    {
+        double[] res = new double[3];
+        res[ignore] = h;
+        res[(ignore+1)%3] = point.x;
+        res[(ignore+2)%3] = point.y;
+        return new Point3d(res);
+    }
+
+    private ArrayList<Point3d> makeSquare(int h, int ignore)
+    {
+        ArrayList<Point3d> square = new ArrayList<>();
+        if (h == 0)
+        {
+            square.add(makePoint(new Point2d(0, 0), h, ignore));
+            square.add(makePoint(new Point2d(1, 0), h, ignore));
+            square.add(makePoint(new Point2d(1, 1), h, ignore));
+            square.add(makePoint(new Point2d(0, 1), h, ignore));
+        }
+        else if(h == 1)
+        {
+            square.add(makePoint(new Point2d(0, 0), h, ignore));
+            square.add(makePoint(new Point2d(0, 1), h, ignore));
+            square.add(makePoint(new Point2d(1, 1), h, ignore));
+            square.add(makePoint(new Point2d(1, 0), h, ignore));
+        }
+        return square;
+    }
+
 }
